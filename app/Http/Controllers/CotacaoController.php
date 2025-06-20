@@ -18,25 +18,44 @@ class CotacaoController extends Controller
     }
 
     public function create()
-    {
-        $corretoras = \App\Models\Corretora::all();
-        return view('cotacoes.create', compact('corretoras'));
-    }
+{
+    $corretoras = \App\Models\Corretora::all();
+    $produtos = \App\Models\Produto::all();
+    return view('cotacoes.create', compact('corretoras', 'produtos'));
+}
+
 
     public function store(Request $request)
 {
     $validated = $request->validate([
         'corretora_id' => 'required|exists:corretoras,id',
-        'produto' => 'required|string|max:255',
+        'produto_id' => 'required|exists:produtos,id',
+        'observacoes' => 'nullable|string',
     ]);
 
-    $cotacao = \App\Models\Cotacao::create($validated);
+    $cotacao = Cotacao::create($validated);
 
-    // Por enquanto, mostra todas as seguradoras (vamos filtrar depois)
-    $seguradorasDisponiveis = \App\Models\Seguradora::all();
+    // Buscar as seguradoras que têm vínculo com a corretora
+    $seguradorasDaCorretora = \DB::table('corretora_seguradora')
+        ->where('corretora_id', $validated['corretora_id'])
+        ->pluck('seguradora_id');
 
-    return view('cotacoes.show_seguradoras', compact('cotacao', 'seguradorasDisponiveis'));
+    // Buscar as seguradoras que oferecem o produto
+    $seguradorasComProduto = \DB::table('seguradora_produto')
+        ->where('produto_id', $validated['produto_id'])
+        ->pluck('seguradora_id');
+
+    // Interseção entre as duas listas
+    $seguradorasIds = $seguradorasDaCorretora->intersect($seguradorasComProduto);
+
+    // Carrega os dados das seguradoras filtradas
+    $seguradoras = \App\Models\Seguradora::whereIn('id', $seguradorasIds)->get();
+
+    return view('cotacoes.resultado', compact('cotacao', 'seguradoras'));
 }
+
+
+
 
 
 }

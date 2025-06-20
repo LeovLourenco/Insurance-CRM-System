@@ -9,10 +9,16 @@ class Cotacao extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['corretora_id', 'produto'];
+    protected $fillable = ['corretora_id', 'produto_id', 'observacoes'];
 
     public function corretora()
     {
         return $this->belongsTo(Corretora::class);
     }
+
+    public function produto()
+    {
+        return $this->belongsTo(Produto::class);
+    }
 }
+

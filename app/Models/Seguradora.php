@@ -13,4 +13,13 @@ class Seguradora extends Model
     {
         return $this->hasMany(Vinculo::class);
     }
+    public function produtos()
+    {
+        return $this->belongsToMany(Produto::class, 'seguradora_produto');
+    }
+    public function corretoras()
+    {
+        return $this->belongsToMany(Corretora::class, 'corretora_seguradora');
+    }
+
 }

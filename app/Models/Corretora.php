@@ -17,5 +17,9 @@ class Corretora extends Model
     {
         return $this->hasMany(Cotacao::class);
     }
+    public function seguradoras()
+    {
+        return $this->belongsToMany(Seguradora::class, 'corretora_seguradora');
+    }
 
 }
