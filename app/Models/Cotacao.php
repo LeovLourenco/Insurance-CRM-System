@@ -9,7 +9,7 @@ class Cotacao extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['corretora_id', 'produto_id', 'observacoes'];
+    protected $fillable = ['corretora_id', 'produto_id', 'seguradora_id', 'observacoes'];
 
     public function corretora()
     {
@@ -19,6 +19,10 @@ class Cotacao extends Model
     public function produto()
     {
         return $this->belongsTo(Produto::class);
+    }
+    public function atividades()
+    {
+        return $this->hasMany(AtividadeCotacao::class);
     }
 }
 
