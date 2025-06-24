@@ -19,7 +19,7 @@ class Produto extends Model
     }
     public function seguradoras()
     {
-        return $this->belongsToMany(Seguradora::class, 'seguradora_produto');
+        return $this->belongsToMany(Seguradora::class, 'seguradora_produto', 'produto_id', 'seguradora_id');
     }
 
 

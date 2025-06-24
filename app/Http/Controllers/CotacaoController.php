@@ -9,6 +9,7 @@ use App\Models\Produto;
 use App\Models\Seguradora;
 use App\Models\Vinculo;
 use App\Models\AtividadeCotacao;
+use App\Models\Segurado;
 
 class CotacaoController extends Controller
 {
@@ -37,10 +38,11 @@ class CotacaoController extends Controller
     $corretoras = Corretora::all();
     $produtos = Produto::all();
     $seguradoras = Seguradora::all();
+    $segurados = Segurado::all();
 
     return view('cotacoes.create', compact(
         'corretoras', 'produtos', 'seguradoras',
-        'corretoraId', 'produtoId', 'seguradoraId'
+        'corretoraId', 'produtoId', 'seguradoraId', 'segurados'
     ));
 }
 
@@ -53,6 +55,8 @@ class CotacaoController extends Controller
         'produto_id' => 'required|exists:produtos,id',
         'seguradora_id' => 'required|exists:seguradoras,id',
         'observacoes' => 'nullable|string',
+        'segurado_id' => 'required|exists:segurados,id',
+        'status' => 'required|string|max255',
     ]);
 
     // Criar a cotação com os dados validados
@@ -86,5 +90,6 @@ class CotacaoController extends Controller
 
     // Retornar a view com os dados necessários
     return view('cotacoes.resultado', compact('cotacao', 'seguradoras'));
+    
 }
 }

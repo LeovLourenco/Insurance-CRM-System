@@ -5,6 +5,9 @@ use App\Http\Controllers\VinculoController;
 use App\Http\Controllers\CotacaoController;
 use App\Http\Controllers\ConsultaController;
 use App\Http\Controllers\Usuarios\UsuarioController;
+use App\Http\Controllers\SeguradoController;
+use App\Http\Controllers\CorretoraController;
+use App\Http\Controllers\SeguradoraController;
 use Illuminate\Support\Facades\Auth;
 
 // Página inicial pública
@@ -34,9 +37,20 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/consultas/seguros', [ConsultaController::class, 'index'])->name('consultas.seguros');
     Route::post('/consultas/seguros', [ConsultaController::class, 'buscar'])->name('consultas.buscar');
 
+    
     // rota para perfil do usuario
-
     Route::get('/usuario/perfil', [UsuarioController::class, 'perfil'])->name('usuario.perfil')->middleware('auth');
     Route::put('/usuario/perfil', [UsuarioController::class, 'atualizar'])->name('usuario.atualizar')->middleware('auth');
+
+    // Rotas de cadastros - ADICIONE TODAS ESTAS
+    Route::post('/segurados', [SeguradoController::class, 'store'])->name('segurados.store');
+    Route::post('/corretoras', [CorretoraController::class, 'store'])->name('corretoras.store');
+    Route::post('/seguradoras', [SeguradoraController::class, 'store'])->name('seguradoras.store');
+    
+    Route::get('/cadastro', function () {
+        $seguradoras = \App\Models\Seguradora::all();
+        $produtos = \App\Models\Produto::all();
+        return view('cadastro', compact('seguradoras', 'produtos'));
+    })->name('cadastro');
 
 });

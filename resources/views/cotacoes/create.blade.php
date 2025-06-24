@@ -6,6 +6,18 @@
     <form action="{{ route('cotacoes.store') }}" method="POST">
         @csrf
         <div class="mb-3">
+            <label for="segurado_id" class="form-label">Segurado</label>
+            <select name="segurado_id" id="segurado_id" class="form-select" required>
+                <option value="">Selecione o Segurado</option>
+                @foreach($segurados as $segurado)
+                    <option value="{{ $segurado->id }}">
+                        {{ $segurado->nome }} ({{ $segurado->documento }})
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="mb-3">
             <label>Corretora:</label>
             <select name="corretora_id" class="form-select" required>
                 <option value="">Selecione</option>
