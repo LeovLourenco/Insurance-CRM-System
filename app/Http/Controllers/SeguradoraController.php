@@ -2,34 +2,246 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Seguradora;
+use App\Models\Produto;
+use App\Models\Corretora;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SeguradoraController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
+    {
+        $query = Seguradora::query();
+
+        // Filtro por busca
+        if ($request->filled('search')) {
+            $query->search($request->search);
+        }
+
+        // Filtro por seguradoras com produtos
+        if ($request->filled('com_produtos') && $request->com_produtos == '1') {
+            $query->comProdutos();
+        }
+
+        // Filtro por seguradoras com corretoras
+        if ($request->filled('com_corretoras') && $request->com_corretoras == '1') {
+            $query->comCorretoras();
+        }
+
+        $seguradoras = $query->withCount(['produtos', 'corretoras', 'cotacoes'])
+                            ->latest()
+                            ->paginate(10);
+
+        return view('seguradoras.index', compact('seguradoras'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        $produtos = Produto::orderBy('nome')->get();
+        
+        return view('seguradoras.create', compact('produtos'));
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
     {
-        $request->validate([
-            'nome' => 'required|string|max:255',
+        $validated = $request->validate([
+            'nome' => 'required|string|max:191|unique:seguradoras,nome',
+            'site' => 'nullable|string|max:191|regex:/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(\/.*)?$/',
+            'observacoes' => 'nullable|string|max:2000',
             'produtos' => 'nullable|array',
             'produtos.*' => 'exists:produtos,id'
+        ], [
+            'nome.required' => 'O nome da seguradora é obrigatório.',
+            'nome.unique' => 'Já existe uma seguradora com este nome.',
+            'nome.max' => 'O nome deve ter no máximo 191 caracteres.',
+            'site.regex' => 'Digite um site válido (ex: www.empresa.com.br).',
+            'site.max' => 'O site deve ter no máximo 191 caracteres.',
+            'observacoes.max' => 'As observações devem ter no máximo 2000 caracteres.',
+            'produtos.*.exists' => 'Um dos produtos selecionados é inválido.'
         ]);
 
         try {
-            // Criar a seguradora
+            DB::beginTransaction();
+            
+            // 1. Criar a seguradora
             $seguradora = Seguradora::create([
-                'nome' => $request->nome,
+                'nome' => $validated['nome'],
+                'site' => $validated['site'],
+                'observacoes' => $validated['observacoes']
             ]);
+            
+            // 2. Vincular produtos se selecionados
+            if (!empty($validated['produtos'])) {
+                $seguradora->produtos()->sync($validated['produtos']);
+            }
+            
+            DB::commit();
+            
+            return redirect()
+                ->route('seguradoras.index')
+                ->with('success', 'Seguradora criada com sucesso!');
+                
+        } catch (\Exception $e) {
+            DB::rollback();
+            
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Erro ao criar seguradora: ' . $e->getMessage());
+        }
+    }
 
-            // Se foram selecionados produtos, vincular
-            if ($request->has('produtos') && !empty($request->produtos)) {
-                $seguradora->produtos()->attach($request->produtos);
+    /**
+     * Display the specified resource.
+     */
+    public function show(Request $request, Seguradora $seguradora)
+    {
+        // Carregar produtos (cards - quantidade menor)
+        $seguradora->load(['produtos']);
+        
+        // Carregar corretoras com paginação (tabela - quantidade maior)
+        $corretoras = $seguradora->corretoras()
+                                ->withPivot('created_at')
+                                ->paginate(10, ['*'], 'corretoras');
+        
+        // Carregar cotações recentes
+        $cotacoes = $seguradora->cotacoes()
+                              ->with(['corretora', 'produto', 'segurado'])
+                              ->latest()
+                              ->limit(10)
+                              ->get();
+
+        // Estatísticas de cotações por status
+        $cotacoesPorStatus = $seguradora->cotacoesPorStatus();
+
+        return view('seguradoras.show', compact('seguradora', 'corretoras', 'cotacoes', 'cotacoesPorStatus'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Seguradora $seguradora)
+    {
+        $produtos = Produto::orderBy('nome')->get();
+        $corretoras = Corretora::orderBy('nome')->get();
+        
+        // Carregar relacionamentos atuais
+        $seguradora->load(['produtos', 'corretoras']);
+        
+        return view('seguradoras.edit', compact('seguradora', 'produtos', 'corretoras'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Seguradora $seguradora)
+    {
+        $validated = $request->validate([
+            'nome' => 'required|string|max:191|unique:seguradoras,nome,' . $seguradora->id,
+            'site' => 'nullable|string|max:191|regex:/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(\/.*)?$/',
+            'observacoes' => 'nullable|string|max:2000',
+            'produtos' => 'nullable|array',
+            'produtos.*' => 'exists:produtos,id'
+        ], [
+            'nome.required' => 'O nome da seguradora é obrigatório.',
+            'nome.unique' => 'Já existe uma seguradora com este nome.',
+            'nome.max' => 'O nome deve ter no máximo 191 caracteres.',
+            'site.regex' => 'Digite um site válido (ex: www.empresa.com.br).',
+            'site.max' => 'O site deve ter no máximo 191 caracteres.',
+            'observacoes.max' => 'As observações devem ter no máximo 2000 caracteres.',
+            'produtos.*.exists' => 'Um dos produtos selecionados é inválido.'
+        ]);
+
+        try {
+            DB::beginTransaction();
+            
+            // 1. Atualizar a seguradora
+            $seguradora->update([
+                'nome' => $validated['nome'],
+                'site' => $validated['site'],
+                'observacoes' => $validated['observacoes']
+            ]);
+            
+            // 2. Atualizar vínculos com produtos
+            $seguradora->produtos()->sync($validated['produtos'] ?? []);
+            
+            DB::commit();
+            
+            return redirect()
+                ->route('seguradoras.show', $seguradora)
+                ->with('success', 'Seguradora atualizada com sucesso!');
+                
+        } catch (\Exception $e) {
+            DB::rollback();
+            
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Erro ao atualizar seguradora: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Seguradora $seguradora)
+    {
+        try {
+            DB::beginTransaction();
+            
+            // Verificar se seguradora está sendo usada
+            $cotacoesCount = $seguradora->cotacoes()->count();
+            $vinculosCount = $seguradora->vinculos()->count();
+            
+            if ($cotacoesCount > 0 || $vinculosCount > 0) {
+                return redirect()
+                    ->back()
+                    ->with('error', 'Não é possível excluir esta seguradora pois ela possui cotações ou vínculos associados.');
             }
 
-            return redirect()->route('cadastro')->with('success', 'Seguradora cadastrada com sucesso!');
+            // 1. Limpar relacionamentos nas pivots
+            $seguradora->produtos()->detach();
+            $seguradora->corretoras()->detach();
             
+            // 2. Deletar a seguradora
+            $seguradora->delete();
+            
+            DB::commit();
+            
+            return redirect()
+                ->route('seguradoras.index')
+                ->with('success', 'Seguradora excluída com sucesso!');
+                
         } catch (\Exception $e) {
-            return redirect()->route('cadastro')->with('error', 'Erro ao cadastrar seguradora: ' . $e->getMessage());
+            DB::rollback();
+            
+            return redirect()
+                ->back()
+                ->with('error', 'Erro ao excluir seguradora: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Método para busca via AJAX (opcional)
+     */
+    public function search(Request $request)
+    {
+        $search = $request->get('q');
+        
+        $seguradoras = Seguradora::where('nome', 'like', "%{$search}%")
+                                ->limit(10)
+                                ->get(['id', 'nome', 'site']);
+
+        return response()->json($seguradoras);
     }
 }

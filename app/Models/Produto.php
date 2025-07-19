@@ -7,20 +7,80 @@ use Illuminate\Database\Eloquent\Model;
 
 class Produto extends Model
 {
-    protected $fillable = ['nome', 'tipo', 'descricao'];
+    use HasFactory;
 
+    protected $fillable = [
+        'nome',
+        'linha',
+        'descricao'
+    ];
+
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+    // Relacionamentos
+    
+    /**
+     * Seguradoras que oferecem este produto
+     */
+    public function seguradoras()
+    {
+        return $this->belongsToMany(Seguradora::class, 'seguradora_produto')
+            ->withTimestamps(); 
+    }
+
+    /**
+     * Vínculos deste produto
+     */
     public function vinculos()
     {
         return $this->hasMany(Vinculo::class);
     }
+
+    /**
+     * Cotações deste produto
+     */
     public function cotacoes()
     {
         return $this->hasMany(Cotacao::class);
     }
-    public function seguradoras()
+
+    // Scopes para facilitar consultas
+
+    /**
+     * Filtrar por linha
+     */
+    public function scopeOfLinha($query, $linha)
     {
-        return $this->belongsToMany(Seguradora::class, 'seguradora_produto', 'produto_id', 'seguradora_id');
+        return $query->where('linha', $linha);
     }
 
+    /**
+     * Buscar por nome
+     */
+    public function scopeSearch($query, $search)
+    {
+        return $query->where('nome', 'like', "%{$search}%")
+                    ->orWhere('descricao', 'like', "%{$search}%");
+    }
 
+    // Accessors e Mutators
+
+    /**
+     * Formatar nome em title case
+     */
+    public function setNomeAttribute($value)
+    {
+        $this->attributes['nome'] = ucwords(strtolower($value));
+    }
+
+    /**
+     * Formatar linha em title case
+     */
+    public function setLinhaAttribute($value)
+    {
+        $this->attributes['linha'] = $value ? ucwords(strtolower($value)) : null;
+    }
 }
