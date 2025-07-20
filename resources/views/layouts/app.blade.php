@@ -418,17 +418,62 @@
         <!-- Top Bar -->
         <div class="topbar">
             <div class="d-flex justify-content-between align-items-center">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
+                <!-- Esquerda - Breadcrumb (navegação em primeiro) -->
+                <nav aria-label="breadcrumb" class="d-flex align-items-center">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item">
+                            <a href="{{ route('home') }}" class="text-decoration-none">
+                                <i class="bi bi-house-door me-1"></i>Home
+                            </a>
+                        </li>
                         @if(!request()->routeIs('home'))
-                            <li class="breadcrumb-item active" aria-current="page">{{ ucfirst(request()->segment(1)) }}</li>
+                            @php
+                                $segment = request()->segment(1);
+                                $icon = match($segment) {
+                                    'produtos' => 'box-seam',
+                                    'seguradoras' => 'building',
+                                    'corretoras' => 'person-badge',
+                                    'segurados' => 'person-check',
+                                    'cotacoes' => 'file-earmark-text',
+                                    'consultas' => 'shield-check',
+                                    'vinculos' => 'link-45deg',
+                                    default => 'folder'
+                                };
+                                $nome = match($segment) {
+                                    'produtos' => 'Produtos',
+                                    'seguradoras' => 'Seguradoras',
+                                    'corretoras' => 'Corretoras',
+                                    'segurados' => 'Segurados',
+                                    'cotacoes' => 'Cotações',
+                                    'consultas' => 'Consultas',
+                                    'vinculos' => 'Vínculos',
+                                    default => ucfirst($segment)
+                                };
+                            @endphp
+                            <li class="breadcrumb-item active d-flex align-items-center" aria-current="page">
+                                <i class="bi bi-{{ $icon }} me-1"></i>{{ $nome }}
+                            </li>
                         @endif
                     </ol>
                 </nav>
+
+                <!-- Centro - Nome da empresa (contexto) -->
+                <div class="company-name d-none d-lg-block">
+                    <h6 class="mb-0 fw-medium text-primary">
+                        <i class="bi bi-building me-2"></i>Inova Representação LTDA
+                    </h6>
+                </div>
                 
-                <div class="d-flex align-items-center gap-3">
-                    <small class="text-muted">{{ now()->format('d/m/Y - H:i') }}</small>
+                <!-- Direita - Data e hora (informação passiva) -->
+                <div class="topbar-datetime d-none d-md-block">
+                    <small class="text-muted">
+                        <i class="bi bi-calendar3 me-1"></i>
+                        {{ now()->format('d/m/Y') }}
+                    </small>
+                    <small class="text-muted ms-2">
+                        <i class="bi bi-clock me-1"></i>
+                        <span id="current-time">{{ now()->format('H:i') }}</span>
+                    </small>
                 </div>
             </div>
         </div>
@@ -470,6 +515,111 @@
             document.getElementById('sidebar').classList.add('collapsed');
             document.getElementById('mainContent').classList.add('expanded');
         }
+    </script>
+    <style>
+        /* Topbar melhorado */
+        .topbar {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border-bottom: 1px solid #e2e8f0;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        /* Breadcrumb (prioridade visual) */
+        .breadcrumb {
+            margin: 0;
+            background: none;
+            padding: 0;
+        }
+
+        .breadcrumb-item a {
+            color: #1e293b;
+            transition: color 0.2s ease;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .breadcrumb-item a:hover {
+            color: #3b82f6;
+        }
+
+        .breadcrumb-item.active {
+            color: #3b82f6;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        /* Nome da empresa (contexto, mais discreto) */
+        .company-name h6 {
+            color: #64748b;
+            font-size: 0.9rem;
+            letter-spacing: -0.025em;
+        }
+
+        .company-name h6 i {
+            color: #94a3b8;
+        }
+
+        /* Data/hora (informação passiva) */
+        .topbar-datetime {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .topbar {
+                padding: 0.75rem 1rem;
+            }
+            
+            .breadcrumb-item a {
+                font-size: 0.9rem;
+            }
+            
+            .breadcrumb-item.active {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .topbar {
+                padding: 0.5rem 1rem;
+            }
+            
+            .breadcrumb-item a {
+                font-size: 0.85rem;
+            }
+            
+            .breadcrumb-item.active {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+
+    <script>
+        // Atualizar hora em tempo real
+        function updateTime() {
+            const timeElement = document.getElementById('current-time');
+            if (timeElement) {
+                const now = new Date();
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                timeElement.textContent = `${hours}:${minutes}`;
+            }
+        }
+
+        // Atualizar a cada minuto
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTime(); // Atualiza imediatamente
+            setInterval(updateTime, 60000); // Atualiza a cada minuto
+        });
     </script>
 </body>
 </html>
