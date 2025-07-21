@@ -85,10 +85,10 @@ Route::middleware(['auth'])->group(function () {
 
     
     // Rota de logout
-    Route::post('/logout', [UsuarioController::class, 'logout'])->name('logout');
+    //Route::post('/logout', [UsuarioController::class, 'logout'])->name('logout');
     
     // routes/web.php
-    Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
+    //Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
     Route::get('/cadastro', function () {
         $seguradoras = \App\Models\Seguradora::all();
         $produtos = \App\Models\Produto::all();
