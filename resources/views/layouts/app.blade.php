@@ -5,6 +5,8 @@
     <title>Sistema de Cotações</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <!-- Bootstrap 5 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -602,7 +604,7 @@
             }
         }
     </style>
-
+    @stack('styles')
     <script>
         // Atualizar hora em tempo real
         function updateTime() {
@@ -621,5 +623,6 @@
             setInterval(updateTime, 60000); // Atualiza a cada minuto
         });
     </script>
+    @stack('scripts')
 </body>
 </html>

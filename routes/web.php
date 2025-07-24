@@ -30,9 +30,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/vinculos', [VinculoController::class, 'store'])->name('vinculos.store');
 
     // Rotas de cotações
-    Route::get('/cotacoes', [CotacaoController::class, 'index'])->name('cotacoes.index');
-    Route::get('/cotacoes/nova', [CotacaoController::class, 'create'])->name('cotacoes.create');
-    Route::post('/cotacoes', [CotacaoController::class, 'store'])->name('cotacoes.store');
+     
+    Route::post('/cotacoes/{cotacao}/enviar-todas', [CotacaoController::class, 'enviarTodas'])->name('cotacoes.enviar-todas');
+    Route::get('/cotacoes-dashboard', [CotacaoController::class, 'dashboard'])->name('cotacoes.dashboard');
+    Route::get('/cotacoes/seguradoras', [CotacaoController::class, 'seguradoras'])->name('cotacoes.seguradoras');
+    Route::resource('cotacoes', CotacaoController::class);
 
     // Rotas de consultas
     Route::get('/consultas/seguros', [ConsultaController::class, 'index'])->name('consultas.seguros');

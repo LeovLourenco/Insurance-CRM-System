@@ -9,13 +9,12 @@ class Cotacao extends Model
 {
     use HasFactory;
 
-    // Corrigir nome da tabela (tem um typo no banco)
+    // Corrigir nome da tabela (já foi corrigido)
     protected $table = 'cotacoes';
 
     protected $fillable = [
         'corretora_id', 
         'produto_id', 
-        'seguradora_id', 
         'segurado_id', 
         'observacoes', 
         'status'
@@ -45,19 +44,29 @@ class Cotacao extends Model
     }
 
     /**
-     * Seguradora que vai analisar a cotação
-     */
-    public function seguradora()
-    {
-        return $this->belongsTo(Seguradora::class);
-    }
-
-    /**
      * Cliente segurado
      */
     public function segurado()
     {
         return $this->belongsTo(Segurado::class);
+    }
+
+    /**
+     * NOVO: Cotações por seguradora (Master-Detail)
+     */
+    public function cotacaoSeguradoras()
+    {
+        return $this->hasMany(CotacaoSeguradora::class);
+    }
+
+    /**
+     * NOVO: Seguradoras através do relacionamento many-to-many
+     */
+    public function seguradoras()
+    {
+        return $this->belongsToMany(Seguradora::class, 'cotacao_seguradoras')
+                    ->withPivot(['status', 'observacoes', 'data_envio', 'data_retorno', 'valor_premio', 'valor_is'])
+                    ->withTimestamps();
     }
 
     /**
@@ -68,10 +77,26 @@ class Cotacao extends Model
         return $this->hasMany(AtividadeCotacao::class);
     }
 
+    /**
+     * NOVO: Atividades gerais (não específicas de seguradora)
+     */
+    public function atividadesGerais()
+    {
+        return $this->hasMany(AtividadeCotacao::class)->where('tipo', 'geral');
+    }
+
+    /**
+     * NOVO: Atividades específicas por seguradora
+     */
+    public function atividadesPorSeguradora()
+    {
+        return $this->hasMany(AtividadeCotacao::class)->where('tipo', 'seguradora');
+    }
+
     // Scopes para facilitar consultas
 
     /**
-     * Filtrar por status
+     * Filtrar por status geral da cotação
      */
     public function scopeStatus($query, $status)
     {
@@ -95,14 +120,6 @@ class Cotacao extends Model
     }
 
     /**
-     * Filtrar por seguradora
-     */
-    public function scopePorSeguradora($query, $seguradoraId)
-    {
-        return $query->where('seguradora_id', $seguradoraId);
-    }
-
-    /**
      * Filtrar por segurado
      */
     public function scopePorSegurado($query, $seguradoId)
@@ -111,12 +128,35 @@ class Cotacao extends Model
     }
 
     /**
+     * NOVO: Cotações que têm pelo menos uma seguradora com status específico
+     */
+    public function scopeComSeguradoraStatus($query, $status)
+    {
+        return $query->whereHas('cotacaoSeguradoras', function($q) use ($status) {
+            $q->where('status', $status);
+        });
+    }
+
+    /**
+     * NOVO: Cotações de uma seguradora específica
+     */
+    public function scopeComSeguradora($query, $seguradoraId)
+    {
+        return $query->whereHas('cotacaoSeguradoras', function($q) use ($seguradoraId) {
+            $q->where('seguradora_id', $seguradoraId);
+        });
+    }
+
+    /**
      * Buscar por observações ou ID
      */
     public function scopeSearch($query, $search)
     {
         return $query->where('id', 'like', "%{$search}%")
-                    ->orWhere('observacoes', 'like', "%{$search}%");
+                    ->orWhere('observacoes', 'like', "%{$search}%")
+                    ->orWhereHas('segurado', function($q) use ($search) {
+                        $q->where('nome', 'like', "%{$search}%");
+                    });
     }
 
     /**
@@ -128,56 +168,128 @@ class Cotacao extends Model
     }
 
     /**
-     * Cotações pendentes (aguardando ou em análise)
+     * ATUALIZADO: Cotações pendentes (que têm pelo menos uma seguradora pendente)
      */
     public function scopePendentes($query)
     {
-        return $query->whereIn('status', ['aguardando', 'em_analise']);
+        return $query->whereHas('cotacaoSeguradoras', function($q) {
+            $q->whereIn('status', ['aguardando', 'em_analise']);
+        });
     }
 
     /**
-     * Cotações finalizadas (aprovadas ou rejeitadas)
+     * NOVO: Cotações totalmente finalizadas (todas as seguradoras finalizadas)
      */
-    public function scopeFinalizadas($query)
+    public function scopeTotalmenteFinalizadas($query)
     {
-        return $query->whereIn('status', ['aprovada', 'rejeitada']);
+        return $query->whereDoesntHave('cotacaoSeguradoras', function($q) {
+            $q->whereIn('status', ['aguardando', 'em_analise']);
+        });
     }
 
     // Accessors
 
     /**
-     * Accessor para status formatado
+     * ATUALIZADO: Status consolidado baseado nas seguradoras
+     */
+    public function getStatusConsolidadoAttribute()
+    {
+        $seguradoras = $this->cotacaoSeguradoras;
+        
+        if ($seguradoras->isEmpty()) {
+            return 'sem_seguradoras';
+        }
+
+        $aprovadas = $seguradoras->where('status', 'aprovada')->count();
+        $pendentes = $seguradoras->whereIn('status', ['aguardando', 'em_analise'])->count();
+        $total = $seguradoras->count();
+
+        if ($aprovadas > 0 && $pendentes == 0) {
+            return 'finalizada_com_aprovacao';
+        }
+
+        if ($pendentes == 0) {
+            return 'finalizada_sem_aprovacao';
+        }
+
+        if ($aprovadas > 0) {
+            return 'parcialmente_aprovada';
+        }
+
+        return 'em_andamento';
+    }
+
+    /**
+     * NOVO: Porcentagem de aprovação
+     */
+    public function getPorcentagemAprovacaoAttribute()
+    {
+        $total = $this->cotacaoSeguradoras->count();
+        
+        if ($total == 0) return 0;
+
+        $aprovadas = $this->cotacaoSeguradoras->where('status', 'aprovada')->count();
+        
+        return round(($aprovadas / $total) * 100, 1);
+    }
+
+    /**
+     * NOVO: Melhor proposta (menor valor)
+     */
+    public function getMelhorPropostaAttribute()
+    {
+        return $this->cotacaoSeguradoras()
+                    ->where('status', 'aprovada')
+                    ->whereNotNull('valor_premio')
+                    ->orderBy('valor_premio', 'asc')
+                    ->first();
+    }
+
+    /**
+     * NOVO: Total de seguradoras cotadas
+     */
+    public function getTotalSeguradoras()
+    {
+        return $this->cotacaoSeguradoras->count();
+    }
+
+    /**
+     * NOVO: Status formatado para exibição
      */
     public function getStatusFormatadoAttribute()
     {
-        switch($this->status) {
-            case 'aguardando':
-                return 'Aguardando';
-            case 'em_analise':
-                return 'Em Análise';
-            case 'aprovada':
-                return 'Aprovada';
-            case 'rejeitada':
-                return 'Rejeitada';
+        switch($this->status_consolidado) {
+            case 'finalizada_com_aprovacao':
+                return 'Finalizada - Aprovada';
+            case 'finalizada_sem_aprovacao':
+                return 'Finalizada - Sem Aprovação';
+            case 'parcialmente_aprovada':
+                return 'Parcialmente Aprovada';
+            case 'em_andamento':
+                return 'Em Andamento';
+            case 'sem_seguradoras':
+                return 'Sem Seguradoras';
             default:
                 return ucfirst($this->status);
         }
     }
 
     /**
-     * Accessor para classe CSS do status
+     * NOVO: Classe CSS para status
      */
     public function getStatusClasseAttribute()
     {
-        switch($this->status) {
-            case 'aguardando':
-                return 'warning';
-            case 'em_analise':
-                return 'info';
-            case 'aprovada':
+        switch($this->status_consolidado) {
+            case 'finalizada_com_aprovacao':
                 return 'success';
-            case 'rejeitada':
+            case 'finalizada_sem_aprovacao':
                 return 'danger';
+            case 'parcialmente_aprovada':
+                return 'warning';
+            case 'em_andamento':
+                return 'info';
+            case 'sem_seguradoras':
+                return 'secondary';
             default:
                 return 'secondary';
         }
@@ -186,19 +298,27 @@ class Cotacao extends Model
     // Métodos auxiliares
 
     /**
-     * Verificar se a cotação está pendente
+     * ATUALIZADO: Verificar se a cotação está pendente
      */
     public function isPendente()
     {
-        return in_array($this->status, ['aguardando', 'em_analise']);
+        return $this->cotacaoSeguradoras()->whereIn('status', ['aguardando', 'em_analise'])->exists();
     }
 
     /**
-     * Verificar se a cotação foi finalizada
+     * NOVO: Verificar se tem aprovações
      */
-    public function isFinalizada()
+    public function temAprovacao()
     {
-        return in_array($this->status, ['aprovada', 'rejeitada']);
+        return $this->cotacaoSeguradoras()->where('status', 'aprovada')->exists();
+    }
+
+    /**
+     * NOVO: Verificar se está totalmente finalizada
+     */
+    public function isTotalmenteFinalizada()
+    {
+        return !$this->cotacaoSeguradoras()->whereIn('status', ['aguardando', 'em_analise'])->exists();
     }
 
     /**
@@ -210,32 +330,52 @@ class Cotacao extends Model
     }
 
     /**
-     * Adicionar nova atividade
+     * NOVO: Adicionar nova atividade geral
      */
     public function adicionarAtividade($descricao, $userId = null)
     {
         return $this->atividades()->create([
             'descricao' => $descricao,
-            'user_id' => $userId ?? auth()->id()
+            'user_id' => $userId ?? auth()->id(),
+            'tipo' => 'geral'
         ]);
     }
 
     /**
-     * Alterar status e registrar atividade
+     * NOVO: Criar cotações para seguradoras selecionadas
      */
-    public function alterarStatus($novoStatus, $observacao = null, $userId = null)
+    public function criarCotacoesSeguradoras(array $seguradoraIds, $userId = null)
     {
-        $statusAnterior = $this->status;
-        $this->status = $novoStatus;
-        $this->save();
+        foreach ($seguradoraIds as $seguradoraId) {
+            $cotacaoSeguradora = $this->cotacaoSeguradoras()->create([
+                'seguradora_id' => $seguradoraId,
+                'status' => CotacaoSeguradora::STATUS_AGUARDANDO
+            ]);
 
-        // Registrar atividade
-        $descricao = "Status alterado de '{$statusAnterior}' para '{$novoStatus}'";
-        if ($observacao) {
-            $descricao .= ". Observação: {$observacao}";
+            $cotacaoSeguradora->adicionarAtividade(
+                "Cotação criada para {$cotacaoSeguradora->seguradora->nome}",
+                $userId
+            );
         }
 
-        $this->adicionarAtividade($descricao, $userId);
+        $this->adicionarAtividade(
+            "Cotação distribuída para " . count($seguradoraIds) . " seguradoras",
+            $userId
+        );
+
+        return $this;
+    }
+
+    /**
+     * NOVO: Enviar para todas as seguradoras pendentes
+     */
+    public function enviarParaTodasSeguradoras($userId = null)
+    {
+        $pendentes = $this->cotacaoSeguradoras()->where('status', 'aguardando')->get();
+
+        foreach ($pendentes as $cotacaoSeguradora) {
+            $cotacaoSeguradora->marcarComoEnviada($userId);
+        }
 
         return $this;
     }
@@ -248,22 +388,23 @@ class Cotacao extends Model
         return $this->atividades()->count();
     }
 
-    // Constantes para status
+    // Constantes para status (mantidas para compatibilidade)
     const STATUS_AGUARDANDO = 'aguardando';
     const STATUS_EM_ANALISE = 'em_analise';
     const STATUS_APROVADA = 'aprovada';
     const STATUS_REJEITADA = 'rejeitada';
 
     /**
-     * Lista de status disponíveis
+     * ATUALIZADO: Lista de status consolidados
      */
-    public static function getStatusDisponiveis()
+    public static function getStatusConsolidados()
     {
         return [
-            self::STATUS_AGUARDANDO => 'Aguardando',
-            self::STATUS_EM_ANALISE => 'Em Análise',
-            self::STATUS_APROVADA => 'Aprovada',
-            self::STATUS_REJEITADA => 'Rejeitada'
+            'em_andamento' => 'Em Andamento',
+            'parcialmente_aprovada' => 'Parcialmente Aprovada',
+            'finalizada_com_aprovacao' => 'Finalizada com Aprovação',
+            'finalizada_sem_aprovacao' => 'Finalizada sem Aprovação',
+            'sem_seguradoras' => 'Sem Seguradoras'
         ];
     }
 }
