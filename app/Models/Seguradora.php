@@ -41,11 +41,21 @@ class Seguradora extends Model
     }
 
     /**
-     * Cotações desta seguradora
+     * Cotações desta seguradora (CORRIGIDO para many-to-many)
      */
     public function cotacoes()
     {
-        return $this->hasMany(Cotacao::class);
+        return $this->belongsToMany(Cotacao::class, 'cotacao_seguradoras')
+                    ->withPivot(['status', 'observacoes', 'data_envio', 'data_retorno', 'valor_premio', 'valor_is'])
+                    ->withTimestamps();
+    }
+
+    /**
+     * NOVO: Relacionamento direto com cotacao_seguradoras
+     */
+    public function cotacaoSeguradoras()
+    {
+        return $this->hasMany(CotacaoSeguradora::class);
     }
 
     /**
@@ -134,11 +144,11 @@ class Seguradora extends Model
     }
 
     /**
-     * Contar cotações por status
+     * Contar cotações por status (CORRIGIDO)
      */
     public function cotacoesPorStatus()
     {
-        return $this->cotacoes()
+        return $this->cotacaoSeguradoras()
                     ->selectRaw('status, COUNT(*) as total')
                     ->groupBy('status')
                     ->pluck('total', 'status');
