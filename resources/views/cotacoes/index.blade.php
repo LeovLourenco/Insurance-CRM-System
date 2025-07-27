@@ -21,40 +21,53 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="modern-card p-3">
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label">Status:</label>
-                        <select class="form-select" id="filtro-status">
-                            <option value="">Todos os status</option>
-                            <option value="em_andamento">Em Andamento</option>
-                            <option value="parcialmente_aprovada">Parcialmente Aprovada</option>
-                            <option value="finalizada_com_aprovacao">Finalizada com Aprovação</option>
-                            <option value="finalizada_sem_aprovacao">Finalizada sem Aprovação</option>
-                        </select>
+                <form method="GET" action="{{ route('cotacoes.index') }}" id="form-filtros">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Status Geral:</label>
+                            <select class="form-select" name="status_geral" id="filtro-status">
+                                <option value="">Todos os status</option>
+                                <option value="em_andamento">Em Andamento</option>
+                                <option value="finalizada">Finalizada</option>
+                                <option value="cancelada">Cancelada</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status Seguradoras:</label>
+                            <select class="form-select" name="status_consolidado" id="filtro-status-consolidado">
+                                <option value="">Todos</option>
+                                <option value="aguardando">Aguardando Resposta</option>
+                                <option value="em_analise">Em Análise</option>
+                                <option value="aprovada">Aprovada</option>
+                                <option value="rejeitada">Rejeitada</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Corretora:</label>
+                            <select class="form-select" name="corretora_id" id="filtro-corretora">
+                                <option value="">Todas as corretoras</option>
+                                @foreach(\App\Models\Corretora::all() as $corretora)
+                                    <option value="{{ $corretora->id }}">
+                                        {{ $corretora->nome }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Buscar:</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="busca" id="filtro-busca" 
+                                       placeholder="ID, nome do segurado...">
+                                <button class="btn btn-outline-secondary" type="submit">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" type="button" onclick="limparFiltros()">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Corretora:</label>
-                        <select class="form-select" id="filtro-corretora">
-                            <option value="">Todas as corretoras</option>
-                            @foreach(\App\Models\Corretora::all() as $corretora)
-                                <option value="{{ $corretora->id }}">{{ $corretora->nome }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Produto:</label>
-                        <select class="form-select" id="filtro-produto">
-                            <option value="">Todos os produtos</option>
-                            @foreach(\App\Models\Produto::all() as $produto)
-                                <option value="{{ $produto->id }}">{{ $produto->nome }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Buscar:</label>
-                        <input type="text" class="form-control" id="filtro-busca" placeholder="ID, nome do segurado...">
-                    </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
@@ -71,7 +84,7 @@
                     </div>
                     <div class="flex-grow-1 ms-3">
                         <h6 class="mb-0">Total de Cotações</h6>
-                        <h4 class="mb-0 text-primary">{{ $cotacoes->count() }}</h4>
+                        <h4 class="mb-0 text-primary">{{ $metricas['total'] ?? $cotacoes->total() }}</h4>
                     </div>
                 </div>
             </div>
@@ -87,7 +100,7 @@
                     </div>
                     <div class="flex-grow-1 ms-3">
                         <h6 class="mb-0">Em Andamento</h6>
-                        <h4 class="mb-0 text-warning">{{ $cotacoes->where('status_consolidado', 'em_andamento')->count() }}</h4>
+                        <h4 class="mb-0 text-warning">{{ $metricas['em_andamento'] ?? $cotacoes->where('status', 'em_andamento')->count() }}</h4>
                     </div>
                 </div>
             </div>
@@ -102,8 +115,8 @@
                         </div>
                     </div>
                     <div class="flex-grow-1 ms-3">
-                        <h6 class="mb-0">Com Aprovação</h6>
-                        <h4 class="mb-0 text-success">{{ $cotacoes->where('status_consolidado', 'finalizada_com_aprovacao')->count() }}</h4>
+                        <h6 class="mb-0">Finalizadas</h6>
+                        <h4 class="mb-0 text-success">{{ $metricas['finalizadas'] ?? $cotacoes->where('status', 'finalizada')->count() }}</h4>
                     </div>
                 </div>
             </div>
@@ -118,8 +131,8 @@
                         </div>
                     </div>
                     <div class="flex-grow-1 ms-3">
-                        <h6 class="mb-0">Taxa Média</h6>
-                        <h4 class="mb-0 text-info">{{ number_format($cotacoes->avg('porcentagem_aprovacao'), 1) }}%</h4>
+                        <h6 class="mb-0">Taxa de Sucesso</h6>
+                        <h4 class="mb-0 text-info">{{ $metricas['taxa_sucesso'] ?? '0' }}%</h4>
                     </div>
                 </div>
             </div>
@@ -145,9 +158,12 @@
                 </thead>
                 <tbody>
                     @forelse($cotacoes as $cotacao)
-                        <tr data-cotacao-id="{{ $cotacao->id }}">
+                        <tr data-cotacao-id="{{ $cotacao->id }}" class="cotacao-row" style="cursor: pointer;">
                             <td>
-                                <span class="fw-bold text-primary">#{{ $cotacao->id }}</span>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-chevron-right text-muted me-2 expand-icon" id="icon-{{ $cotacao->id }}"></i>
+                                    <span class="fw-bold text-primary">#{{ $cotacao->id }}</span>
+                                </div>
                             </td>
                             <td>
                                 <div class="d-flex align-items-center">
@@ -169,11 +185,12 @@
                             </td>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <span class="me-2">{{ $cotacao->cotacaoSeguradoras->count() }}</span>
+                                    @php $stats = $cotacao->getSeguradoraStats(); @endphp
+                                    <span class="me-2">{{ $stats['total'] }}</span>
                                     <div class="progress" style="width: 60px; height: 6px;">
                                         @php
-                                            $aprovadas = $cotacao->cotacaoSeguradoras->where('status', 'aprovada')->count();
-                                            $total = $cotacao->cotacaoSeguradoras->count();
+                                            $aprovadas = $stats['aprovadas'];
+                                            $total = $stats['total'];
                                             $porcentagem = $total > 0 ? ($aprovadas / $total) * 100 : 0;
                                         @endphp
                                         <div class="progress-bar bg-success" style="width: {{ $porcentagem }}%"></div>
@@ -182,19 +199,29 @@
                                 <small class="text-muted">{{ $aprovadas }}/{{ $total }} aprovadas</small>
                             </td>
                             <td>
-                                <span class="badge bg-{{ $cotacao->status == 'cancelada' ? 'danger' : ($cotacao->status == 'finalizada' ? 'success' : 'primary') }}">
-                                {{ ucfirst(str_replace('_', ' ', $cotacao->status)) }}
-                            </span>
+                                @include('cotacoes.partials.status', ['cotacao' => $cotacao, 'tipo' => 'simples'])
+                                @if($cotacao->status === 'em_andamento')
+                                    <br><small class="text-muted">{{ $cotacao->status_consolidado_formatado }}</small>
+                                @endif
                             </td>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <strong class="text-{{ $cotacao->porcentagem_aprovacao > 0 ? 'success' : 'muted' }}">
-                                        {{ $cotacao->porcentagem_aprovacao }}%
+                                    @php
+                                        $stats = $cotacao->getSeguradoraStats();
+                                        $aprovadas = $stats['aprovadas'];
+                                        $total = $stats['total'];
+                                        $porcentagemAprovacao = $total > 0 ? round(($aprovadas / $total) * 100, 1) : 0;
+                                        
+                                        // Buscar melhor proposta usando accessor
+                                        $melhorProposta = $cotacao->getMelhorProposta();
+                                    @endphp
+                                    <strong class="text-{{ $porcentagemAprovacao > 0 ? 'success' : 'muted' }}">
+                                        {{ $porcentagemAprovacao }}%
                                     </strong>
-                                    @if($cotacao->melhor_proposta)
+                                    @if($melhorProposta)
                                         <div class="ms-2">
                                             <small class="text-muted">
-                                                R$ {{ number_format($cotacao->melhor_proposta->valor_premio, 2, ',', '.') }}
+                                                R$ {{ number_format($melhorProposta->valor_premio, 2, ',', '.') }}
                                             </small>
                                         </div>
                                     @endif
@@ -211,15 +238,22 @@
                                     </button>
                                     <ul class="dropdown-menu">
                                         <li>
-                                            <a class="dropdown-item" href="{{ route('cotacoes.show', $cotacao) }}">
+                                            <a class="dropdown-item" href="{{ route('cotacoes.show', $cotacao->id) }}">
                                                 <i class="bi bi-eye me-2"></i>Visualizar
                                             </a>
                                         </li>
-                                        @if($cotacao->isPendente())
+                                        @if($cotacao->pode_enviar)
                                             <li>
                                                 <button class="dropdown-item" onclick="enviarTodas({{ $cotacao->id }})">
                                                     <i class="bi bi-send me-2"></i>Enviar Todas
                                                 </button>
+                                            </li>
+                                        @endif
+                                        @if($cotacao->pode_editar)
+                                            <li>
+                                                <a class="dropdown-item" href="{{ route('cotacoes.edit', $cotacao->id) }}">
+                                                    <i class="bi bi-pencil me-2"></i>Editar
+                                                </a>
                                             </li>
                                         @endif
                                         <li><hr class="dropdown-divider"></li>
@@ -244,8 +278,24 @@
                                                 <div class="border rounded p-2 bg-white">
                                                     <div class="d-flex justify-content-between align-items-center">
                                                         <strong>{{ $cs->seguradora->nome }}</strong>
-                                                        <span class="badge bg-{{ $cs->status_classe }}">
-                                                            {{ $cs->status_formatado }}
+                                                        @php
+                                                            $statusClasses = [
+                                                                'aguardando' => 'warning',
+                                                                'em_analise' => 'info',
+                                                                'aprovada' => 'success',
+                                                                'rejeitada' => 'danger',
+                                                                'repique' => 'warning'
+                                                            ];
+                                                            $statusTextos = [
+                                                                'aguardando' => 'Aguardando',
+                                                                'em_analise' => 'Em Análise',
+                                                                'aprovada' => 'Aprovada',
+                                                                'rejeitada' => 'Rejeitada',
+                                                                'repique' => 'Repique'
+                                                            ];
+                                                        @endphp
+                                                        <span class="badge bg-{{ $statusClasses[$cs->status] ?? 'secondary' }}">
+                                                            {{ $statusTextos[$cs->status] ?? ucfirst($cs->status) }}
                                                         </span>
                                                     </div>
                                                     @if($cs->data_envio)
@@ -258,6 +308,11 @@
                                                             <small class="fw-bold text-success">
                                                                 R$ {{ number_format($cs->valor_premio, 2, ',', '.') }}
                                                             </small>
+                                                        </div>
+                                                    @endif
+                                                    @if($cs->observacoes)
+                                                        <div class="mt-1">
+                                                            <small class="text-muted">{{ $cs->observacoes }}</small>
                                                         </div>
                                                     @endif
                                                 </div>
@@ -273,7 +328,11 @@
                                 <div class="text-muted">
                                     <i class="bi bi-inbox fs-1 d-block mb-3"></i>
                                     <h5>Nenhuma cotação encontrada</h5>
-                                    <p>Clique no botão "Nova Cotação" para começar.</p>
+                                    @if(request()->hasAny(['status_geral', 'status_consolidado', 'busca']))
+                                        <p>Tente ajustar os filtros ou <a href="{{ route('cotacoes.index') }}">limpar a busca</a>.</p>
+                                    @else
+                                        <p>Clique no botão "Nova Cotação" para começar.</p>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -286,9 +345,10 @@
             <div class="p-3 border-top bg-light">
                 <div class="d-flex justify-content-between align-items-center">
                     <span class="text-muted">
-                        Mostrando {{ $cotacoes->count() }} cotações
+                        Mostrando {{ $cotacoes->count() }} de {{ $cotacoes->total() }} cotações
                     </span>
-                    <div>
+                    <div class="d-flex gap-2">
+                        {{ $cotacoes->links() }}
                         <button class="btn btn-sm btn-outline-primary" onclick="exportarTodos()">
                             <i class="bi bi-download me-1"></i>Exportar Todos
                         </button>
@@ -332,6 +392,13 @@
     border: none;
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 }
+
+.modern-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    border: none;
+}
 </style>
 @endpush
 
@@ -350,60 +417,58 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const cotacaoId = this.dataset.cotacaoId;
             const detalhesRow = document.getElementById(`detalhes-${cotacaoId}`);
+            const icon = document.getElementById(`icon-${cotacaoId}`);
             
             // Toggle Bootstrap collapse
             const bsCollapse = new bootstrap.Collapse(detalhesRow, {
                 toggle: true
             });
+            
+            // Mudar ícone
+            if (detalhesRow.classList.contains('show')) {
+                icon.className = 'bi bi-chevron-right text-muted me-2 expand-icon';
+            } else {
+                icon.className = 'bi bi-chevron-down text-muted me-2 expand-icon';
+            }
         });
     });
 });
 
-// Filtros em tempo real
-document.getElementById('filtro-busca').addEventListener('input', function() {
-    filtrarTabela();
-});
-
-document.getElementById('filtro-status').addEventListener('change', function() {
-    filtrarTabela();
-});
-
-document.getElementById('filtro-corretora').addEventListener('change', function() {
-    filtrarTabela();
-});
-
-function filtrarTabela() {
-    const busca = document.getElementById('filtro-busca').value.toLowerCase();
-    const status = document.getElementById('filtro-status').value;
-    const corretora = document.getElementById('filtro-corretora').value;
+// Função para mostrar toast (substitui alert)
+function showToast(message, type = 'success') {
+    // Criar toast dinamicamente
+    const toastHtml = `
+        <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
     
-    const rows = document.querySelectorAll('tbody tr[data-cotacao-id]');
+    // Adicionar ao container de toasts
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '1055';
+        document.body.appendChild(toastContainer);
+    }
     
-    rows.forEach(row => {
-        const texto = row.textContent.toLowerCase();
-        const statusRow = row.querySelector('.badge').textContent.toLowerCase();
-        
-        let mostrar = true;
-        
-        if (busca && !texto.includes(busca)) {
-            mostrar = false;
-        }
-        
-        if (status && !statusRow.includes(status.replace('_', ' '))) {
-            mostrar = false;
-        }
-        
-        // Esconder a linha de detalhes também
-        const cotacaoId = row.dataset.cotacaoId;
-        const detalhesRow = document.getElementById(`detalhes-${cotacaoId}`);
-        
-        if (mostrar) {
-            row.style.display = '';
-            if (detalhesRow) detalhesRow.style.display = '';
-        } else {
-            row.style.display = 'none';
-            if (detalhesRow) detalhesRow.style.display = 'none';
-        }
+    const toastElement = document.createElement('div');
+    toastElement.innerHTML = toastHtml;
+    toastContainer.appendChild(toastElement.firstElementChild);
+    
+    // Mostrar toast
+    const toast = new bootstrap.Toast(toastContainer.lastElementChild);
+    toast.show();
+    
+    // Remover elemento após esconder
+    toastContainer.lastElementChild.addEventListener('hidden.bs.toast', function() {
+        this.remove();
     });
 }
 
@@ -423,16 +488,25 @@ function enviarTodas(cotacaoId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
-            location.reload();
+            showToast(data.message, 'success');
+            setTimeout(() => location.reload(), 1500);
         } else {
-            alert(data.message);
+            showToast(data.message, 'danger');
         }
     })
     .catch(error => {
         console.error('Erro:', error);
-        alert('Erro ao enviar cotações');
+        showToast('Erro ao enviar cotações', 'danger');
     });
+}
+
+// Limpar filtros
+function limparFiltros() {
+    // Resetar o formulário
+    document.getElementById('form-filtros').reset();
+    
+    // Redirecionar para página limpa
+    window.location.href = '{{ route('cotacoes.index') }}';
 }
 
 // Exportar dados

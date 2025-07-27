@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container">
-    <h2>Consulta de Seguros Disponíveis</h2>
+    <h2>Consulta de relacionamentos de corretoras e seguradoras</h2>
 
     <form action="{{ route('consultas.buscar') }}" method="POST" class="mb-4">
         @csrf

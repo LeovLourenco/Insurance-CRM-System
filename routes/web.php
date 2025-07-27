@@ -29,68 +29,72 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/vinculos', [VinculoController::class, 'index'])->name('vinculos.index');
     Route::post('/vinculos', [VinculoController::class, 'store'])->name('vinculos.store');
 
-    // Rotas de cotações
-     
-    Route::post('/cotacoes/{cotacao}/enviar-todas', [CotacaoController::class, 'enviarTodas'])->name('cotacoes.enviar-todas');
-    Route::get('/cotacoes-dashboard', [CotacaoController::class, 'dashboard'])->name('cotacoes.dashboard');
-    Route::get('/cotacoes/seguradoras', [CotacaoController::class, 'seguradoras'])->name('cotacoes.seguradoras');
+    // ===== ROTAS DE COTAÇÕES (REORGANIZADAS) =====
+    
+    // Rotas AJAX/API específicas (ANTES do resource para não conflitar)
+    Route::get('/cotacoes/api/seguradoras', [CotacaoController::class, 'seguradoras'])
+        ->name('cotacoes.api.seguradoras');
+    
+    // Dashboard específico (ANTES do resource)
+    Route::get('/cotacoes-dashboard', [CotacaoController::class, 'dashboard'])
+        ->name('cotacoes.dashboard');
+    
+    // Rotas principais do resource
     Route::resource('cotacoes', CotacaoController::class);
+    
+    // Ações específicas de cotação (APÓS o resource)
+    Route::post('/cotacoes/{id}/enviar-todas', [CotacaoController::class, 'enviarTodas'])
+        ->name('cotacoes.enviar-todas');
+    
+    Route::put('/cotacoes/{cotacao}/seguradoras/{seguradora}/status', [CotacaoController::class, 'atualizarStatusSeguradora'])
+        ->name('cotacoes.seguradoras.status');
+    
+    // Relatórios e exportações (para futuras implementações)
+    Route::prefix('cotacoes/{id}')->group(function () {
+        Route::get('/pdf', [CotacaoController::class, 'gerarPdf'])
+            ->name('cotacoes.pdf');
+        
+        Route::get('/excel', [CotacaoController::class, 'exportarExcel'])
+            ->name('cotacoes.excel');
+    });
+    
+    // Rotas de relatórios gerenciais (para futuras implementações)
+    Route::prefix('relatorios/cotacoes')->group(function () {
+        Route::get('/dashboard-avancado', [CotacaoController::class, 'dashboardAvancado'])
+            ->name('relatorios.cotacoes.dashboard');
+        
+        Route::get('/performance', [CotacaoController::class, 'relatorioPerformance'])
+            ->name('relatorios.cotacoes.performance');
+        
+        Route::get('/seguradoras', [CotacaoController::class, 'relatorioSeguradoras'])
+            ->name('relatorios.cotacoes.seguradoras');
+    });
 
     // Rotas de consultas
     Route::get('/consultas/seguros', [ConsultaController::class, 'index'])->name('consultas.seguros');
     Route::post('/consultas/seguros', [ConsultaController::class, 'buscar'])->name('consultas.buscar');
 
-    
-    // rota para perfil do usuario
-    Route::get('/usuario/perfil', [UsuarioController::class, 'perfil'])->name('usuario.perfil')->middleware('auth');
-    Route::put('/usuario/perfil', [UsuarioController::class, 'atualizar'])->name('usuario.atualizar')->middleware('auth');
+    // Rota para perfil do usuário
+    Route::get('/usuario/perfil', [UsuarioController::class, 'perfil'])->name('usuario.perfil');
+    Route::put('/usuario/perfil', [UsuarioController::class, 'atualizar'])->name('usuario.atualizar');
 
-    // Rotas de cadastros 
+    // ===== ROTAS DE CADASTROS RÁPIDOS =====
     Route::post('/segurados', [SeguradoController::class, 'store'])->name('segurados.store');
     Route::post('/corretoras', [CorretoraController::class, 'store'])->name('corretoras.store');
     
-    // rota de produtos
-    Route::get('/produtos', [ProdutoController::class, 'index'])->name('produtos.index');
-    Route::get('/produtos/create', [ProdutoController::class, 'create'])->name('produtos.create');
-    Route::post('/produtos', [ProdutoController::class, 'store'])->name('produtos.store');
-    Route::get('/produtos/{produto}', [ProdutoController::class, 'show'])->name('produtos.show');
-    Route::get('/produtos/{produto}/edit', [ProdutoController::class, 'edit'])->name('produtos.edit');
-    Route::put('/produtos/{produto}', [ProdutoController::class, 'update'])->name('produtos.update');
-    Route::delete('/produtos/{produto}', [ProdutoController::class, 'destroy'])->name('produtos.destroy');
+    // ===== ROTAS DE PRODUTOS =====
+    Route::resource('produtos', ProdutoController::class);
     
-    // Rotas de seguradoras
-    Route::get('/seguradoras', [SeguradoraController::class, 'index'])->name('seguradoras.index');
-    Route::get('/seguradoras/create', [SeguradoraController::class, 'create'])->name('seguradoras.create');
-    Route::post('/seguradoras', [SeguradoraController::class, 'store'])->name('seguradoras.store');
-    Route::get('/seguradoras/{seguradora}', [SeguradoraController::class, 'show'])->name('seguradoras.show');
-    Route::get('/seguradoras/{seguradora}/edit', [SeguradoraController::class, 'edit'])->name('seguradoras.edit');
-    Route::put('/seguradoras/{seguradora}', [SeguradoraController::class, 'update'])->name('seguradoras.update');
-    Route::delete('/seguradoras/{seguradora}', [SeguradoraController::class, 'destroy'])->name('seguradoras.destroy');
+    // ===== ROTAS DE SEGURADORAS =====
+    Route::resource('seguradoras', SeguradoraController::class);
     
-    // Rotas de corretoras
-    Route::get('/corretoras', [CorretoraController::class, 'index'])->name('corretoras.index');
-    Route::get('/corretoras/create', [CorretoraController::class, 'create'])->name('corretoras.create');
-    Route::post('/corretoras', [CorretoraController::class, 'store'])->name('corretoras.store');
-    Route::get('/corretoras/{corretora}', [CorretoraController::class, 'show'])->name('corretoras.show');
-    Route::get('/corretoras/{corretora}/edit', [CorretoraController::class, 'edit'])->name('corretoras.edit');
-    Route::put('/corretoras/{corretora}', [CorretoraController::class, 'update'])->name('corretoras.update');
-    Route::delete('/corretoras/{corretora}', [CorretoraController::class, 'destroy'])->name('corretoras.destroy');
+    // ===== ROTAS DE CORRETORAS =====
+    Route::resource('corretoras', CorretoraController::class);
     
-    // Rotas de segurados
-    Route::get('/segurados', [SeguradoController::class, 'index'])->name('segurados.index');
-    Route::get('/segurados/create', [SeguradoController::class, 'create'])->name('segurados.create');
-    Route::post('/segurados', [SeguradoController::class, 'store'])->name('segurados.store');
-    Route::get('/segurados/{segurado}', [SeguradoController::class, 'show'])->name('segurados.show');
-    Route::get('/segurados/{segurado}/edit', [SeguradoController::class, 'edit'])->name('segurados.edit');
-    Route::put('/segurados/{segurado}', [SeguradoController::class, 'update'])->name('segurados.update');
-    Route::delete('/segurados/{segurado}', [SeguradoController::class, 'destroy'])->name('segurados.destroy');
+    // ===== ROTAS DE SEGURADOS =====
+    Route::resource('segurados', SeguradoController::class);
 
-    
-    // Rota de logout
-    //Route::post('/logout', [UsuarioController::class, 'logout'])->name('logout');
-    
-    // routes/web.php
-    //Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
+    // Página de cadastro com dados
     Route::get('/cadastro', function () {
         $seguradoras = \App\Models\Seguradora::all();
         $produtos = \App\Models\Produto::all();

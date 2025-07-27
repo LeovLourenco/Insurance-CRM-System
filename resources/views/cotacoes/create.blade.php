@@ -67,7 +67,7 @@
                                         required onchange="console.log('Corretora mudou:', this.value); atualizarResumo(); buscarSeguradoras();">
                                     <option value="">Selecione uma corretora</option>
                                     @foreach($corretoras as $corretora)
-                                        <option value="{{ $corretora->id }}" {{ old('corretora_id', $corretoraId) == $corretora->id ? 'selected' : '' }}>
+                                        <option value="{{ $corretora->id }}" {{ old('corretora_id', $corretoraId ?? '') == $corretora->id ? 'selected' : '' }}>
                                             {{ $corretora->nome }}
                                             @if($corretora->codigo)
                                                 ({{ $corretora->codigo }})
@@ -89,7 +89,7 @@
                                         required onchange="console.log('Produto mudou:', this.value); atualizarResumo(); buscarSeguradoras();">
                                     <option value="">Selecione um produto</option>
                                     @foreach($produtos as $produto)
-                                        <option value="{{ $produto->id }}" {{ old('produto_id', $produtoId) == $produto->id ? 'selected' : '' }}>
+                                        <option value="{{ $produto->id }}" {{ old('produto_id', $produtoId ?? '') == $produto->id ? 'selected' : '' }}>
                                             {{ $produto->nome }}
                                         </option>
                                     @endforeach
@@ -108,7 +108,7 @@
                                         required onchange="console.log('Segurado mudou:', this.value); atualizarResumo();">
                                     <option value="">Selecione um segurado</option>
                                     @foreach($segurados as $segurado)
-                                        <option value="{{ $segurado->id }}" {{ old('segurado_id') == $segurado->id ? 'selected' : '' }}>
+                                        <option value="{{ $segurado->id }}" {{ old('segurado_id', $seguradoId ?? '') == $segurado->id ? 'selected' : '' }}>
                                             {{ $segurado->nome }}
                                             @if($segurado->cpf_cnpj)
                                                 - {{ $segurado->cpf_cnpj }}
@@ -353,6 +353,14 @@
 .fade-in {
     animation: fadeIn 0.3s ease-out;
 }
+
+/* Modern Card */
+.modern-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    border: none;
+}
 </style>
 @endpush
 
@@ -408,12 +416,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Verificar se pode habilitar botão
     document.addEventListener('change', verificarFormulario);
     
-    // Inicializar se já tem dados
+    // NOVO: Verificar se já tem corretora e produto pré-selecionados
     if (corretoraSelect.value && produtoSelect.value) {
-        console.log('Dados iniciais encontrados, buscando seguradoras...'); // DEBUG
+        console.log('Dados pré-selecionados encontrados, buscando seguradoras automaticamente...'); 
         buscarSeguradoras();
     }
     
+    // Atualizar resumo inicial
     console.log('Atualizando resumo inicial...'); // DEBUG
     atualizarResumo();
 });
@@ -447,7 +456,7 @@ async function buscarSeguradoras() {
     `;
     
     try {
-        const url = `{{ url('cotacoes/seguradoras') }}?corretora_id=${corretoraId}&produto_id=${produtoId}`;
+        const url = `{{ route('cotacoes.api.seguradoras') }}?corretora_id=${corretoraId}&produto_id=${produtoId}`;
         console.log('Debug - URL da requisição:', url); // DEBUG
         
         const response = await fetch(url, {
@@ -510,15 +519,18 @@ async function buscarSeguradoras() {
             list.classList.add('fade-in');
             
         } else {
-            // MELHORAR: Mensagem mais informativa quando não há seguradoras
+            // Mensagem quando não há seguradoras
+            const corretoraTexto = corretoraSelect.options[corretoraSelect.selectedIndex]?.text || 'N/A';
+            const produtoTexto = produtoSelect.options[produtoSelect.selectedIndex]?.text || 'N/A';
+            
             placeholder.innerHTML = `
                 <div class="text-center text-warning py-4">
                     <i class="bi bi-exclamation-triangle fs-1 d-block mb-3"></i>
                     <h6 class="mb-2">Nenhuma seguradora disponível</h6>
                     <p class="text-muted mb-3">
                         Não existem seguradoras vinculadas para esta combinação:<br>
-                        <strong>Corretora:</strong> ${document.getElementById('corretora_id').options[document.getElementById('corretora_id').selectedIndex].text}<br>
-                        <strong>Produto:</strong> ${document.getElementById('produto_id').options[document.getElementById('produto_id').selectedIndex].text}
+                        <strong>Corretora:</strong> ${corretoraTexto}<br>
+                        <strong>Produto:</strong> ${produtoTexto}
                     </p>
                     <div class="mt-3">
                         <small class="text-muted">
@@ -538,7 +550,7 @@ async function buscarSeguradoras() {
         }
         
     } catch (error) {
-        console.error('Erro completo:', error); // DEBUG MELHORADO
+        console.error('Erro completo:', error); // DEBUG
         
         // Verificar se é erro de CORS/403
         if (error.message && error.message.includes('permission')) {

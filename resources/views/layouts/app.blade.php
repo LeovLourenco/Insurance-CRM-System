@@ -340,7 +340,7 @@
                 <div class="nav-item">
                     <a href="{{ route('consultas.seguros') }}" class="nav-link {{ request()->routeIs('consultas.seguros') ? 'active' : '' }}">
                         <i class="bi bi-shield-check"></i>
-                        <span class="nav-text">Buscar Seguros</span>
+                        <span class="nav-text">Buscar relacionamentos</span>
                     </a>
                 </div>
             </div>
