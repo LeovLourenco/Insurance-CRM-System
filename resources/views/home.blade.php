@@ -10,9 +10,9 @@
                 <p class="text-muted mb-0">Bem-vindo de volta, {{ Auth::user()->name }}! 👋</p>
             </div>
             <div>
-                <button class="btn btn-primary">
-                    <i class="bi bi-plus-circle me-2"></i>Nova Cotação
-                </button>
+                <a href="{{ route('cotacoes.create') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i>Nova Cotação
+                </a>
             </div>
         </div>
     </div>
@@ -226,11 +226,11 @@
                 <a href="{{ route('consultas.seguros') }}" class="btn btn-outline-primary">
                     <i class="bi bi-search me-2"></i>Buscar Seguros
                 </a>
-                <a href="{{ route('cadastro') }}" class="btn btn-outline-secondary">
+                <a href="{{ route('segurados.create') }}" class="btn btn-outline-secondary">
                     <i class="bi bi-person-plus me-2"></i>Novo Cliente
                 </a>
                 <a href="{{ route('vinculos.index') }}" class="btn btn-outline-info">
-                    <i class="bi bi-link-45deg me-2"></i>Gerenciar Vínculos
+                    <i class="bi bi-link-45deg me-2"></i>Relatórios
                 </a>
             </div>
         </div>

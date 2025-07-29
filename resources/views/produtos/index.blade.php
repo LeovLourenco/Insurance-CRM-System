@@ -309,6 +309,30 @@
     display: none;
 }
 
+/* Super específico para sobrescrever Tailwind */
+.pagination svg.w-5.h-5,
+.pagination .w-5.h-5,
+svg.w-5.h-5 {
+    width: 16px !important;
+    height: 16px !important;
+}
+
+/* Reset das classes Tailwind problemáticas */
+.pagination .w-5 {
+    width: 16px !important;
+}
+
+.pagination .h-5 {
+    height: 16px !important;
+}
+
+/* Força bruta total */
+.pagination svg[class*="w-"],
+.pagination svg[class*="h-"] {
+    width: 16px !important;
+    height: 16px !important;
+}
+
 /* Responsivo */
 @media (max-width: 768px) {
     .select-search-dropdown {

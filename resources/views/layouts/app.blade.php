@@ -293,6 +293,23 @@
             box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
             transform: translateY(-2px);
         }
+        /* CSS global da paginação */
+        .pagination svg,
+        .pagination i {
+            width: 16px !important;
+            height: 16px !important;
+            font-size: 14px !important;
+            vertical-align: middle !important;
+        }
+
+        .pagination .page-link {
+            border-radius: 0.375rem;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
     </style>
 </head>
 <body>

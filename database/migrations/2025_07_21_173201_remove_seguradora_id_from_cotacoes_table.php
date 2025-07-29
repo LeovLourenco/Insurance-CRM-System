@@ -14,22 +14,19 @@ class RemoveSeguradoraIdFromCotacoesTable extends Migration
     public function up()
     {
         Schema::table('cotacoes', function (Blueprint $table) {
-            // Só remover a coluna (não tem foreign key mesmo)
+            // 1º - Remove a foreign key constraint
+            $table->dropForeign('cotacaos_seguradora_id_foreign');
+            // 2º - Remove a coluna
             $table->dropColumn('seguradora_id');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
     public function down()
     {
         Schema::table('cotacoes', function (Blueprint $table) {
-            // Recriar a coluna se precisar fazer rollback
-            $table->unsignedBigInteger('seguradora_id')->nullable();
-            $table->foreign('seguradora_id')->references('id')->on('seguradoras');
+            $table->unsignedBigInteger('seguradora_id');
+            $table->foreign('seguradora_id', 'cotacaos_seguradora_id_foreign')
+                ->references('id')->on('seguradoras');
         });
     }
 }

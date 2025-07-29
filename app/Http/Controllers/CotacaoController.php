@@ -211,7 +211,7 @@ class CotacaoController extends Controller
 
     public function edit($id)
     {
-        $cotacao = Cotacao::with('cotacaoSeguradoras')->findOrFail($id);
+        $cotacao = Cotacao::with(['cotacaoSeguradoras', 'corretora', 'produto'])->findOrFail($id);
         
         // Verificar se pode editar
         if (!$cotacao->pode_editar) {
@@ -223,8 +223,27 @@ class CotacaoController extends Controller
         $corretoras = Corretora::orderBy('nome')->get();
         $produtos = Produto::orderBy('nome')->get();
         $segurados = Segurado::orderBy('nome')->get();
+        
+        // BUSCAR SEGURADORAS ELEGÍVEIS (mesma lógica do método seguradoras())
+        $seguradoresJaCotadas = $cotacao->cotacaoSeguradoras->pluck('seguradora_id');
+        
+        $seguradoresDisponiveis = Seguradora::whereHas('corretoras', function($q) use ($cotacao) {
+                $q->where('corretora_id', $cotacao->corretora_id);
+            })
+            ->whereHas('produtos', function($q) use ($cotacao) {
+                $q->where('produto_id', $cotacao->produto_id);
+            })
+            ->whereNotIn('id', $seguradoresJaCotadas)
+            ->orderBy('nome')
+            ->get();
 
-        return view('cotacoes.edit', compact('cotacao', 'corretoras', 'produtos', 'segurados'));
+        return view('cotacoes.edit', compact(
+            'cotacao', 
+            'corretoras', 
+            'produtos', 
+            'segurados', 
+            'seguradoresDisponiveis'
+        ));
     }
 
     public function update(Request $request, $id)
