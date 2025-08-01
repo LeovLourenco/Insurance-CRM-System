@@ -4,257 +4,331 @@
 
 @section('content')
 <div class="container-fluid">
-    {{-- Header --}}
+    {{-- Header Compacto com Actions Principais --}}
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h3 mb-0 text-gray-800">
-                <i class="bi bi-file-earmark-text"></i> Cotação #{{ $cotacao->id }}
+            <h1 class="h3 mb-0">
+                <i class="bi bi-file-earmark-text text-primary"></i> 
+                Cotação #{{ $cotacao->id }}
+                <span class="ms-2">
+                    @include('cotacoes.partials.status', ['cotacao' => $cotacao, 'tipo' => 'badge'])
+                </span>
             </h1>
             <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
+                <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item"><a href="{{ route('cotacoes.index') }}">Cotações</a></li>
-                    <li class="breadcrumb-item active">Visualizar</li>
+                    <li class="breadcrumb-item active">Cotação #{{ $cotacao->id }}</li>
                 </ol>
             </nav>
         </div>
-        <div class="btn-group">
-            <a href="{{ route('cotacoes.index') }}" class="btn btn-secondary">
+        
+        {{-- Actions Toolbar - Compacta e Contextual --}}
+        <div class="actions-toolbar">
+            <button class="btn btn-outline-secondary btn-sm" onclick="window.history.back()">
                 <i class="bi bi-arrow-left"></i> Voltar
-            </a>
-            @if($cotacao->pode_editar)
-                <a href="{{ route('cotacoes.edit', $cotacao->id) }}" class="btn btn-outline-primary">
-                    <i class="bi bi-pencil"></i> Editar
-                </a>
-            @endif
-            @if($cotacao->pode_enviar)
-                <button class="btn btn-success" onclick="enviarTodasSeguradoras()">
-                    <i class="bi bi-send"></i> Enviar Todas
+            </button>
+            
+            @if($cotacao->status === 'em_andamento')
+                {{-- Ações Principais --}}
+                <button class="btn btn-primary btn-sm" onclick="adicionarComentarioGeral()">
+                    <i class="bi bi-chat-dots"></i> Comentário Geral
+                </button>
+                
+                @if($cotacao->pode_enviar)
+                    <button class="btn btn-success btn-sm" onclick="marcarComoEnviada()">
+                        <i class="bi bi-send"></i> Enviar Todas
+                    </button>
+                @endif
+                
+                {{-- Dropdown para Ações Secundárias --}}
+                <div class="btn-group">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="bi bi-three-dots"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><h6 class="dropdown-header">Status</h6></li>
+                        <li><a class="dropdown-item" onclick="finalizarCotacao('finalizada')">
+                            <i class="bi bi-check-circle text-success"></i> Finalizar Cotação
+                        </a></li>
+                        <li><a class="dropdown-item" onclick="finalizarCotacao('cancelada')">
+                            <i class="bi bi-x-circle text-danger"></i> Cancelar Cotação
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header">Ações</h6></li>
+                        <li><a class="dropdown-item" onclick="duplicarCotacao()">
+                            <i class="bi bi-files"></i> Duplicar Cotação
+                        </a></li>
+                        <li><a class="dropdown-item" onclick="exportarPDF()">
+                            <i class="bi bi-file-pdf"></i> Gerar PDF
+                        </a></li>
+                    </ul>
+                </div>
+            @else
+                {{-- Cotação Finalizada - Ações Limitadas --}}
+                <button class="btn btn-outline-primary btn-sm" onclick="duplicarCotacao()">
+                    <i class="bi bi-files"></i> Duplicar
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="exportarPDF()">
+                    <i class="bi bi-file-pdf"></i> PDF
                 </button>
             @endif
         </div>
     </div>
 
-    <div class="row">
-        {{-- Informações Gerais --}}
-        <div class="col-lg-8">
-            <div class="modern-card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="bi bi-info-circle"></i> Informações Gerais
-                    </h6>
+    {{-- Métricas Compactas --}}
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 col-6">
+            <div class="metric-card bg-primary">
+                <div class="metric-icon"><i class="bi bi-building"></i></div>
+                <div class="metric-content">
+                    <h4>{{ $cotacao->cotacaoSeguradoras->count() }}</h4>
+                    <span>Seguradoras</span>
                 </div>
-                <div class="card-body p-4">
-                    <div class="row">
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 col-6">
+            <div class="metric-card bg-success">
+                <div class="metric-icon"><i class="bi bi-check-circle"></i></div>
+                <div class="metric-content">
+                    <h4>{{ $cotacao->cotacaoSeguradoras->where('status', 'aprovada')->count() }}</h4>
+                    <span>Aprovadas</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 col-6">
+            <div class="metric-card bg-warning">
+                <div class="metric-icon"><i class="bi bi-clock"></i></div>
+                <div class="metric-content">
+                    <h4>{{ $cotacao->cotacaoSeguradoras->whereIn('status', ['aguardando', 'em_analise'])->count() }}</h4>
+                    <span>Pendentes</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 col-6">
+            <div class="metric-card bg-info">
+                <div class="metric-icon"><i class="bi bi-currency-dollar"></i></div>
+                <div class="metric-content">
+                    @php $melhorProposta = $cotacao->getMelhorProposta(); @endphp
+                    <h4>{{ $melhorProposta ? 'R$ ' . number_format($melhorProposta->valor_premio, 0, ',', '.') : 'N/A' }}</h4>
+                    <span>Melhor Oferta</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        {{-- Coluna Principal --}}
+        <div class="col-lg-8">
+            {{-- Informações Gerais com Observações Estáticas --}}
+            <div class="modern-card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-info-circle text-primary"></i> Informações da Cotação
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
                         <div class="col-md-6">
-                            <strong>Segurado:</strong><br>
-                            <span class="text-gray-800">{{ $cotacao->segurado->nome ?? 'N/A' }}</span>
+                            <div class="info-item">
+                                <label>Segurado</label>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-sm bg-primary text-white rounded-circle me-2">
+                                        {{ $cotacao->segurado ? substr($cotacao->segurado->nome, 0, 1) : '?' }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-medium">{{ $cotacao->segurado->nome ?? 'N/A' }}</div>
+                                        @if($cotacao->segurado && $cotacao->segurado->email)
+                                            <small class="text-muted">{{ $cotacao->segurado->email }}</small>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-6">
-                            <strong>Corretora:</strong><br>
-                            <span class="text-gray-800">{{ $cotacao->corretora->nome ?? 'N/A' }}</span>
+                            <div class="info-item">
+                                <label>Corretora</label>
+                                <div class="fw-medium">{{ $cotacao->corretora->nome ?? 'N/A' }}</div>
+                                <small class="text-muted">{{ $cotacao->corretora->codigo ?? '' }}</small>
+                            </div>
                         </div>
-                        <div class="col-md-6 mt-3">
-                            <strong>Produto:</strong><br>
-                            <span class="text-gray-800">{{ $cotacao->produto->nome ?? 'N/A' }}</span>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label>Produto</label>
+                                <span class="badge bg-light text-dark fs-6">{{ $cotacao->produto->nome ?? 'N/A' }}</span>
+                            </div>
                         </div>
-                        <div class="col-md-6 mt-3">
-                            <strong>Criado em:</strong><br>
-                            <span class="text-gray-800">{{ $cotacao->created_at->format('d/m/Y H:i') }}</span>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <label>Criada em</label>
+                                <div class="fw-medium">{{ $cotacao->created_at->format('d/m/Y H:i') }}</div>
+                                <small class="text-muted">{{ $cotacao->created_at->diffForHumans() }}</small>
+                            </div>
                         </div>
                     </div>
                     
-                    @if($cotacao->observacoes)
-                        <div class="mt-3">
-                            <strong>Observações:</strong><br>
-                            <div class="bg-light p-3 rounded">
-                                {{ $cotacao->observacoes }}
-                            </div>
+                    {{-- Observações Gerais Estáticas --}}
+                    <div class="mt-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <label class="mb-0">Observações Gerais</label>
+                            @if($cotacao->pode_editar)
+                                <button class="btn btn-sm btn-outline-secondary" onclick="editarObservacoes()">
+                                    <i class="bi bi-pencil"></i> Editar
+                                </button>
+                            @endif
                         </div>
-                    @endif
+                        <div class="observacoes-container">
+                            @if($cotacao->observacoes)
+                                <div class="alert alert-light border">
+                                    <i class="bi bi-file-text text-muted me-2"></i>
+                                    {{ $cotacao->observacoes }}
+                                </div>
+                            @else
+                                <div class="text-muted fst-italic p-3 bg-light rounded">
+                                    <i class="bi bi-file-text me-2"></i> Nenhuma observação geral registrada
+                                </div>
+                            @endif
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {{-- Seguradoras com Cards/Accordion --}}
-            <div class="modern-card shadow mb-4">
-                <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="bi bi-building"></i> Seguradoras ({{ $cotacao->cotacaoSeguradoras->count() }})
-                    </h6>
-                    
-                    {{-- Progress Bar de Respostas --}}
-                    <div class="d-flex align-items-center">
-                        <small class="text-muted me-2">Progresso:</small>
-                        <div class="progress me-2" style="width: 100px; height: 8px;">
-                            <div class="progress-bar bg-info" role="progressbar" 
-                                 style="width: {{ $cotacao->percentual_resposta }}%;" 
-                                 aria-valuenow="{{ $cotacao->percentual_resposta }}" 
-                                 aria-valuemin="0" aria-valuemax="100">
-                            </div>
+            {{-- Gestão por Seguradora Otimizada --}}
+            <div class="modern-card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-buildings text-primary"></i> 
+                        Seguradoras ({{ $cotacao->cotacaoSeguradoras->count() }})
+                    </h5>
+                    <div class="progress-indicator">
+                        <small class="text-muted">{{ $cotacao->quantidade_respondida }}/{{ $cotacao->cotacaoSeguradoras->count() }} respondidas</small>
+                        <div class="progress ms-2" style="width: 60px; height: 6px;">
+                            <div class="progress-bar bg-success" style="width: {{ $cotacao->percentual_resposta }}%;"></div>
                         </div>
-                        <small class="text-muted">{{ $cotacao->quantidade_respondida }}/{{ $cotacao->cotacaoSeguradoras->count() }}</small>
                     </div>
                 </div>
-                <div class="card-body p-4">
+                
+                <div class="card-body p-0">
                     @if($cotacao->cotacaoSeguradoras->count() > 0)
-                        <div class="accordion" id="accordionSeguradoras">
-                            @foreach($cotacao->cotacaoSeguradoras as $index => $cotacaoSeguradora)
-                                @php
-                                    $statusClasses = [
-                                        'aguardando' => 'warning',
-                                        'em_analise' => 'info',
-                                        'aprovada' => 'success',
-                                        'rejeitada' => 'danger',
-                                        'repique' => 'warning'
-                                    ];
-                                    $statusTextos = [
-                                        'aguardando' => 'Aguardando',
-                                        'em_analise' => 'Em Análise',
-                                        'aprovada' => 'Aprovada',
-                                        'rejeitada' => 'Rejeitada',
-                                        'repique' => 'Repique'
-                                    ];
-                                @endphp
-                                
-                                <div class="accordion-item border rounded mb-2">
-                                    <h2 class="accordion-header" id="heading{{ $index }}">
-                                        <button class="accordion-button {{ $index > 0 ? 'collapsed' : '' }}" type="button" 
-                                                data-bs-toggle="collapse" data-bs-target="#collapse{{ $index }}" 
-                                                aria-expanded="{{ $index === 0 ? 'true' : 'false' }}" 
-                                                aria-controls="collapse{{ $index }}">
-                                            <div class="d-flex justify-content-between align-items-center w-100 me-3">
-                                                <div class="d-flex align-items-center">
-                                                    <i class="bi bi-building text-primary me-2"></i>
-                                                    <strong>{{ $cotacaoSeguradora->seguradora->nome }}</strong>
+                        @foreach($cotacao->cotacaoSeguradoras as $cs)
+                            <div class="seguradora-item border-bottom">
+                                {{-- Header da Seguradora --}}
+                                <div class="seguradora-header p-3">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-5">
+                                            <div class="d-flex align-items-center">
+                                                <div class="seguradora-avatar me-3">
+                                                    <i class="bi bi-building"></i>
                                                 </div>
-                                                <div class="d-flex align-items-center gap-2">
-                                                    @if($cotacaoSeguradora->valor_premio)
-                                                        <span class="badge bg-success">
-                                                            R$ {{ number_format($cotacaoSeguradora->valor_premio, 2, ',', '.') }}
-                                                        </span>
-                                                    @endif
-                                                    <span class="badge bg-{{ $statusClasses[$cotacaoSeguradora->status] ?? 'secondary' }}">
-                                                        {{ $statusTextos[$cotacaoSeguradora->status] ?? ucfirst($cotacaoSeguradora->status) }}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </button>
-                                    </h2>
-                                    <div id="collapse{{ $index }}" 
-                                         class="accordion-collapse collapse {{ $index === 0 ? 'show' : '' }}" 
-                                         aria-labelledby="heading{{ $index }}" 
-                                         data-bs-parent="#accordionSeguradoras">
-                                        <div class="accordion-body p-4">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="info-group mb-3">
-                                                        <label class="text-muted small">Status:</label>
-                                                        <div>
-                                                            <span class="badge bg-{{ $statusClasses[$cotacaoSeguradora->status] ?? 'secondary' }}">
-                                                                {{ $statusTextos[$cotacaoSeguradora->status] ?? ucfirst($cotacaoSeguradora->status) }}
+                                                <div>
+                                                    <h6 class="mb-0">{{ $cs->seguradora->nome }}</h6>
+                                                    <div class="seguradora-meta">
+                                                        @if($cs->data_envio)
+                                                            <small class="text-muted">
+                                                                <i class="bi bi-send"></i> {{ $cs->data_envio->format('d/m H:i') }}
+                                                            </small>
+                                                        @endif
+                                                        @if($cs->valor_premio)
+                                                            <span class="badge bg-success ms-2">
+                                                                R$ {{ number_format($cs->valor_premio, 2, ',', '.') }}
                                                             </span>
-                                                        </div>
+                                                        @endif
                                                     </div>
-                                                    
-                                                    @if($cotacaoSeguradora->data_envio)
-                                                        <div class="info-group mb-3">
-                                                            <label class="text-muted small">Data de Envio:</label>
-                                                            <div>{{ $cotacaoSeguradora->data_envio->format('d/m/Y H:i') }}</div>
-                                                        </div>
-                                                    @endif
-                                                    
-                                                    @if($cotacaoSeguradora->data_retorno)
-                                                        <div class="info-group mb-3">
-                                                            <label class="text-muted small">Data de Retorno:</label>
-                                                            <div>{{ $cotacaoSeguradora->data_retorno->format('d/m/Y H:i') }}</div>
-                                                        </div>
-                                                    @endif
-                                                </div>
-                                                
-                                                <div class="col-md-6">
-                                                    @if($cotacaoSeguradora->valor_premio)
-                                                        <div class="info-group mb-3">
-                                                            <label class="text-muted small">Valor do Prêmio:</label>
-                                                            <div class="h5 text-success mb-0">
-                                                                R$ {{ number_format($cotacaoSeguradora->valor_premio, 2, ',', '.') }}
-                                                            </div>
-                                                        </div>
-                                                    @endif
-                                                    
-                                                    @if($cotacaoSeguradora->valor_is)
-                                                        <div class="info-group mb-3">
-                                                            <label class="text-muted small">Valor IS:</label>
-                                                            <div class="h6 text-info mb-0">
-                                                                R$ {{ number_format($cotacaoSeguradora->valor_is, 2, ',', '.') }}
-                                                            </div>
-                                                        </div>
-                                                    @endif
                                                 </div>
                                             </div>
-                                            
-                                            @if($cotacaoSeguradora->observacoes)
-                                                <div class="info-group mb-3">
-                                                    <label class="text-muted small">Observações:</label>
-                                                    <div class="bg-light p-2 rounded">{{ $cotacaoSeguradora->observacoes }}</div>
-                                                </div>
-                                            @endif
-                                            
-                                            @if($cotacao->pode_editar)
-                                                <div class="d-flex justify-content-end">
-                                                    <button class="btn btn-outline-primary btn-sm" 
-                                                            onclick="abrirModalStatus({{ $cotacaoSeguradora->seguradora_id }}, '{{ $cotacaoSeguradora->status }}', '{{ $cotacaoSeguradora->observacoes }}', {{ $cotacaoSeguradora->valor_premio ?? 0 }}, {{ $cotacaoSeguradora->valor_is ?? 0 }})">
-                                                        <i class="bi bi-pencil"></i> Atualizar Status
+                                        </div>
+                                        <div class="col-md-3">
+                                            <select class="form-select form-select-sm status-select" 
+                                                    data-cs-id="{{ $cs->id }}">
+                                                <option value="aguardando" {{ $cs->status === 'aguardando' ? 'selected' : '' }}>Aguardando</option>
+                                                <option value="em_analise" {{ $cs->status === 'em_analise' ? 'selected' : '' }}>Em Análise</option>
+                                                <option value="aprovada" {{ $cs->status === 'aprovada' ? 'selected' : '' }}>Aprovada</option>
+                                                <option value="rejeitada" {{ $cs->status === 'rejeitada' ? 'selected' : '' }}>Rejeitada</option>
+                                                <option value="repique" {{ $cs->status === 'repique' ? 'selected' : '' }}>Repique</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="seguradora-actions">
+                                                @if($cs->status === 'aguardando')
+                                                    <button class="btn btn-sm btn-outline-success" 
+                                                            onclick="marcarSeguradoraEnviada({{ $cs->id }})">
+                                                        <i class="bi bi-send"></i> Enviar
                                                     </button>
-                                                </div>
-                                            @endif
+                                                @endif
+                                                <button class="btn btn-sm btn-outline-primary" 
+                                                        onclick="editarSeguradora({{ $cs->id }})">
+                                                    <i class="bi bi-pencil"></i> Editar
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-info" 
+                                                        onclick="toggleComentarios({{ $cs->id }})">
+                                                    <i class="bi bi-chat-dots"></i> <span id="comment-count-{{ $cs->id }}">0</span>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            @endforeach
-                        </div>
+                                
+                                {{-- Thread de Comentários por Seguradora --}}
+                                <div class="comments-section collapse" id="comments-{{ $cs->id }}">
+                                    <div class="comments-container p-3 bg-light border-top">
+                                        <h6 class="mb-3">
+                                            <i class="bi bi-chat-dots text-primary"></i> 
+                                            Conversa com {{ $cs->seguradora->nome }}
+                                        </h6>
+                                        
+                                        {{-- Lista de Comentários --}}
+                                        <div class="comments-thread" id="thread-{{ $cs->id }}">
+                                            {{-- Comentários serão carregados via AJAX --}}
+                                            <div class="text-center text-muted py-2">
+                                                <small>Carregando comentários...</small>
+                                            </div>
+                                        </div>
+                                        
+                                        {{-- Form para Novo Comentário --}}
+                                        <div class="new-comment-form mt-3">
+                                            <div class="input-group">
+                                                <textarea class="form-control" 
+                                                          id="comment-input-{{ $cs->id }}"
+                                                          placeholder="Adicionar comentário sobre {{ $cs->seguradora->nome }}..."
+                                                          rows="2"></textarea>
+                                                <button class="btn btn-primary" 
+                                                        onclick="adicionarComentario({{ $cs->id }})">
+                                                    <i class="bi bi-send"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
                     @else
-                        <div class="text-center py-4">
-                            <i class="fas fa-building fa-2x text-gray-300 mb-3"></i>
-                            <p class="text-gray-500">Nenhuma seguradora selecionada para esta cotação.</p>
+                        <div class="text-center py-5">
+                            <i class="bi bi-buildings fs-1 text-muted mb-3"></i>
+                            <h5 class="text-muted">Nenhuma seguradora associada</h5>
                         </div>
                     @endif
                 </div>
             </div>
         </div>
 
-        {{-- Sidebar --}}
+        {{-- Sidebar Mínima --}}
         <div class="col-lg-4">
-            {{-- Status Card --}}
-            <div class="modern-card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="bi bi-pie-chart"></i> Status da Cotação
-                    </h6>
-                </div>
-                <div class="card-body p-4">
-                    @include('cotacoes.partials.status', [
-                        'cotacao' => $cotacao, 
-                        'tipo' => 'detalhado'
-                    ])
-                </div>
-            </div>
-
-            {{-- Timeline de Atividades --}}
-            <div class="modern-card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="bi bi-clock-history"></i> Timeline de Atividades
-                    </h6>
+            {{-- Timeline Limpa (Só Histórico) --}}
+            <div class="modern-card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-clock-history text-primary"></i> Histórico da Cotação
+                    </h5>
                 </div>
                 <div class="card-body">
                     @if($cotacao->atividades->count() > 0)
                         <div class="timeline">
-                            @foreach($cotacao->atividades->sortByDesc('created_at') as $atividade)
+                            @foreach($cotacao->atividades->sortByDesc('created_at')->take(10) as $atividade)
                                 <div class="timeline-item">
                                     <div class="timeline-marker bg-{{ $atividade->tipo === 'geral' ? 'primary' : 'info' }}"></div>
                                     <div class="timeline-content">
                                         <div class="timeline-header">
                                             <small class="text-muted">
-                                                {{ $atividade->created_at->format('d/m/Y H:i') }}
+                                                {{ $atividade->created_at->format('d/m H:i') }}
                                                 @if($atividade->user)
                                                     - {{ $atividade->user->name }}
                                                 @endif
@@ -267,66 +341,123 @@
                                 </div>
                             @endforeach
                         </div>
+                        
+                        @if($cotacao->atividades->count() > 10)
+                            <div class="text-center mt-3">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="carregarMaisAtividades()">
+                                    <i class="bi bi-chevron-down"></i> Ver mais atividades
+                                </button>
+                            </div>
+                        @endif
                     @else
-                        <div class="text-center py-3">
-                            <i class="bi bi-clock fs-1 text-muted mb-2"></i>
-                            <p class="text-muted mb-0">Nenhuma atividade registrada ainda.</p>
+                        <div class="text-center py-4">
+                            <i class="bi bi-clock fs-2 text-muted mb-2"></i>
+                            <p class="text-muted mb-0">Nenhuma atividade registrada</p>
                         </div>
                     @endif
+                </div>
+            </div>
+
+            {{-- Resumo Estatístico Compacto --}}
+            <div class="modern-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-graph-up text-primary"></i> Resumo
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value">{{ round($cotacao->percentual_resposta) }}%</div>
+                            <div class="stat-label">Taxa de Resposta</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value text-success">
+                                {{ $melhorProposta ? 'R$ ' . number_format($melhorProposta->valor_premio, 0, ',', '.') : 'N/A' }}
+                            </div>
+                            <div class="stat-label">Melhor Oferta</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">{{ $cotacao->tempo_medio_resposta ?? 'N/A' }}</div>
+                            <div class="stat-label">Tempo Médio</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">
+                                @include('cotacoes.partials.status', ['cotacao' => $cotacao, 'tipo' => 'simples'])
+                            </div>
+                            <div class="stat-label">Status</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-{{-- Modal para Atualizar Status da Seguradora --}}
-<div class="modal fade" id="modalStatusSeguradora" tabindex="-1">
+{{-- Modal para Comentário Geral --}}
+<div class="modal fade" id="modalComentarioGeral" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Atualizar Status da Seguradora</h5>
+                <h5 class="modal-title">Adicionar Comentário Geral da Cotação</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="formStatusSeguradora">
-                    @csrf
-                    @method('PUT')
+                <p class="text-muted mb-3">
+                    <i class="bi bi-info-circle"></i> 
+                    Este comentário será registrado no histórico geral da cotação.
+                </p>
+                <textarea class="form-control" id="comentarioGeral" rows="4" 
+                          placeholder="Digite seu comentário sobre a cotação em geral..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="salvarComentarioGeral()">
+                    <i class="bi bi-check-circle"></i> Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Modal para Editar Seguradora (Simplificado) --}}
+<div class="modal fade" id="modalEditarSeguradora" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Seguradora</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditarSeguradora">
+                    <input type="hidden" id="csId">
                     
-                    <input type="hidden" id="seguradoraId" name="seguradora_id">
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Status</label>
-                        <select class="form-control" id="statusSeguradora" name="status" required>
-                            <option value="aguardando">Aguardando Resposta</option>
-                            <option value="em_analise">Em Análise</option>
-                            <option value="aprovada">Aprovada</option>
-                            <option value="rejeitada">Rejeitada</option>
-                            <option value="repique">Repique Solicitado</option>
-                        </select>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Valor do Prêmio</label>
+                                <input type="number" class="form-control" id="modalValorPremio" 
+                                       step="0.01" min="0" placeholder="0,00">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Valor IS</label>
+                                <input type="number" class="form-control" id="modalValorIs" 
+                                       step="0.01" min="0" placeholder="0,00">
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label">Valor do Prêmio</label>
-                        <input type="number" class="form-control" id="valorPremio" name="valor_premio" 
-                               step="0.01" min="0" placeholder="0,00">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Valor IS</label>
-                        <input type="number" class="form-control" id="valorIs" name="valor_is" 
-                               step="0.01" min="0" placeholder="0,00">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Observações</label>
-                        <textarea class="form-control" id="observacoesSeguradora" name="observacoes" 
-                                  rows="3" maxlength="500"></textarea>
+                        <label class="form-label">Data de Retorno</label>
+                        <input type="datetime-local" class="form-control" id="modalDataRetorno">
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" onclick="salvarStatusSeguradora()">
+                <button type="button" class="btn btn-primary" onclick="salvarSeguradora()">
                     <i class="bi bi-check-circle"></i> Salvar
                 </button>
             </div>
@@ -336,54 +467,7 @@
 
 @push('styles')
 <style>
-/* Timeline styles */
-.timeline {
-    position: relative;
-    padding-left: 30px;
-}
-
-.timeline-item {
-    position: relative;
-    margin-bottom: 20px;
-}
-
-.timeline-marker {
-    position: absolute;
-    left: -36px;
-    top: 0;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 2px solid #fff;
-}
-
-.timeline-item:not(:last-child)::before {
-    content: '';
-    position: absolute;
-    left: -31px;
-    top: 12px;
-    bottom: -20px;
-    width: 2px;
-    background-color: #e3e6f0;
-}
-
-.timeline-content {
-    background: #f8f9fc;
-    padding: 10px;
-    border-radius: 5px;
-    border-left: 3px solid #5a5c69;
-}
-
-.timeline-header {
-    margin-bottom: 5px;
-}
-
-.timeline-body {
-    font-size: 14px;
-    color: #5a5c69;
-}
-
-/* Modern card styles */
+/* Modern Card */
 .modern-card {
     background: #fff;
     border-radius: 12px;
@@ -391,136 +475,424 @@
     border: none;
 }
 
-/* Info group styles */
-.info-group label {
+.card-header {
+    background: rgba(0,0,0,0.02);
+    border-bottom: 1px solid rgba(0,0,0,0.125);
+    padding: 1rem 1.5rem;
+    border-radius: 12px 12px 0 0;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Actions Toolbar */
+.actions-toolbar {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+/* Metric Cards Compactas */
+.metric-card {
+    background: linear-gradient(135deg, var(--bs-primary), var(--bs-primary-dark, #0056b3));
+    border-radius: 12px;
+    padding: 1rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 80px;
+}
+
+.metric-card.bg-success {
+    background: linear-gradient(135deg, #28a745, #1e7e34);
+}
+
+.metric-card.bg-warning {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+    color: #000;
+}
+
+.metric-card.bg-info {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+}
+
+.metric-icon {
+    width: 36px;
+    height: 36px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.metric-content h4 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.metric-content span {
+    font-size: 0.8rem;
+    opacity: 0.9;
+}
+
+/* Info Items */
+.info-item {
+    margin-bottom: 1rem;
+}
+
+.info-item label {
+    font-size: 0.8rem;
     font-weight: 600;
-    margin-bottom: 2px;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
     display: block;
 }
 
-/* Accordion customization */
-.accordion-button:not(.collapsed) {
-    background-color: rgba(var(--bs-primary-rgb), 0.1);
-    border-color: rgba(var(--bs-primary-rgb), 0.2);
+/* Avatar */
+.avatar {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
 }
 
-.accordion-button:focus {
-    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
-    border-color: rgba(var(--bs-primary-rgb), 0.5);
+/* Seguradora Items */
+.seguradora-item {
+    transition: all 0.2s ease;
 }
 
-.accordion-item {
-    border: 1px solid rgba(0,0,0,0.125);
+.seguradora-item:hover {
+    background-color: rgba(0,0,0,0.01);
 }
 
-/* Progress bar customization */
-.progress {
-    background-color: #e9ecef;
-    border-radius: 0.375rem;
+.seguradora-item:last-child {
+    border-bottom: none !important;
 }
 
-.progress-bar {
-    transition: width 0.6s ease;
+.seguradora-avatar {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1976d2;
+    font-size: 1.1rem;
 }
 
-/* Badge improvements */
-.badge {
-    font-size: 0.75em;
+.seguradora-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.seguradora-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+/* Comments System */
+.comments-section {
+    border-top: 1px solid #dee2e6;
+}
+
+.comments-thread {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.comment-item {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.comment-author {
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.comment-time {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-left: auto;
+}
+
+.comment-body {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: #495057;
+}
+
+.new-comment-form textarea {
+    resize: none;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+/* Progress Indicator */
+.progress-indicator {
+    display: flex;
+    align-items: center;
+}
+
+/* Timeline */
+.timeline {
+    position: relative;
+    padding-left: 24px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -30px;
+    top: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.timeline-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: -26px;
+    top: 10px;
+    bottom: -16px;
+    width: 2px;
+    background-color: #e3e6f0;
+}
+
+.timeline-content {
+    background: #f8f9fc;
+    padding: 10px;
+    border-radius: 6px;
+    border-left: 3px solid var(--bs-primary);
+}
+
+.timeline-header {
+    margin-bottom: 4px;
+}
+
+.timeline-body {
+    font-size: 0.85rem;
+    color: #5a5c69;
+    line-height: 1.4;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 0.75rem;
+    background: rgba(0,0,0,0.02);
+    border-radius: 8px;
+}
+
+.stat-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #495057;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Form Controls */
+.form-select, .form-control {
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+.status-select {
+    min-width: 130px;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 6px;
     font-weight: 500;
+    transition: all 0.2s ease;
 }
 
-/* Button improvements */
-.btn-group .btn + .btn {
-    margin-left: -1px;
+.btn-sm {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.75rem;
 }
 
-/* Text utilities */
-.text-gray-800 {
-    color: #5a5c69 !important;
+/* Dropdown */
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
 }
 
-.text-muted {
-    color: #6c757d !important;
+.dropdown-header {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6c757d;
+    padding: 0.5rem 1rem 0.25rem;
 }
 
-/* Card improvements */
-.card-body {
-    padding: 1.5rem !important;
+/* Observações Container */
+.observacoes-container .alert {
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    background: #f8f9fa;
+    margin-bottom: 0;
+    padding: 1rem;
 }
 
-.card-header {
-    background-color: rgba(0,0,0,0.02);
-    border-bottom: 1px solid rgba(0,0,0,0.125);
-    padding: 1rem 1.5rem;
+.observacoes-container .bg-light {
+    background-color: #f8f9fa !important;
+    border: 1px solid #dee2e6;
+    padding: 1rem;
 }
 
-/* Accordion body específico */
-.accordion-body {
-    padding: 1.5rem !important;
-}
-
-/* Font weight utility */
-.font-weight-bold {
-    font-weight: 600 !important;
-}
-
-/* Spacing improvements */
-.py-3 {
-    padding-top: 1rem !important;
-    padding-bottom: 1rem !important;
-}
-
-.mb-0 {
-    margin-bottom: 0 !important;
-}
-
-.mb-2 {
-    margin-bottom: 0.5rem !important;
-}
-
-.mb-3 {
-    margin-bottom: 1rem !important;
-}
-
-.mb-4 {
-    margin-bottom: 1.5rem !important;
-}
-
-.me-2 {
-    margin-right: 0.5rem !important;
-}
-
-.me-3 {
-    margin-right: 1rem !important;
-}
-
-.ms-2 {
-    margin-right: 0.5rem !important;
-}
-
-/* Responsive improvements */
+/* Responsive */
 @media (max-width: 768px) {
-    .btn-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
+    .actions-toolbar {
+        flex-wrap: wrap;
+        gap: 0.25rem;
     }
     
-    .btn-group .btn {
-        margin-left: 0;
+    .metric-card {
+        margin-bottom: 0.75rem;
+        padding: 0.75rem;
+        min-height: 70px;
     }
+    
+    .metric-content h4 {
+        font-size: 1.3rem;
+    }
+    
+    .seguradora-actions {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .progress-indicator {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-end;
+    }
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.comment-item {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Hover Effects */
+.seguradora-item:hover .btn-outline-primary {
+    background-color: var(--bs-primary);
+    color: white;
+}
+
+.seguradora-item:hover .btn-outline-success {
+    background-color: var(--bs-success);
+    color: white;
+}
+
+.seguradora-item:hover .btn-outline-info {
+    background-color: var(--bs-info);
+    color: white;
+}
+
+/* Custom Scrollbar */
+.comments-thread::-webkit-scrollbar {
+    width: 4px;
+}
+
+.comments-thread::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.comments-thread::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.comments-thread::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
 }
 </style>
 @endpush
 
 @push('scripts')
 <script>
-let seguradoraAtual = null;
+let currentCsId = null;
+let commentsCache = {};
 
-// Função para mostrar toast (melhor que alert)
+// Toast helper
 function showToast(message, type = 'success') {
     const toastHtml = `
-        <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast align-items-center text-white bg-${type} border-0" role="alert">
             <div class="d-flex">
                 <div class="toast-body">${message}</div>
                 <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
@@ -549,58 +921,146 @@ function showToast(message, type = 'success') {
     });
 }
 
-function abrirModalStatus(seguradoraId, status, observacoes, valorPremio, valorIs) {
-    seguradoraAtual = seguradoraId;
-    
-    document.getElementById('seguradoraId').value = seguradoraId;
-    document.getElementById('statusSeguradora').value = status;
-    document.getElementById('observacoesSeguradora').value = observacoes || '';
-    document.getElementById('valorPremio').value = valorPremio || '';
-    document.getElementById('valorIs').value = valorIs || '';
-    
-    new bootstrap.Modal(document.getElementById('modalStatusSeguradora')).show();
+// Comentário Geral
+function adicionarComentarioGeral() {
+    document.getElementById('comentarioGeral').value = '';
+    new bootstrap.Modal(document.getElementById('modalComentarioGeral')).show();
 }
 
-function salvarStatusSeguradora() {
-    if (!seguradoraAtual) return;
+function salvarComentarioGeral() {
+    const comentario = document.getElementById('comentarioGeral').value.trim();
     
-    const formData = new FormData(document.getElementById('formStatusSeguradora'));
-    
-    fetch(`/cotacoes/{{ $cotacao->id }}/seguradoras/${seguradoraAtual}/status`, {
-        method: 'PUT',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(Object.fromEntries(formData))
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            bootstrap.Modal.getInstance(document.getElementById('modalStatusSeguradora')).hide();
-            showToast(data.message, 'success');
-            setTimeout(() => location.reload(), 1500);
-        } else {
-            showToast(data.message, 'danger');
-        }
-    })
-    .catch(error => {
-        console.error('Erro:', error);
-        showToast('Erro ao salvar. Tente novamente.', 'danger');
-    });
-}
-
-function enviarTodasSeguradoras() {
-    if (!confirm('Deseja enviar esta cotação para todas as seguradoras pendentes?')) {
+    if (!comentario) {
+        showToast('Digite um comentário', 'warning');
         return;
     }
     
-    fetch(`/cotacoes/{{ $cotacao->id }}/enviar-todas`, {
+    // ✅ Salva como atividade geral - aparece na TIMELINE
+    fetch(`/cotacoes/{{ $cotacao->id }}/atividade`, {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            'Accept': 'application/json'
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            tipo: 'geral',
+            descricao: comentario
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Comentário geral adicionado ao histórico', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('modalComentarioGeral')).hide();
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showToast(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        showToast('Erro ao salvar comentário', 'danger');
+    });
+}
+
+// Sistema de Comentários por Seguradora
+function toggleComentarios(csId) {
+    const commentsSection = document.getElementById(`comments-${csId}`);
+    const bsCollapse = new bootstrap.Collapse(commentsSection, { toggle: true });
+    
+    // Carregar comentários se ainda não foram carregados
+    if (!commentsCache[csId]) {
+        carregarComentarios(csId);
+    }
+}
+
+function carregarComentarios(csId) {
+    const thread = document.getElementById(`thread-${csId}`);
+    
+    // TODO: Implementar API real para buscar comentários
+    // Por enquanto, mostrar que não há comentários
+    setTimeout(() => {
+        renderizarComentarios(csId, []); // ✅ Array vazio - sem comentários fixos
+        atualizarContadorComentarios(csId, 0);
+        commentsCache[csId] = [];
+    }, 300);
+}
+
+function renderizarComentarios(csId, comentarios) {
+    const thread = document.getElementById(`thread-${csId}`);
+    
+    if (comentarios.length === 0) {
+        thread.innerHTML = `
+            <div class="text-center text-muted py-3">
+                <i class="bi bi-chat-dots fs-3 mb-2"></i>
+                <p class="mb-0">Nenhum comentário ainda</p>
+                <small>Seja o primeiro a comentar!</small>
+            </div>
+        `;
+        return;
+    }
+    
+    thread.innerHTML = comentarios.map(comment => `
+        <div class="comment-item">
+            <div class="comment-header">
+                <span class="comment-author">${comment.author}</span>
+                <span class="comment-time">${comment.time}</span>
+            </div>
+            <div class="comment-body">${comment.message}</div>
+        </div>
+    `).join('');
+}
+
+function adicionarComentario(csId) {
+    const input = document.getElementById(`comment-input-${csId}`);
+    const comentario = input.value.trim();
+    
+    if (!comentario) {
+        showToast('Digite um comentário', 'warning');
+        return;
+    }
+    
+    // Simular envio (implementar API real depois)
+    const novoComentario = {
+        id: Date.now(),
+        author: 'Você',
+        time: new Date().toLocaleString('pt-BR'),
+        message: comentario
+    };
+    
+    // Adicionar à cache e re-renderizar
+    if (!commentsCache[csId]) {
+        commentsCache[csId] = [];
+    }
+    commentsCache[csId].push(novoComentario);
+    
+    renderizarComentarios(csId, commentsCache[csId]);
+    atualizarContadorComentarios(csId, commentsCache[csId].length);
+    
+    // Limpar input
+    input.value = '';
+    
+    showToast('Comentário adicionado', 'success');
+}
+
+function atualizarContadorComentarios(csId, count) {
+    const counter = document.getElementById(`comment-count-${csId}`);
+    if (counter) {
+        counter.textContent = count;
+    }
+}
+
+// Ações das Seguradoras
+function marcarSeguradoraEnviada(csId) {
+    if (!confirm('Marcar como enviada para esta seguradora?')) {
+        return;
+    }
+    
+    fetch(`/cotacao-seguradoras/${csId}/marcar-enviada`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json'
         }
     })
     .then(response => response.json())
@@ -614,8 +1074,200 @@ function enviarTodasSeguradoras() {
     })
     .catch(error => {
         console.error('Erro:', error);
-        showToast('Erro ao enviar. Tente novamente.', 'danger');
+        showToast('Erro ao marcar como enviada', 'danger');
     });
+}
+
+function editarSeguradora(csId) {
+    currentCsId = csId;
+    
+    // Buscar dados atuais
+    fetch(`/cotacao-seguradoras/${csId}`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const cs = data.cotacao_seguradora;
+            
+            document.getElementById('csId').value = csId;
+            document.getElementById('modalValorPremio').value = cs.valor_premio || '';
+            document.getElementById('modalValorIs').value = cs.valor_is || '';
+            document.getElementById('modalDataRetorno').value = cs.data_retorno || '';
+            
+            new bootstrap.Modal(document.getElementById('modalEditarSeguradora')).show();
+        } else {
+            showToast('Erro ao carregar dados', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        showToast('Erro ao carregar dados', 'danger');
+    });
+}
+
+function salvarSeguradora() {
+    if (!currentCsId) return;
+    
+    const formData = new FormData(document.getElementById('formEditarSeguradora'));
+    const data = Object.fromEntries(formData);
+    
+    fetch(`/cotacao-seguradoras/${currentCsId}`, {
+        method: 'PUT',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Seguradora atualizada', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('modalEditarSeguradora')).hide();
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showToast(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        showToast('Erro ao salvar', 'danger');
+    });
+}
+
+// Status inline change
+document.addEventListener('DOMContentLoaded', function() {
+    const statusSelects = document.querySelectorAll('.status-select');
+    
+    statusSelects.forEach(select => {
+        const originalValue = select.value;
+        
+        select.addEventListener('change', function() {
+            const csId = this.dataset.csId;
+            const novoStatus = this.value;
+            
+            fetch(`/cotacao-seguradoras/${csId}/status`, {
+                method: 'PATCH',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ status: novoStatus })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.message, 'danger');
+                    this.value = originalValue;
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                showToast('Erro ao atualizar status', 'danger');
+                this.value = originalValue;
+            });
+        });
+    });
+});
+
+// Ações Globais
+function marcarComoEnviada() {
+    if (!confirm('Marcar cotação como enviada para todas as seguradoras pendentes?')) {
+        return;
+    }
+    
+    fetch(`/cotacoes/{{ $cotacao->id }}/marcar-enviada`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showToast(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        showToast('Erro ao marcar como enviada', 'danger');
+    });
+}
+
+function finalizarCotacao(status) {
+    const confirmText = status === 'finalizada' ? 
+        'Finalizar esta cotação? Esta ação não pode ser desfeita.' :
+        'Cancelar esta cotação? Esta ação não pode ser desfeita.';
+        
+    if (!confirm(confirmText)) {
+        return;
+    }
+    
+    fetch(`/cotacoes/{{ $cotacao->id }}/status`, {
+        method: 'PATCH',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: status })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showToast(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        showToast('Erro ao atualizar status', 'danger');
+    });
+}
+
+function exportarPDF() {
+    window.open(`/cotacoes/{{ $cotacao->id }}/pdf`, '_blank');
+}
+
+function duplicarCotacao() {
+    if (!confirm('Criar uma nova cotação baseada nesta?')) {
+        return;
+    }
+    
+    fetch(`/cotacoes/{{ $cotacao->id }}/duplicar`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Cotação duplicada', 'success');
+            setTimeout(() => window.location.href = `/cotacoes/${data.nova_cotacao_id}`, 1500);
+        } else {
+            showToast(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        showToast('Erro ao duplicar cotação', 'danger');
+    });
+}
+
+function editarObservacoes() {
+    showToast('Funcionalidade em desenvolvimento', 'info');
+}
+
+function carregarMaisAtividades() {
+    showToast('Carregando mais atividades...', 'info');
 }
 </script>
 @endpush

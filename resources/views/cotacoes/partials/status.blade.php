@@ -28,7 +28,7 @@
         'em_andamento' => 'Em Andamento',
         'finalizada' => 'Finalizada',
         'cancelada' => 'Cancelada', 
-        'aguardando' => 'Aguardando Resposta',
+        'aguardando' => 'Aguardando envio',
         'em_analise' => 'Em Análise',
         'aprovada' => 'Aprovada',
         'rejeitada' => 'Rejeitada',

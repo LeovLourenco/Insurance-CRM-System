@@ -229,7 +229,7 @@
                 <a href="{{ route('segurados.create') }}" class="btn btn-outline-secondary">
                     <i class="bi bi-person-plus me-2"></i>Novo Cliente
                 </a>
-                <a href="{{ route('vinculos.index') }}" class="btn btn-outline-info">
+                <a href="#" onclick="mostrarDesenvolvimento(); return false;" class="btn btn-outline-info">
                     <i class="bi bi-link-45deg me-2"></i>Relatórios
                 </a>
             </div>

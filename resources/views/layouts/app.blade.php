@@ -502,6 +502,18 @@
             @yield('content')
         </div>
     </div>
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+        <div id="toastDesenvolvimento" class="toast" role="alert">
+            <div class="toast-header">
+                <i class="bi bi-hammer text-warning me-2"></i>
+                <strong class="me-auto">Em Desenvolvimento</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+                🚧 Esta funcionalidade está sendo desenvolvida e estará disponível em breve!
+            </div>
+        </div>
+    </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -533,6 +545,20 @@
         if (window.innerWidth <= 768) {
             document.getElementById('sidebar').classList.add('collapsed');
             document.getElementById('mainContent').classList.add('expanded');
+        }
+        function mostrarDesenvolvimento(mensagem = null) {
+            const toastEl = document.getElementById('toastDesenvolvimento');
+            const toastBody = toastEl.querySelector('.toast-body');
+            
+            // Personalizar mensagem se fornecida
+            if (mensagem) {
+                toastBody.textContent = mensagem;
+            } else {
+                toastBody.innerHTML = '🚧 Esta funcionalidade está sendo desenvolvida e estará disponível em breve!';
+            }
+            
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
         }
     </script>
     <style>

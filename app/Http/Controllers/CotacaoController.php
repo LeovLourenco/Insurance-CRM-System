@@ -425,4 +425,348 @@ class CotacaoController extends Controller
             'status_consolidado' => $cotacao->fresh()->status_consolidado
         ]);
     }
+
+    // ===== MÉTODOS ADICIONAIS PARA COTACAOCONTROLLER =====
+    // Adicionar estes métodos ao seu CotacaoController existente
+
+    /**
+     * Atualizar status da cotação (para index.blade.php)
+     * Rota: PATCH /cotacoes/{cotacao}/status
+     */
+    public function updateStatus(Request $request, Cotacao $cotacao)
+    {
+        $request->validate([
+            'status' => 'required|in:em_andamento,finalizada,cancelada'
+        ]);
+
+        // Verificar se pode alterar status
+        if (!in_array($cotacao->status, ['em_andamento'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Esta cotação não pode ter seu status alterado.'
+            ], 400);
+        }
+
+        $statusAnterior = $cotacao->status;
+        
+        $cotacao->update([
+            'status' => $request->status
+        ]);
+
+        // Registrar atividade
+        $cotacao->atividades()->create([
+            'user_id' => auth()->id(),
+            'tipo' => 'geral',
+            'descricao' => "Status alterado de '{$statusAnterior}' para '{$request->status}'"
+        ]);
+
+        $mensagem = match($request->status) {
+            'finalizada' => 'Cotação finalizada com sucesso!',
+            'cancelada' => 'Cotação cancelada.',
+            default => 'Status atualizado com sucesso!'
+        };
+
+        return response()->json([
+            'success' => true,
+            'message' => $mensagem,
+            'novo_status' => $request->status
+        ]);
+    }
+
+    /**
+     * Marcar cotação como enviada (substitui enviarTodas com novo nome)
+     * Rota: POST /cotacoes/{cotacao}/marcar-enviada
+     */
+    public function marcarEnviada(Cotacao $cotacao)
+    {
+        if (!$cotacao->pode_enviar) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Esta cotação não pode ser marcada como enviada.'
+            ], 400);
+        }
+
+        $enviadas = 0;
+        
+        foreach ($cotacao->cotacaoSeguradoras as $cotacaoSeguradora) {
+            if ($cotacaoSeguradora->status === 'aguardando') {
+                $cotacaoSeguradora->update([
+                    'data_envio' => now(),
+                    'status' => 'em_analise'
+                ]);
+                $enviadas++;
+            }
+        }
+
+        if ($enviadas === 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nenhuma seguradora pendente para envio.'
+            ], 400);
+        }
+
+        // Registrar atividade
+        $cotacao->atividades()->create([
+            'user_id' => auth()->id(),
+            'tipo' => 'geral',
+            'descricao' => "Cotação marcada como enviada para {$enviadas} seguradora(s)"
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Cotação marcada como enviada para {$enviadas} seguradora(s)!",
+            'enviadas' => $enviadas
+        ]);
+    }
+
+    /**
+     * Adicionar comentário rápido (para modal no index)
+     * Rota: POST /cotacoes/{cotacao}/comentario
+     */
+    public function adicionarComentario(Request $request, Cotacao $cotacao)
+    {
+        $request->validate([
+            'comentario' => 'required|string|max:500'
+        ]);
+
+        // Registrar como atividade
+        $cotacao->atividades()->create([
+            'user_id' => auth()->id(),
+            'tipo' => 'observacao',
+            'descricao' => $request->comentario
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Comentário adicionado com sucesso!'
+        ]);
+    }
+
+    /**
+     * Adicionar atividade completa (para show.blade.php)
+     * Rota: POST /cotacoes/{cotacao}/atividade
+     */
+    public function adicionarAtividade(Request $request, Cotacao $cotacao)
+    {
+        $request->validate([
+            'tipo' => 'required|in:geral,envio,retorno,negociacao,observacao',
+            'descricao' => 'required|string|max:1000'
+        ]);
+
+        $cotacao->atividades()->create([
+            'user_id' => auth()->id(),
+            'tipo' => $request->tipo,
+            'descricao' => $request->descricao
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Atividade registrada com sucesso!'
+        ]);
+    }
+
+    /**
+     * Duplicar cotação (para show.blade.php)
+     * Rota: POST /cotacoes/{cotacao}/duplicar
+     */
+    public function duplicar(Cotacao $cotacao)
+    {
+        try {
+            // Criar nova cotação baseada na atual
+            $novaCotacao = Cotacao::create([
+                'corretora_id' => $cotacao->corretora_id,
+                'produto_id' => $cotacao->produto_id,
+                'segurado_id' => $cotacao->segurado_id,
+                'observacoes' => "Duplicada da cotação #{$cotacao->id} - " . ($cotacao->observacoes ?? ''),
+                'status' => 'em_andamento'
+            ]);
+
+            // Duplicar seguradoras (resetando status)
+            foreach ($cotacao->cotacaoSeguradoras as $cs) {
+                $novaCotacao->cotacaoSeguradoras()->create([
+                    'seguradora_id' => $cs->seguradora_id,
+                    'status' => 'aguardando'
+                ]);
+            }
+
+            // Registrar atividade na cotação original
+            $cotacao->atividades()->create([
+                'user_id' => auth()->id(),
+                'tipo' => 'geral',
+                'descricao' => "Cotação duplicada - Nova cotação: #{$novaCotacao->id}"
+            ]);
+
+            // Registrar atividade na nova cotação
+            $novaCotacao->atividades()->create([
+                'user_id' => auth()->id(),
+                'tipo' => 'geral',
+                'descricao' => "Cotação criada a partir da duplicação da cotação #{$cotacao->id}"
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Cotação duplicada com sucesso! Nova cotação: #{$novaCotacao->id}",
+                'nova_cotacao_id' => $novaCotacao->id
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Erro ao duplicar cotação', [
+                'cotacao_id' => $cotacao->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao duplicar cotação. Tente novamente.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Relatório filtrado (para exportar do index)
+     * Rota: GET /cotacoes/relatorio
+     */
+    public function relatorioFiltrado(Request $request)
+    {
+        // Reutilizar a mesma lógica de filtros do index
+        $query = Cotacao::with([
+            'corretora', 
+            'produto', 
+            'segurado', 
+            'cotacaoSeguradoras.seguradora'
+        ]);
+
+        // Aplicar os mesmos filtros do index
+        if ($request->filled('status_geral')) {
+            $query->where('status', $request->status_geral);
+        }
+
+        if ($request->filled('corretora_id')) {
+            $query->where('corretora_id', $request->corretora_id);
+        }
+
+        if ($request->filled('produto_id')) {
+            $query->where('produto_id', $request->produto_id);
+        }
+
+        if ($request->filled('busca')) {
+            $query->whereHas('segurado', function($q) use ($request) {
+                $q->where('nome', 'like', '%' . $request->busca . '%');
+            });
+        }
+
+        if ($request->filled('status_consolidado')) {
+            $statusFiltro = $request->status_consolidado;
+            $query->whereHas('cotacaoSeguradoras', function($q) use ($statusFiltro) {
+                $q->where('status', $statusFiltro);
+            });
+        }
+
+        $cotacoes = $query->orderBy('created_at', 'desc')->get();
+
+        // Determinar formato de exportação
+        $formato = $request->input('formato', 'excel');
+
+        switch ($formato) {
+            case 'excel':
+                return $this->exportarExcelFiltrado($cotacoes, $request);
+            case 'pdf':
+                return $this->exportarPdfFiltrado($cotacoes, $request);
+            default:
+                return response()->json(['error' => 'Formato não suportado'], 400);
+        }
+    }
+
+    /**
+     * Exportar Excel com filtros aplicados
+     */
+    private function exportarExcelFiltrado($cotacoes, $request)
+    {
+        // Para implementação futura com Laravel Excel
+        // Por enquanto, retorna os dados em JSON para download
+        
+        $dados = $cotacoes->map(function($cotacao) {
+            return [
+                'ID' => $cotacao->id,
+                'Segurado' => $cotacao->segurado->nome ?? 'N/A',
+                'Corretora' => $cotacao->corretora->nome ?? 'N/A',
+                'Produto' => $cotacao->produto->nome ?? 'N/A',
+                'Status' => ucfirst($cotacao->status),
+                'Seguradoras' => $cotacao->cotacaoSeguradoras->count(),
+                'Aprovadas' => $cotacao->cotacaoSeguradoras->where('status', 'aprovada')->count(),
+                'Melhor_Valor' => $cotacao->getMelhorProposta()?->valor_premio ?? null,
+                'Criada_em' => $cotacao->created_at->format('d/m/Y H:i'),
+                'Observacoes' => $cotacao->observacoes
+            ];
+        });
+
+        $nomeArquivo = 'cotacoes_' . now()->format('Y-m-d_H-i-s') . '.json';
+
+        return response()->json($dados)
+            ->header('Content-Disposition', "attachment; filename=\"{$nomeArquivo}\"");
+    }
+
+    /**
+     * Gerar PDF individual (mantém o método existente se houver)
+     * Rota: GET /cotacoes/{id}/pdf
+     */
+    public function gerarPdf($id)
+    {
+        $cotacao = Cotacao::with([
+            'corretora',
+            'produto', 
+            'segurado',
+            'cotacaoSeguradoras.seguradora'
+        ])->findOrFail($id);
+
+        // Por enquanto, simular PDF
+        return response()->json([
+            'message' => 'Geração de PDF em desenvolvimento',
+            'cotacao_id' => $cotacao->id,
+            'cotacao' => $cotacao
+        ]);
+    }
+
+    /**
+     * Exportar Excel individual
+     * Rota: GET /cotacoes/{id}/excel
+     */
+    public function exportarExcel($id)
+    {
+        $cotacao = Cotacao::with([
+            'corretora',
+            'produto', 
+            'segurado',
+            'cotacaoSeguradoras.seguradora'
+        ])->findOrFail($id);
+
+        // Dados da cotação para Excel
+        $dados = [
+            'cotacao' => [
+                'ID' => $cotacao->id,
+                'Segurado' => $cotacao->segurado->nome ?? 'N/A',
+                'Corretora' => $cotacao->corretora->nome ?? 'N/A',
+                'Produto' => $cotacao->produto->nome ?? 'N/A',
+                'Status' => ucfirst($cotacao->status),
+                'Criada_em' => $cotacao->created_at->format('d/m/Y H:i'),
+                'Observacoes' => $cotacao->observacoes
+            ],
+            'seguradoras' => $cotacao->cotacaoSeguradoras->map(function($cs) {
+                return [
+                    'Seguradora' => $cs->seguradora->nome,
+                    'Status' => ucfirst($cs->status),
+                    'Valor_Premio' => $cs->valor_premio,
+                    'Valor_IS' => $cs->valor_is,
+                    'Data_Envio' => $cs->data_envio?->format('d/m/Y H:i'),
+                    'Data_Retorno' => $cs->data_retorno?->format('d/m/Y H:i'),
+                    'Observacoes' => $cs->observacoes
+                ];
+            })
+        ];
+
+        $nomeArquivo = "cotacao_{$cotacao->id}_" . now()->format('Y-m-d_H-i-s') . '.json';
+
+        return response()->json($dados)
+            ->header('Content-Disposition', "attachment; filename=\"{$nomeArquivo}\"");
+    }
 }
