@@ -64,12 +64,9 @@
                         </button>
                     </div>
                 @else
-                    {{-- Status finalizado/cancelado: ações limitadas --}}
+                    {{-- Status finalizado/cancelado: sem ações específicas --}}
                     <div class="desktop-actions">
-                        <button class="btn btn-outline-primary btn-sm" onclick="duplicarCotacao()">
-                            <i class="bi bi-files"></i> 
-                            <span class="btn-text">Duplicar</span>
-                        </button>
+                        {{-- Sem botões específicos para cotações finalizadas --}}
                     </div>
                 @endif
 
@@ -101,43 +98,29 @@
                         @endif
                         
                         <li><h6 class="dropdown-header">Ações Adicionais</h6></li>
-                        
-                        @if($cotacao->status !== 'em_andamento')
-                            <li class="mobile-only">
-                                <a class="dropdown-item" onclick="duplicarCotacao()">
-                                    <i class="bi bi-files"></i> Duplicar Cotação
-                                </a>
-                            </li>
-                        @else
-                            <li>
-                                <a class="dropdown-item" onclick="duplicarCotacao()">
-                                    <i class="bi bi-files"></i> Duplicar Cotação
-                                </a>
-                            </li>
-                        @endif
-                        
+
                         <li>
-                            <a class="dropdown-item" onclick="exportarPDF()">
+                            <a class="dropdown-item" onclick="funcionalidadeEmConstrucao()">
                                 <i class="bi bi-file-pdf text-danger"></i> Exportar PDF
                             </a>
                         </li>
-                        
+
                         <li>
-                            <a class="dropdown-item" onclick="exportarExcel()">
+                            <a class="dropdown-item" onclick="funcionalidadeEmConstrucao()">
                                 <i class="bi bi-file-earmark-excel text-success"></i> Exportar Excel
                             </a>
                         </li>
-                        
+
                         <li><hr class="dropdown-divider"></li>
-                        
+
                         <li>
-                            <a class="dropdown-item" onclick="imprimirCotacao()">
+                            <a class="dropdown-item" onclick="funcionalidadeEmConstrucao()">
                                 <i class="bi bi-printer"></i> Imprimir
                             </a>
                         </li>
-                        
+
                         <li>
-                            <a class="dropdown-item" onclick="compartilharCotacao()">
+                            <a class="dropdown-item" onclick="funcionalidadeEmConstrucao()">
                                 <i class="bi bi-share"></i> Compartilhar
                             </a>
                         </li>
@@ -885,6 +868,17 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
             </div>
+        </div>
+    </div>
+</div>
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+    <div id="toastConstrucao" class="toast align-items-center text-bg-warning border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-tools me-2"></i>
+                🚧 Esta funcionalidade está sendo desenvolvida e estará disponível em breve!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
         </div>
     </div>
 </div>
@@ -3278,7 +3272,14 @@ document.addEventListener('keydown', function(event) {
         }
     }
 });
-
+function funcionalidadeEmConstrucao() {
+    const toastElement = document.getElementById('toastConstrucao');
+    const toast = new bootstrap.Toast(toastElement, {
+        autohide: true,
+        delay: 4000  // 4 segundos
+    });
+    toast.show();
+}
 console.log('🎉 Script show.blade.php carregado completamente!');
 </script>
 @endpush
