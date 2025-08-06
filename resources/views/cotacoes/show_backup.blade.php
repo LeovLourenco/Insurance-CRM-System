@@ -381,7 +381,7 @@
                                                             @elseif($cs->status === 'rejeitada')
                                                                 Sem proposta
                                                             @else
-                                                                {{ $cs->status_formatado }}
+                                                                Pendente
                                                             @endif
                                                         </div>
                                                     </div>
@@ -918,7 +918,7 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.04);
     border: 1px solid rgba(0,0,0,0.08);
     position: relative;
-    overflow: visible;
+    overflow: hidden;
 }
 
 .actions-bar-container::before {
@@ -2403,7 +2403,7 @@ function preencherDadosModal() {
         
         // Status
         const statusContainer = document.getElementById('modalStatus');
-        statusContainer.innerHTML = `<span class="badge bg-success">${modalData.statusTexto}</span>`;
+        statusContainer.innerHTML = `<span class="badge status-${modalData.statusAtual}">${modalData.statusTexto}</span>`;
         
         // Valor do prêmio
         document.getElementById('modalValorPremio').textContent = 

@@ -156,7 +156,6 @@
                         <th>Status</th>
                         <th>Aprovação</th>
                         <th>Criada em</th>
-                        <th>Quick Actions</th>
                         <th>Menu</th>
                     </tr>
                 </thead>
@@ -239,31 +238,7 @@
                                 <small class="text-muted">{{ $cotacao->created_at->format('H:i') }}</small>
                             </td>
                             <td>
-                                <!-- Quick Actions - Apenas ações seguras -->
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <button class="btn btn-outline-primary" 
-                                            onclick="adicionarComentario({{ $cotacao->id }})"
-                                            title="Adicionar comentário rápido">
-                                        <i class="bi bi-chat-dots"></i>
-                                    </button>
-                                    
-                                    <button class="btn btn-outline-info" 
-                                            onclick="window.location.href='{{ route('cotacoes.show', $cotacao->id) }}'"
-                                            title="Ver detalhes e gerenciar workflow">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    
-                                    @if($cotacao->pode_enviar && $cotacao->status === 'em_andamento')
-                                        <button class="btn btn-outline-success" 
-                                                onclick="marcarComoEnviada({{ $cotacao->id }})"
-                                                title="Marcar como enviada (requer confirmação)">
-                                            <i class="bi bi-send"></i>
-                                        </button>
-                                    @endif
-                                </div>
-                            </td>
-                            <td>
-                                <!-- Menu de ações secundárias -->
+                                <!-- Menu de ações -->
                                 <div class="dropdown">
                                     <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
                                         <i class="bi bi-three-dots"></i>
@@ -278,17 +253,17 @@
                                         
                                         @if($cotacao->status === 'em_andamento')
                                             <li><hr class="dropdown-divider"></li>
-                                            <li><h6 class="dropdown-header">Workflow Avançado</h6></li>
+                                            <li><h6 class="dropdown-header">Gerenciar</h6></li>
                                             <li>
                                                 <a class="dropdown-item" href="{{ route('cotacoes.show', $cotacao->id) }}">
-                                                    <i class="bi bi-gear me-2"></i>Gerenciar Workflow
+                                                    <i class="bi bi-gear me-2"></i>Gerenciar Seguradoras
                                                 </a>
                                             </li>
                                         @endif
                                         
                                         @if($cotacao->pode_editar)
                                             <li><hr class="dropdown-divider"></li>
-                                            <li><h6 class="dropdown-header">Correções</h6></li>
+                                            <li><h6 class="dropdown-header">Edição</h6></li>
                                             <li>
                                                 <a class="dropdown-item" href="{{ route('cotacoes.edit', $cotacao->id) }}">
                                                     <i class="bi bi-pencil me-2"></i>Corrigir Dados
@@ -310,7 +285,7 @@
 
                         <!-- Linha expandível com detalhes das seguradoras -->
                         <tr class="collapse" id="detalhes-{{ $cotacao->id }}">
-                            <td colspan="10" class="bg-light">
+                            <td colspan="9" class="bg-light">
                                 <div class="p-3">
                                     <h6>Detalhes por Seguradora:</h6>
                                     <div class="row">
@@ -321,7 +296,7 @@
                                                         <strong>{{ $cs->seguradora->nome }}</strong>
                                                         @php
                                                             $statusClasses = [
-                                                                'aguardando' => 'warning',
+                                                                'aguardando' => 'secondary',
                                                                 'em_analise' => 'info',
                                                                 'aprovada' => 'success',
                                                                 'rejeitada' => 'danger',
@@ -342,18 +317,12 @@
                                                         </span>
                                                     </div>
                                                     
-                                                    <!-- Quick actions por seguradora -->
-                                                    <div class="btn-group btn-group-sm mb-2 w-100">
-                                                        @if($cs->status === 'aguardando')
-                                                            <button class="btn btn-outline-success btn-sm" 
-                                                                    onclick="marcarSeguradoraEnviada({{ $cs->id }})">
-                                                                <i class="bi bi-send"></i> Enviar
-                                                            </button>
-                                                        @endif
-                                                        <button class="btn btn-outline-primary btn-sm" 
-                                                                onclick="editarSeguradora({{ $cs->id }})">
-                                                            <i class="bi bi-pencil"></i> Editar
-                                                        </button>
+                                                    <!-- Link para detalhes -->
+                                                    <div class="mb-2">
+                                                        <a href="{{ route('cotacoes.show', $cotacao->id) }}#seguradora-{{ $cs->id }}" 
+                                                           class="btn btn-outline-primary btn-sm w-100">
+                                                            <i class="bi bi-gear"></i> Gerenciar
+                                                        </a>
                                                     </div>
                                                     
                                                     @if($cs->data_envio)
@@ -382,7 +351,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="text-center py-5">
+                            <td colspan="9" class="text-center py-5">
                                 <div class="text-muted">
                                     <i class="bi bi-inbox fs-1 d-block mb-3"></i>
                                     <h5>Nenhuma cotação encontrada</h5>
@@ -408,7 +377,7 @@
                     <div class="d-flex gap-2">
                         {{ $cotacoes->links() }}
                         <button class="btn btn-sm btn-outline-primary" onclick="exportarTodos()">
-                            <i class="bi bi-download me-1"></i>Exportar Todos
+                            <i class="bi bi-download me-1"></i>Exportar Filtrados
                         </button>
                     </div>
                 </div>
@@ -417,25 +386,7 @@
     </div>
 </div>
 
-<!-- Modal para comentário rápido -->
-<div class="modal fade" id="modalComentario" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Comentário Rápido</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <textarea class="form-control" id="comentarioTexto" rows="3" placeholder="Digite seu comentário..."></textarea>
-                <input type="hidden" id="comentarioCotacaoId">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" onclick="salvarComentario()">Salvar</button>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 @push('styles')
 <style>
@@ -479,10 +430,7 @@
     gap: 0.25rem;
 }
 
-.btn-group-sm .btn {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
-}
+
 
 .dropdown-header {
     font-size: 0.75rem;
@@ -490,6 +438,8 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
+
+
 </style>
 @endpush
 
@@ -543,204 +493,13 @@ function showToast(message, type = 'success') {
     });
 }
 
-// Marcar como enviada (novo nome do botão)
-function marcarComoEnviada(cotacaoId) {
-    if (!confirm('Marcar cotação como enviada para todas as seguradoras pendentes?')) {
-        return;
-    }
-    
-    fetch(`/cotacoes/${cotacaoId}/marcar-enviada`, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.message, 'success');
-            setTimeout(() => location.reload(), 1500);
-        } else {
-            showToast(data.message, 'danger');
-        }
-    })
-    .catch(error => {
-        console.error('Erro:', error);
-        showToast('Erro ao marcar cotação como enviada', 'danger');
-    });
-}
 
-// Adicionar comentário rápido
-function adicionarComentario(cotacaoId) {
-    document.getElementById('comentarioCotacaoId').value = cotacaoId;
-    document.getElementById('comentarioTexto').value = '';
-    new bootstrap.Modal(document.getElementById('modalComentario')).show();
-}
 
-// Salvar comentário
-function salvarComentario() {
-    const cotacaoId = document.getElementById('comentarioCotacaoId').value;
-    const comentario = document.getElementById('comentarioTexto').value.trim();
-    
-    if (!comentario) {
-        showToast('Digite um comentário', 'warning');
-        return;
-    }
-    
-    fetch(`/cotacoes/${cotacaoId}/comentario`, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ comentario: comentario })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast('Comentário adicionado', 'success');
-            bootstrap.Modal.getInstance(document.getElementById('modalComentario')).hide();
-        } else {
-            showToast(data.message, 'danger');
-        }
-    })
-    .catch(error => {
-        console.error('Erro:', error);
-        showToast('Erro ao salvar comentário', 'danger');
-    });
-}
 
-// Atualizar status da cotação
-document.addEventListener('DOMContentLoaded', function() {
-    const statusSelects = document.querySelectorAll('.status-select');
-    
-    statusSelects.forEach(select => {
-        select.addEventListener('change', function() {
-            const cotacaoId = this.dataset.cotacaoId;
-            const novoStatus = this.value;
-            const originalValue = this.dataset.originalValue;
-            
-            if (novoStatus === originalValue) return;
-            
-            let confirmMessage = '';
-            switch(novoStatus) {
-                case 'finalizada':
-                    confirmMessage = 'Finalizar esta cotação? Esta ação não pode ser desfeita.';
-                    break;
-                case 'cancelada':
-                    confirmMessage = 'Cancelar esta cotação? Esta ação não pode ser desfeita.';
-                    break;
-                default:
-                    confirmMessage = `Alterar status para "${novoStatus}"?`;
-            }
-            
-            if (!confirm(confirmMessage)) {
-                this.value = originalValue;
-                return;
-            }
-            
-            fetch(`/cotacoes/${cotacaoId}/status`, {
-                method: 'PATCH',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ status: novoStatus })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast(data.message, 'success');
-                    this.dataset.originalValue = novoStatus;
-                    setTimeout(() => location.reload(), 1500);
-                } else {
-                    showToast(data.message, 'danger');
-                    this.value = originalValue;
-                }
-            })
-            .catch(error => {
-                console.error('Erro:', error);
-                showToast('Erro ao atualizar status', 'danger');
-                this.value = originalValue;
-            });
-        });
-    });
-});
-
-// Atualizar status da seguradora
-document.addEventListener('DOMContentLoaded', function() {
-    const statusSeguradoraSelects = document.querySelectorAll('.status-seguradora-select');
-    
-    statusSeguradoraSelects.forEach(select => {
-        const originalValue = select.value;
-        
-        select.addEventListener('change', function() {
-            const csId = this.dataset.csId;
-            const novoStatus = this.value;
-            
-            fetch(`/cotacao-seguradoras/${csId}/status`, {
-                method: 'PATCH',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ status: novoStatus })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showToast(data.message, 'success');
-                } else {
-                    showToast(data.message, 'danger');
-                    this.value = originalValue;
-                }
-            })
-            .catch(error => {
-                console.error('Erro:', error);
-                showToast('Erro ao atualizar status da seguradora', 'danger');
-                this.value = originalValue;
-            });
-        });
-    });
-});
-
-// Marcar seguradora como enviada
-function marcarSeguradoraEnviada(csId) {
-    if (!confirm('Marcar como enviada para esta seguradora?')) {
-        return;
-    }
-    
-    fetch(`/cotacao-seguradoras/${csId}/marcar-enviada`, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.message, 'success');
-            setTimeout(() => location.reload(), 1500);
-        } else {
-            showToast(data.message, 'danger');
-        }
-    })
-    .catch(error => {
-        console.error('Erro:', error);
-        showToast('Erro ao marcar como enviada', 'danger');
-    });
-}
-
-// Editar seguradora (vai para página específica)
-function editarSeguradora(csId) {
-    window.location.href = `/cotacao-seguradoras/${csId}/edit`;
-}
 
 // Exportar cotação específica
 function exportarCotacao(cotacaoId) {
-    window.open(`/cotacoes/${cotacaoId}/pdf`, '_blank');
+    showToast('Funcionalidade em construção','info');
 }
 
 // Limpar filtros
@@ -751,9 +510,7 @@ function limparFiltros() {
 
 // Exportar todos
 function exportarTodos() {
-    const params = new URLSearchParams(window.location.search);
-    const url = '/cotacoes/relatorio?formato=excel&' + params.toString();
-    window.open(url, '_blank');
+    showToast('Funcionalidade em construção','info');
 }
 
 // Auto-submit formulário de filtros

@@ -13,15 +13,34 @@ class AtividadeCotacao extends Model
 
     protected $fillable = [
         'cotacao_id',
-        'cotacao_seguradora_id', // NOVO
+        'cotacao_seguradora_id',
         'user_id',
-        'tipo', // NOVO: 'geral' ou 'seguradora'
-        'descricao'
+        'tipo',
+        'descricao',
+        
+        // ✅ NOVOS CAMPOS - Adicionados para status específicos
+        'valor_premio',
+        'valor_is',
+        'condicoes', 
+        'motivo_rejeicao',
+        'motivo_outro',
+        'detalhes_repique',
+        'solicitacoes_repique',
+        'prazo_resposta',
+        'data_ocorrencia',
+        'dados_extras'
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        
+        // ✅ NOVOS CASTS - Para campos específicos
+        'data_ocorrencia' => 'datetime',
+        'solicitacoes_repique' => 'array',
+        'dados_extras' => 'array',
+        'valor_premio' => 'decimal:2',
+        'valor_is' => 'decimal:2'
     ];
 
     // Relacionamentos
@@ -272,6 +291,73 @@ class AtividadeCotacao extends Model
         return $this->created_at->diffForHumans();
     }
 
+    // ✅ NOVOS ACCESSORS - Para campos específicos por status
+    
+    /**
+     * Texto amigável do motivo de rejeição
+     */
+    public function getMotivoRejeicaoTextoAttribute()
+    {
+        $motivos = [
+            'perfil_nao_aceito' => 'Perfil não aceito pela seguradora',
+            'valor_alto' => 'Valor acima do orçamento do cliente',
+            'documentacao' => 'Documentação incompleta/incorreta',
+            'prazo_vencido' => 'Prazo de análise vencido',
+            'cliente_desistiu' => 'Cliente desistiu da cotação',
+            'outro' => 'Outro motivo'
+        ];
+
+        return $motivos[$this->motivo_rejeicao] ?? null;
+    }
+
+    /**
+     * Texto amigável do prazo de resposta
+     */
+    public function getPrazoRespostaTextoAttribute()
+    {
+        $prazos = [
+            '24h' => '24 horas',
+            '48h' => '48 horas', 
+            '72h' => '72 horas',
+            '1_semana' => '1 semana'
+        ];
+
+        return $prazos[$this->prazo_resposta] ?? null;
+    }
+
+    /**
+     * Lista das solicitações de repique em texto
+     */
+    public function getSolicitacoesRepiqueTextoAttribute()
+    {
+        if (!$this->solicitacoes_repique) {
+            return null;
+        }
+
+        $textos = [
+            'valor' => 'Melhor valor/condições',
+            'cobertura' => 'Cobertura diferente', 
+            'prazo' => 'Prazo de pagamento'
+        ];
+
+        return collect($this->solicitacoes_repique)
+            ->map(fn($item) => $textos[$item] ?? $item)
+            ->join(', ');
+    }
+
+    /**
+     * Verificar se tem dados específicos para exibir na timeline
+     */
+    public function hasStatusSpecificData()
+    {
+        return $this->valor_premio || 
+               $this->valor_is || 
+               $this->condicoes ||
+               $this->motivo_rejeicao ||
+               $this->detalhes_repique ||
+               $this->prazo_resposta;
+    }
+
     // Métodos auxiliares
 
     /**
@@ -363,6 +449,10 @@ class AtividadeCotacao extends Model
     // Constantes
     const TIPO_GERAL = 'geral';
     const TIPO_SEGURADORA = 'seguradora';
+    const TIPO_ENVIO = 'envio';
+    const TIPO_OBSERVACAO = 'observacao';
+    const TIPO_STATUS_CHANGE = 'status_change';
+    const TIPO_SISTEMA = 'sistema';
 
     /**
      * Lista de tipos disponíveis
@@ -371,7 +461,11 @@ class AtividadeCotacao extends Model
     {
         return [
             self::TIPO_GERAL => 'Atividade Geral',
-            self::TIPO_SEGURADORA => 'Atividade de Seguradora'
+            self::TIPO_SEGURADORA => 'Atividade de Seguradora',
+            self::TIPO_ENVIO => 'Envio para Seguradora',
+            self::TIPO_OBSERVACAO => 'Observação',
+            self::TIPO_STATUS_CHANGE => 'Mudança de Status',
+            self::TIPO_SISTEMA => 'Sistema'
         ];
     }
 }

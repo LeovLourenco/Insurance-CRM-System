@@ -108,29 +108,33 @@ class CotacaoSeguradoraController extends Controller
             ->with('success', 'Seguradora atualizada com sucesso!');
     }
 
+        
     /**
-     * Atualizar apenas o status (usado nos selects inline)
-     * Rota: PATCH /cotacao-seguradoras/{cotacaoSeguradora}/status
-     */
+ * Atualizar status - VERSÃO SIMPLES
+ */
     public function updateStatus(Request $request, CotacaoSeguradora $cotacaoSeguradora)
     {
         $request->validate([
-            'status' => 'required|in:aguardando,em_analise,aprovada,rejeitada,repique'
+            'status' => 'required|in:aguardando,em_analise,aprovada,rejeitada,repique',
+            'observacoes' => 'required|string|max:2000',
+            'data_ocorrencia' => 'nullable|date'
         ]);
 
         $statusAnterior = $cotacaoSeguradora->status;
         
+        // Atualizar seguradora
         $cotacaoSeguradora->update([
             'status' => $request->status,
             'data_retorno' => $request->status !== 'aguardando' ? now() : $cotacaoSeguradora->data_retorno
         ]);
 
-        // Registrar atividade
+        // ✅ Criar atividade simples na timeline
         $cotacaoSeguradora->cotacao->atividades()->create([
             'cotacao_seguradora_id' => $cotacaoSeguradora->id,
             'user_id' => auth()->id(),
-            'tipo' => 'seguradora',
-            'descricao' => "Status da {$cotacaoSeguradora->seguradora->nome}: {$statusAnterior} → {$request->status}"
+            'tipo' => 'status_change',
+            'descricao' => $request->observacoes, // ← SUA MENSAGEM PERSONALIZADA
+            'data_ocorrencia' => $request->data_ocorrencia ? \Carbon\Carbon::parse($request->data_ocorrencia) : now(),
         ]);
 
         return response()->json([
