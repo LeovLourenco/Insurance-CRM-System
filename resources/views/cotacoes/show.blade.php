@@ -2403,7 +2403,7 @@ function preencherDadosModal() {
         
         // Status
         const statusContainer = document.getElementById('modalStatus');
-        statusContainer.innerHTML = `<span class="badge bg-success">${modalData.statusTexto}</span>`;
+        statusContainer.innerHTML = `<span class="badge bg-secondary">${modalData.statusTexto}</span>`;
         
         // Valor do prêmio
         document.getElementById('modalValorPremio').textContent = 
