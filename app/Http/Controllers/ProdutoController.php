@@ -103,7 +103,9 @@ class ProdutoController extends Controller
     {
         // Carregar relacionamentos para mostrar detalhes
         $produto->load(['seguradoras', 'cotacoes' => function($query) {
-            $query->with(['corretora', 'seguradora'])->latest()->limit(5);
+            $query->with(['corretora', 'segurado', 'cotacaoSeguradoras.seguradora'])
+                ->latest()
+                ->limit(5);
         }]);
 
         return view('produtos.show', compact('produto'));
