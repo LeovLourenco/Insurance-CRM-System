@@ -190,7 +190,6 @@
                         <tr>
                             <th>ID</th>
                             <th>Corretora</th>
-                            <th>Seguradora</th>
                             <th>Status</th>
                             <th>Data</th>
                             <th>Ações</th>
@@ -201,7 +200,6 @@
                             <tr>
                                 <td>#{{ $cotacao->id }}</td>
                                 <td>{{ $cotacao->corretora->nome ?? 'N/A' }}</td>
-                                <td>{{ $cotacao->seguradora->nome ?? 'N/A' }}</td>
                                 <td>
                                     <span class="badge bg-{{ $cotacao->status == 'aprovada' ? 'success' : ($cotacao->status == 'pendente' ? 'warning' : 'secondary') }}">
                                         {{ ucfirst($cotacao->status) }}
