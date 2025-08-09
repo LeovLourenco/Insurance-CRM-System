@@ -31,13 +31,7 @@ class Segurado extends Model
     }
 
     /**
-     * Vínculos deste segurado
-     */
-    public function vinculos()
-    {
-        return $this->hasMany(Vinculo::class);
-    }
-
+     
     // Scopes para facilitar consultas
 
     /**

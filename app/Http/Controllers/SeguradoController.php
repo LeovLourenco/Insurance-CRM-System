@@ -220,12 +220,11 @@ class SeguradoController extends Controller
             
             // Verificar se segurado está sendo usado
             $cotacoesCount = $segurado->cotacoes()->count();
-            $vinculosCount = $segurado->vinculos()->count();
             
-            if ($cotacoesCount > 0 || $vinculosCount > 0) {
+            if ($cotacoesCount > 0) {
                 return redirect()
                     ->back()
-                    ->with('error', 'Não é possível excluir este segurado pois ele possui cotações ou vínculos associados.');
+                    ->with('error', 'Não é possível excluir este segurado pois ele possui cotações associadas.');
             }
 
             // Deletar o segurado

@@ -26,10 +26,6 @@ Route::middleware(['auth'])->group(function () {
     // Página inicial pós-login
     Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-    // Rotas de vínculos
-    Route::get('/vinculos', [VinculoController::class, 'index'])->name('vinculos.index');
-    Route::post('/vinculos', [VinculoController::class, 'store'])->name('vinculos.store');
-
     // ===== ROTAS DE COTAÇÕES (ATUALIZADAS) =====
     
     // Rotas AJAX/API específicas (ANTES do resource para não conflitar)

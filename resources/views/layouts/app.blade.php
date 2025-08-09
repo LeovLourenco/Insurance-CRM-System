@@ -389,13 +389,6 @@
                         <span class="nav-text">Segurados</span>
                     </a>
                 </div>
-                
-                <!-- <div class="nav-item">
-                    <a href="{{ route('vinculos.index') }}" class="nav-link {{ request()->routeIs('vinculos.index') ? 'active' : '' }}">
-                        <i class="bi bi-link-45deg"></i>
-                        <span class="nav-text">Vínculos</span>
-                    </a>
-                </div> -->
             </div>
         </nav>
 
@@ -455,7 +448,6 @@
                                     'segurados' => 'person-check',
                                     'cotacoes' => 'file-earmark-text',
                                     'consultas' => 'shield-check',
-                                    'vinculos' => 'link-45deg',
                                     default => 'folder'
                                 };
                                 $nome = match($segment) {
@@ -465,7 +457,6 @@
                                     'segurados' => 'Segurados',
                                     'cotacoes' => 'Cotações',
                                     'consultas' => 'Consultas',
-                                    'vinculos' => 'Vínculos',
                                     default => ucfirst($segment)
                                 };
                             @endphp

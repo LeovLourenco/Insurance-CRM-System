@@ -59,12 +59,7 @@ class Seguradora extends Model
     }
 
     /**
-     * Vínculos desta seguradora
-     */
-    public function vinculos()
-    {
-        return $this->hasMany(Vinculo::class);
-    }
+    
 
     // Scopes para facilitar consultas
 

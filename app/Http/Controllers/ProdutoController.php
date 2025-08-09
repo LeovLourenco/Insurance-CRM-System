@@ -183,12 +183,11 @@ class ProdutoController extends Controller
         try {
             // Verificar se produto está sendo usado
             $cotacoesCount = $produto->cotacoes()->count();
-            $vinculosCount = $produto->vinculos()->count();
             
-            if ($cotacoesCount > 0 || $vinculosCount > 0) {
+            if ($cotacoesCount > 0) {
                 return redirect()
                     ->back()
-                    ->with('error', 'Não é possível excluir este produto pois ele possui cotações ou vínculos associados.');
+                    ->with('error', 'Não é possível excluir este produto pois ele possui cotações associadas.');
             }
 
             $produto->delete();
