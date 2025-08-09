@@ -266,7 +266,6 @@
                 <tr>
                     <th>Segurado</th>
                     <th>Produto</th>
-                    <th>Seguradora</th>
                     <th>Status</th>
                     <th>Data</th>
                     <th width="120">Ações</th>
@@ -279,7 +278,6 @@
                             <div class="fw-medium">{{ $cotacao->segurado->nome ?? 'N/A' }}</div>
                         </td>
                         <td>{{ $cotacao->produto->nome ?? 'N/A' }}</td>
-                        <td>{{ $cotacao->seguradora->nome ?? 'N/A' }}</td>
                         <td>
                             @switch($cotacao->status ?? 'pendente')
                                 @case('aprovada')

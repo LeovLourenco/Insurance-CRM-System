@@ -172,7 +172,6 @@
             <thead class="table-light">
                 <tr>
                     <th>Produto</th>
-                    <th>Seguradora</th>
                     <th>Corretora</th>
                     <th>Status</th>
                     <th>Data</th>
@@ -188,7 +187,6 @@
                                 <small class="text-muted">{{ $cotacao->produto->linha }}</small>
                             @endif
                         </td>
-                        <td>{{ $cotacao->seguradora->nome ?? 'N/A' }}</td>
                         <td>{{ $cotacao->corretora->nome ?? 'N/A' }}</td>
                         <td>
                             @switch($cotacao->status ?? 'pendente')
