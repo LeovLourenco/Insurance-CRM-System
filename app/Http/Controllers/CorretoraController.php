@@ -113,10 +113,10 @@ class CorretoraController extends Controller
         
         // Carregar cotações recentes
         $cotacoes = $corretora->cotacoes()
-                             ->with(['seguradora', 'produto', 'segurado'])
-                             ->latest()
-                             ->limit(10)
-                             ->get();
+                            ->with(['produto', 'segurado', 'cotacaoSeguradoras.seguradora'])
+                            ->latest()
+                            ->limit(10)
+                            ->get();
 
         // Estatísticas de cotações por status
         $cotacoesPorStatus = $corretora->cotacoesPorStatus();

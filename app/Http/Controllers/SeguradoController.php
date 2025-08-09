@@ -122,7 +122,7 @@ class SeguradoController extends Controller
     {
         // Carregar cotações recentes
         $cotacoes = $segurado->cotacoes()
-                            ->with(['corretora', 'produto', 'seguradora'])
+                            ->with(['corretora', 'produto', 'cotacaoSeguradoras.seguradora'])
                             ->latest()
                             ->limit(10)
                             ->get();
