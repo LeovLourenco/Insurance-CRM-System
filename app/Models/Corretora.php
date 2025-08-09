@@ -40,13 +40,7 @@ class Corretora extends Model
     }
 
     /**
-     * Vínculos desta corretora
-     */
-    public function vinculos()
-    {
-        return $this->hasMany(Vinculo::class);
-    }
-
+    
     // Scopes para facilitar consultas
 
     /**

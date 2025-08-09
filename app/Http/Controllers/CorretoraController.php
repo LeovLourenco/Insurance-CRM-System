@@ -198,12 +198,11 @@ class CorretoraController extends Controller
             
             // Verificar se corretora está sendo usada
             $cotacoesCount = $corretora->cotacoes()->count();
-            $vinculosCount = $corretora->vinculos()->count();
             
-            if ($cotacoesCount > 0 || $vinculosCount > 0) {
+            if ($cotacoesCount > 0) {
                 return redirect()
                     ->back()
-                    ->with('error', 'Não é possível excluir esta corretora pois ela possui cotações ou vínculos associados.');
+                    ->with('error', 'Não é possível excluir esta corretora pois ela possui cotações associadas.');
             }
 
             // 1. Limpar relacionamentos nas pivots

@@ -31,13 +31,6 @@ class Produto extends Model
             ->withTimestamps(); 
     }
 
-    /**
-     * Vínculos deste produto
-     */
-    public function vinculos()
-    {
-        return $this->hasMany(Vinculo::class);
-    }
 
     /**
      * Cotações deste produto

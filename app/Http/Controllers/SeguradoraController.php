@@ -201,12 +201,11 @@ class SeguradoraController extends Controller
             
             // Verificar se seguradora está sendo usada
             $cotacoesCount = $seguradora->cotacoes()->count();
-            $vinculosCount = $seguradora->vinculos()->count();
             
-            if ($cotacoesCount > 0 || $vinculosCount > 0) {
+            if ($cotacoesCount > 0) {
                 return redirect()
                     ->back()
-                    ->with('error', 'Não é possível excluir esta seguradora pois ela possui cotações ou vínculos associados.');
+                    ->with('error', 'Não é possível excluir esta seguradora pois ela possui cotações associadas.');
             }
 
             // 1. Limpar relacionamentos nas pivots
