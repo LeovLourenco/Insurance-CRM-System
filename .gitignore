@@ -1,18 +1,37 @@
+# Environment files
+.env*
+.env.producao
+.env.local
+.env.testing
+
+# Laravel specific
+/vendor
 /node_modules
 /public/hot
 /public/storage
 /storage/*.key
-/vendor
-.env
-.env.backup
-.phpunit.result.cache
-docker-compose.override.yml
-Homestead.json
-Homestead.yaml
-npm-debug.log
-yarn-error.log
-/.idea
-/.vscode
-.env
-.env.local
-.env.producao
+/bootstrap/cache/*
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+laravel.log
+
+# Cache
+/bootstrap/cache/*
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+
+# Temporary files
+*.tmp
+*.temp
