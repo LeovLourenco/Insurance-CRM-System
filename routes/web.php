@@ -131,6 +131,7 @@ Route::middleware(['auth'])->group(function () {
     // ===== ROTAS DE USUÁRIO =====
     Route::get('/usuario/perfil', [UsuarioController::class, 'perfil'])->name('usuario.perfil');
     Route::put('/usuario/perfil', [UsuarioController::class, 'atualizar'])->name('usuario.atualizar');
+    Route::put('/usuario/alterar-senha', [UsuarioController::class, 'alterarSenha'])->name('usuario.alterar.senha');
 
     // ===== ROTAS DE CADASTROS RÁPIDOS =====
     Route::post('/segurados', [SeguradoController::class, 'store'])->name('segurados.store');
