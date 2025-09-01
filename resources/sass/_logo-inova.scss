@@ -1,0 +1,93 @@
+// Logo INOVA Styles
+// Baseado no Design System - INOVA Representação
+
+.logo-inova-container {
+    display: inline-flex;
+    align-items: center;
+    
+    svg {
+        transition: all 0.2s ease-in-out;
+    }
+    
+    &:hover svg {
+        transform: scale(1.02);
+    }
+}
+
+// Logo horizontal para sidebar
+.logo-horizontal-inova {
+    max-width: 100%;
+    height: auto;
+    
+    // Responsivo para sidebar colapsado
+    @media (max-width: 768px) {
+        width: 120px;
+        height: 30px;
+    }
+}
+
+// Logo vertical para uso geral
+.logo-vertical-inova {
+    max-width: 100%;
+    height: auto;
+}
+
+// Variação para fundos escuros
+.logo-inova-dark {
+    .logo-bg-dark { fill: white; }
+    .logo-icon-dark,
+    .logo-text-dark { fill: #070B4A; }
+}
+
+// Variação para fundos claros
+.logo-inova-light {
+    .logo-bg-light { fill: #070B4A; }
+    .logo-icon-light,
+    .logo-text-light { fill: white; }
+}
+
+// Animação sutil para carregamento
+@keyframes logoFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.logo-inova-container.animate {
+    animation: logoFadeIn 0.6s ease-out;
+}
+
+// Estilos específicos para navbar/sidebar
+.navbar-brand .logo-inova-container,
+.sidebar .logo-inova-container {
+    margin: 0;
+    
+    svg {
+        display: block;
+    }
+}
+
+// Responsividade
+@media (max-width: 576px) {
+    .logo-horizontal-inova {
+        width: 100px;
+        height: 25px;
+    }
+    
+    .logo-vertical-inova {
+        width: 60px;
+    }
+}
+
+// Print styles
+@media print {
+    .logo-inova-container svg {
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+    }
+}

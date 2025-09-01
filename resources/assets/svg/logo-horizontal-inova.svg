@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 36" class="logo-horizontal-inova">
+  <defs>
+    <style>
+      .logo-bg { fill: #070B4A; }
+      .logo-icon { fill: white; font-family: 'Zona Pro Bold', Arial Black, sans-serif; font-weight: 900; font-size: 16px; }
+      .logo-text { fill: white; font-family: 'MullerNarrow-ExtraBold', Arial Narrow, sans-serif; font-weight: 800; font-size: 14px; letter-spacing: 1.2px; }
+      .logo-lines { stroke: white; stroke-width: 1.2; }
+    </style>
+  </defs>
+  
+  <!-- Fundo do ícone (quadrado azul limpo) -->
+  <rect x="2" y="2" width="32" height="32" rx="2" ry="2" class="logo-bg"/>
+  
+  <!-- Letra "I" dentro do quadrado -->
+  <text x="18" y="24" text-anchor="middle" class="logo-icon">I</text>
+  
+  <!-- Linha decorativa superior (curta e centralizada) -->
+  <line x1="55" y1="12" x2="70" y2="12" class="logo-lines"/>
+  
+  <!-- Texto "INOVA" -->
+  <text x="42" y="20" class="logo-text">INOVA</text>
+  
+  <!-- Linha decorativa inferior (da primeira à última letra) -->
+  <line x1="42" y1="24" x2="83" y2="24" class="logo-lines"/>
+</svg>

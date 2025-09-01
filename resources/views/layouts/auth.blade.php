@@ -92,7 +92,20 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
+        }
+
+        .auth-logo {
+            height: 40px;
+            width: auto;
+            filter: brightness(0) invert(1);
+        }
+
+        .auth-brand-text {
+            font-family: 'MullerNarrow-ExtraBold', Arial Narrow, sans-serif;
+            font-weight: 800;
+            letter-spacing: 2px;
+            font-size: 1.6rem;
         }
 
         .auth-header p {
@@ -234,6 +247,16 @@
             
             .auth-header h1 {
                 font-size: 1.5rem;
+                gap: 0.5rem;
+            }
+
+            .auth-logo {
+                height: 32px;
+            }
+
+            .auth-brand-text {
+                font-size: 1.3rem;
+                letter-spacing: 1.5px;
             }
             
             .auth-body {
@@ -249,10 +272,10 @@
         <div class="auth-header">
             <div class="content">
                 <h1>
-                    <i class="bi bi-shield-lock"></i>
-                    Logos
+                    <img src="{{ asset('assets/svg/logo-login.svg') }}" alt="INOVA" class="auth-logo">
+                    <span class="auth-brand-text">INOVA</span>
                 </h1>
-                <p>@yield('header-subtitle', 'Sistema de Cotações')</p>
+                <p>@yield('header-subtitle', 'Plataforma de Seguros')</p>
             </div>
         </div>
 
@@ -261,7 +284,7 @@
         </div>
 
         <div class="auth-footer">
-            @yield('footer', '2025 Logos - Todos os direitos reservados')
+            @yield('footer', '2025 Inova Representação - Todos os direitos reservados')
         </div>
     </div>
 

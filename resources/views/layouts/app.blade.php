@@ -51,16 +51,23 @@
             gap: 0.75rem;
         }
 
-        .sidebar-header .brand-text {
-            color: white;
-            font-weight: 700;
-            font-size: 1.2rem;
-            transition: opacity 0.3s;
+        .sidebar-header .brand-logo {
+            transition: opacity 0.3s ease;
         }
 
-        .sidebar.collapsed .brand-text {
+        .sidebar.collapsed .brand-logo {
             opacity: 0;
             width: 0;
+            overflow: hidden;
+        }
+
+        /* Logo específico para sidebar */
+        .sidebar-logo {
+            height: 28px;
+            width: auto;
+            max-width: 140px;
+            transition: all 0.3s ease;
+            filter: brightness(0) invert(1); /* Torna o logo branco */
         }
 
         .sidebar-toggle {
@@ -168,17 +175,6 @@
             background: rgba(255,255,255,0.1);
         }
 
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-        }
 
         .user-details {
             color: white;
@@ -319,7 +315,9 @@
             <button class="sidebar-toggle" onclick="toggleSidebar()">
                 <i class="bi bi-list"></i>
             </button>
-            <span class="brand-text">Logos</span>
+            <div class="brand-logo">
+                <img src="{{ asset('assets/svg/logo-horizontal-inova.svg') }}" alt="INOVA" class="sidebar-logo">
+            </div>
         </div>
 
         <nav class="sidebar-nav flex-grow-1">
@@ -397,9 +395,7 @@
             @auth
             <div class="position-relative">
                 <div class="user-info" onclick="toggleUserDropdown()">
-                    <div class="user-avatar">
-                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}{{ strtoupper(substr(explode(' ', Auth::user()->name)[1] ?? '', 0, 1)) }}
-                    </div>
+                    <x-avatar :name="Auth::user()->name" size="sm" />
                     <div class="user-details">
                         <p class="user-name">{{ Auth::user()->name }}</p>
                         <p class="user-role">Usuário</p>
@@ -467,13 +463,13 @@
                     </ol>
                 </nav>
 
-                <!-- Centro - Nome da empresa (contexto) -->
+                <!-- Centro - Nome da empresa (contexto) 
                 <div class="company-name d-none d-lg-block">
                     <h6 class="mb-0 fw-medium text-primary">
                         <i class="bi bi-building me-2"></i>Inova Representação LTDA
                     </h6>
                 </div>
-                
+                            -->
                 <!-- Direita - Data e hora (informação passiva) -->
                 <div class="topbar-datetime d-none d-md-block">
                     <small class="text-muted">
