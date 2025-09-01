@@ -7,23 +7,23 @@
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <!-- Bootstrap 5 CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- App CSS (includes Bootstrap with custom variables) -->
+    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     
     <style>
         :root {
             --sidebar-width: 260px;
-            --primary-color: #2563eb;
-            --sidebar-bg: #1e293b;
-            --sidebar-text: #94a3b8;
-            --sidebar-active: #3b82f6;
+            --primary-color: var(--inova-primary);
+            --sidebar-bg: var(--inova-sidebar-bg);
+            --sidebar-text: var(--inova-sidebar-text);
+            --sidebar-active: var(--inova-sidebar-active);
         }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: #f8fafc;
+            background-color: var(--inova-body-bg);
         }
 
         /* Sidebar */
@@ -33,7 +33,7 @@
             left: 0;
             height: 100vh;
             width: var(--sidebar-width);
-            background: linear-gradient(135deg, var(--sidebar-bg) 0%, #0f172a 100%);
+            background: linear-gradient(135deg, var(--sidebar-bg) 0%, var(--inova-primary) 100%);
             transition: all 0.3s ease;
             z-index: 1000;
             box-shadow: 4px 0 20px rgba(0,0,0,0.1);
@@ -217,7 +217,7 @@
             background: white;
             padding: 1rem 2rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid var(--inova-border-default);
         }
 
         .breadcrumb {
@@ -558,7 +558,7 @@
             background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
             padding: 1rem 2rem;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid var(--inova-border-default);
             backdrop-filter: blur(10px);
             position: sticky;
             top: 0;
@@ -573,31 +573,31 @@
         }
 
         .breadcrumb-item a {
-            color: #1e293b;
+            color: var(--inova-text-dark);
             transition: color 0.2s ease;
             font-weight: 500;
             font-size: 0.95rem;
         }
 
         .breadcrumb-item a:hover {
-            color: #3b82f6;
+            color: var(--inova-primary);
         }
 
         .breadcrumb-item.active {
-            color: #3b82f6;
+            color: var(--inova-primary);
             font-weight: 600;
             font-size: 0.95rem;
         }
 
         /* Nome da empresa (contexto, mais discreto) */
         .company-name h6 {
-            color: #64748b;
+            color: var(--inova-text-muted);
             font-size: 0.9rem;
             letter-spacing: -0.025em;
         }
 
         .company-name h6 i {
-            color: #94a3b8;
+            color: var(--inova-text-light);
         }
 
         /* Data/hora (informação passiva) */
@@ -605,7 +605,7 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            color: #94a3b8;
+            color: var(--inova-text-light);
             font-size: 0.875rem;
         }
 

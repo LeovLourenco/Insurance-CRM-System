@@ -5,31 +5,46 @@
     <title>@yield('title', 'Login - Sistema de Cotações')</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- Bootstrap 5 CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- App CSS (includes Bootstrap with INOVA colors) -->
+    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     
     <style>
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--inova-primary) 0%, var(--inova-secondary) 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0;
             padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 40%),
+           radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.08) 0%, transparent 40%);
+        animation: float 8s ease-in-out infinite;
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-40px) rotate(3deg); }
         }
 
         .auth-container {
             background: white;
             border-radius: 1rem;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 
+                       0 0 0 1px rgba(255, 255, 255, 0.05);
             overflow: hidden;
             width: 100%;
             max-width: 450px;
             animation: slideUp 0.6s ease-out;
+            position: relative;
+            z-index: 1;
+            backdrop-filter: blur(10px);
         }
 
         @keyframes slideUp {
@@ -44,7 +59,9 @@
         }
 
         .auth-header {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            background: linear-gradient(135deg, 
+                       color-mix(in srgb, var(--inova-primary) 90%, #000 10%) 0%, 
+                       color-mix(in srgb, var(--inova-primary) 70%, #000 30%) 100%);
             color: white;
             padding: 2.5rem 2rem;
             text-align: center;
@@ -90,7 +107,7 @@
 
         .form-label {
             font-weight: 600;
-            color: #374151;
+            color: var(--inova-text-dark);
             margin-bottom: 0.5rem;
             display: flex;
             align-items: center;
@@ -98,27 +115,27 @@
         }
 
         .form-control {
-            border: 2px solid #e2e8f0;
+            border: 2px solid var(--inova-border-default);
             border-radius: 0.75rem;
             padding: 0.875rem 1.25rem;
             font-size: 1rem;
             transition: all 0.3s ease;
-            background: #fafafa;
+            background: var(--inova-bg-lighter);
         }
 
         .form-control:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            border-color: var(--inova-primary);
+            box-shadow: 0 0 0 4px color-mix(in srgb, var(--inova-primary) 10%, transparent 90%);
             background: white;
             transform: translateY(-1px);
         }
 
         .form-control.is-invalid {
-            border-color: #ef4444;
+            border-color: var(--bs-danger);
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            background: linear-gradient(135deg, var(--inova-primary) 0%, var(--inova-secondary) 100%);
             border: none;
             border-radius: 0.75rem;
             padding: 1rem 1.5rem;
@@ -127,11 +144,15 @@
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            color: white;
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+            box-shadow: 0 8px 25px color-mix(in srgb, var(--inova-primary) 40%, transparent 60%);
+            background: linear-gradient(135deg, 
+                       color-mix(in srgb, var(--inova-primary) 90%, white 10%) 0%, 
+                       color-mix(in srgb, var(--inova-secondary) 90%, white 10%) 100%);
         }
 
         .btn-primary:active {
@@ -158,20 +179,20 @@
         }
 
         .form-check-input:checked {
-            background-color: #3b82f6;
-            border-color: #3b82f6;
+            background-color: var(--inova-primary);
+            border-color: var(--inova-primary);
         }
 
         .auth-footer {
             text-align: center;
             padding: 1rem 2rem 2rem;
-            color: #6b7280;
+            color: var(--inova-text-muted);
             font-size: 0.9rem;
-            background: #fafafa;
+            background: var(--inova-bg-lighter);
         }
 
         .auth-footer a {
-            color: #3b82f6;
+            color: var(--inova-primary);
             text-decoration: none;
             font-weight: 500;
         }
@@ -186,14 +207,14 @@
         }
 
         .auth-links a {
-            color: #3b82f6;
+            color: var(--inova-primary);
             text-decoration: none;
             font-weight: 500;
             transition: color 0.3s ease;
         }
 
         .auth-links a:hover {
-            color: #1e40af;
+            color: var(--inova-secondary);
             text-decoration: underline;
         }
 

@@ -1,7 +1,10 @@
+// Import INOVA Design System
+@import 'inova-design-system';
+
 // Body
-$body-bg: #f8fafc;
+$body-bg: $inova-body-bg;
 
 // Typography
-$font-family-sans-serif: 'Nunito', sans-serif;
+$font-family-sans-serif: $inova-font-fallback;
 $font-size-base: 0.9rem;
 $line-height-base: 1.6;

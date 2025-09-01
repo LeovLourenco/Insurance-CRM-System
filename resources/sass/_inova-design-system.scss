@@ -1,0 +1,188 @@
+// ============================================
+// INOVA REPRESENTAÇÃO - DESIGN SYSTEM
+// ============================================
+
+// Cores Principais - Design System INOVA
+// ============================================
+$inova-primary: #070B4A;      // RGB: 7, 11, 74 | CMYK: C91 M85 Y0 K71
+$inova-secondary: #393C6E;    // RGB: 57, 60, 110 | CMYK: C48 M45 Y0 K57
+
+// Elementos de Design INOVA
+// ============================================
+$inova-element-1: #CDCEDB;    // RGB: 205, 206, 219 | CMYK: C6 M6 Y0 K14
+$inova-element-2: #E7E7ED;    // RGB: 231, 231, 237 | CMYK: C3 M3 Y0 K7
+
+// Variações das Cores Principais
+// ============================================
+$inova-primary-light: lighten($inova-primary, 10%);    // #0B1060
+$inova-primary-lighter: lighten($inova-primary, 20%);  // #0F1576
+$inova-primary-dark: darken($inova-primary, 10%);      // #050834
+$inova-primary-darker: darken($inova-primary, 20%);    // #03051E
+
+$inova-secondary-light: lighten($inova-secondary, 10%);  // #474B7E
+$inova-secondary-lighter: lighten($inova-secondary, 20%); // #555A8E
+$inova-secondary-dark: darken($inova-secondary, 10%);    // #2B2E5E
+$inova-secondary-darker: darken($inova-secondary, 20%);  // #1D204E
+
+// Sidebar & Navigation Colors
+// ============================================
+$inova-sidebar-bg: $inova-primary;
+$inova-sidebar-bg-gradient-start: $inova-primary;
+$inova-sidebar-bg-gradient-end: $inova-primary-darker;
+$inova-sidebar-text: $inova-element-1;
+$inova-sidebar-text-muted: rgba($inova-element-1, 0.6);
+$inova-sidebar-active: $inova-secondary;
+$inova-sidebar-hover: rgba($inova-secondary, 0.1);
+
+// Layout Colors
+// ============================================
+$inova-topbar-bg: #ffffff;
+$inova-topbar-bg-gradient: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+$inova-topbar-border: #e2e8f0;
+$inova-body-bg: #f8fafc;
+
+// Text Colors
+// ============================================
+$inova-text-primary: $inova-primary;
+$inova-text-secondary: $inova-secondary;
+$inova-text-dark: #1e293b;
+$inova-text-muted: #64748b;
+$inova-text-light: #94a3b8;
+
+// Border Colors
+// ============================================
+$inova-border-light: #f1f5f9;
+$inova-border-default: #e2e8f0;
+$inova-border-dark: #d1d5db;
+$inova-border-primary: $inova-primary;
+$inova-border-secondary: $inova-secondary;
+
+// Background Colors
+// ============================================
+$inova-bg-light: #ffffff;
+$inova-bg-lighter: #f8fafc;
+$inova-bg-muted: #f1f5f9;
+$inova-bg-primary: $inova-primary;
+$inova-bg-secondary: $inova-secondary;
+
+// Button & Interactive States
+// ============================================
+$inova-btn-primary-bg: $inova-primary;
+$inova-btn-primary-hover: $inova-primary-light;
+$inova-btn-primary-active: $inova-primary-dark;
+
+$inova-btn-secondary-bg: $inova-secondary;
+$inova-btn-secondary-hover: $inova-secondary-light;
+$inova-btn-secondary-active: $inova-secondary-dark;
+
+// Status Colors (compatíveis com Bootstrap)
+// ============================================
+$inova-success: #28a745;
+$inova-info: $inova-secondary-light;
+$inova-warning: #ffc107;
+$inova-danger: #dc3545;
+
+// Form Colors
+// ============================================
+$inova-form-border: $inova-border-default;
+$inova-form-border-focus: $inova-primary;
+$inova-form-bg: #ffffff;
+$inova-form-bg-disabled: $inova-bg-muted;
+
+// Card & Modal Colors
+// ============================================
+$inova-card-bg: #ffffff;
+$inova-card-border: $inova-border-light;
+$inova-card-shadow: rgba(0, 0, 0, 0.05);
+$inova-card-shadow-hover: rgba(0, 0, 0, 0.1);
+
+// Gradients INOVA
+// ============================================
+$inova-gradient-primary: linear-gradient(135deg, $inova-primary 0%, $inova-primary-dark 100%);
+$inova-gradient-secondary: linear-gradient(135deg, $inova-secondary 0%, $inova-secondary-dark 100%);
+$inova-gradient-sidebar: linear-gradient(135deg, $inova-sidebar-bg-gradient-start 0%, $inova-sidebar-bg-gradient-end 100%);
+
+// Override Bootstrap Variables
+// ============================================
+$primary: $inova-primary !default;
+$secondary: $inova-secondary !default;
+$success: $inova-success !default;
+$info: $inova-info !default;
+$warning: $inova-warning !default;
+$danger: $inova-danger !default;
+
+// Typography - INOVA Fonts
+// ============================================
+$inova-font-primary: 'Zona Pro Bold', 'Arial Black', sans-serif;
+$inova-font-secondary: 'MullerNarrow-ExtraBold', 'Arial Narrow', sans-serif;
+$inova-font-fallback: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+// CSS Custom Properties for Runtime Use
+// ============================================
+:root {
+  // INOVA Core Colors
+  --inova-primary: #{$inova-primary};
+  --inova-secondary: #{$inova-secondary};
+  --inova-element-1: #{$inova-element-1};
+  --inova-element-2: #{$inova-element-2};
+  
+  // Sidebar
+  --inova-sidebar-bg: #{$inova-sidebar-bg};
+  --inova-sidebar-text: #{$inova-sidebar-text};
+  --inova-sidebar-active: #{$inova-sidebar-active};
+  
+  // Layout
+  --inova-body-bg: #{$inova-body-bg};
+  --inova-text-primary: #{$inova-text-primary};
+  --inova-text-muted: #{$inova-text-muted};
+  --inova-border-default: #{$inova-border-default};
+}
+
+// Utility Classes
+// ============================================
+.bg-inova-primary { background-color: $inova-primary !important; }
+.bg-inova-secondary { background-color: $inova-secondary !important; }
+.bg-inova-element-1 { background-color: $inova-element-1 !important; }
+.bg-inova-element-2 { background-color: $inova-element-2 !important; }
+
+.text-inova-primary { color: $inova-primary !important; }
+.text-inova-secondary { color: $inova-secondary !important; }
+.text-inova-muted { color: $inova-text-muted !important; }
+
+.border-inova-primary { border-color: $inova-primary !important; }
+.border-inova-secondary { border-color: $inova-secondary !important; }
+.border-inova-light { border-color: $inova-border-light !important; }
+
+// Button Variants
+// ============================================
+.btn-inova-primary {
+  background: $inova-gradient-primary;
+  border-color: $inova-primary;
+  color: #ffffff;
+  
+  &:hover {
+    background: linear-gradient(135deg, $inova-primary-light 0%, $inova-primary 100%);
+    border-color: $inova-primary-light;
+  }
+  
+  &:active, &.active {
+    background: $inova-primary-dark;
+    border-color: $inova-primary-dark;
+  }
+}
+
+.btn-inova-secondary {
+  background: $inova-gradient-secondary;
+  border-color: $inova-secondary;
+  color: #ffffff;
+  
+  &:hover {
+    background: linear-gradient(135deg, $inova-secondary-light 0%, $inova-secondary 100%);
+    border-color: $inova-secondary-light;
+  }
+  
+  &:active, &.active {
+    background: $inova-secondary-dark;
+    border-color: $inova-secondary-dark;
+  }
+}
