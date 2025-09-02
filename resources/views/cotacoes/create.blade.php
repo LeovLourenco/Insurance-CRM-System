@@ -428,8 +428,16 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function buscarSeguradoras() {
-    const corretoraId = document.getElementById('corretora_id').value;
-    const produtoId = document.getElementById('produto_id').value;
+    const corretoraElement = document.getElementById('corretora_id');
+    const produtoElement = document.getElementById('produto_id');
+    
+    if (!corretoraElement || !produtoElement) {
+        console.error('Elementos corretora_id ou produto_id não encontrados');
+        return;
+    }
+    
+    const corretoraId = corretoraElement.value;
+    const produtoId = produtoElement.value;
     
     console.log('Debug - Corretora ID:', corretoraId, 'Produto ID:', produtoId); // DEBUG
     
@@ -520,8 +528,10 @@ async function buscarSeguradoras() {
             
         } else {
             // Mensagem quando não há seguradoras
-            const corretoraTexto = corretoraSelect.options[corretoraSelect.selectedIndex]?.text || 'N/A';
-            const produtoTexto = produtoSelect.options[produtoSelect.selectedIndex]?.text || 'N/A';
+            const corretoraSelectElement = document.getElementById('corretora_id');
+            const produtoSelectElement = document.getElementById('produto_id');
+            const corretoraTexto = corretoraSelectElement?.options[corretoraSelectElement.selectedIndex]?.text || 'N/A';
+            const produtoTexto = produtoSelectElement?.options[produtoSelectElement.selectedIndex]?.text || 'N/A';
             
             placeholder.innerHTML = `
                 <div class="text-center text-warning py-4">
