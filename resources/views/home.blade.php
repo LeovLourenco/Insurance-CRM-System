@@ -35,14 +35,24 @@
                     <i class="bi bi-file-earmark-text text-primary fs-4"></i>
                 </div>
                 <div>
-                    <h3 class="mb-0">127</h3>
+                    <h3 class="mb-0">{{ $cotacoesAtivas }}</h3>
                     <p class="text-muted mb-0 small">Cotações Ativas</p>
                 </div>
             </div>
             <div class="mt-3">
-                <small class="text-success">
-                    <i class="bi bi-arrow-up"></i> +12% este mês
-                </small>
+                @if($variacaoAtivas > 0)
+                    <small class="text-success">
+                        <i class="bi bi-arrow-up"></i> +{{ $variacaoAtivas }}% este mês
+                    </small>
+                @elseif($variacaoAtivas < 0)
+                    <small class="text-danger">
+                        <i class="bi bi-arrow-down"></i> {{ $variacaoAtivas }}% este mês
+                    </small>
+                @else
+                    <small class="text-muted">
+                        <i class="bi bi-dash"></i> Sem mudança
+                    </small>
+                @endif
             </div>
         </div>
     </div>
@@ -54,14 +64,24 @@
                     <i class="bi bi-check-circle text-success fs-4"></i>
                 </div>
                 <div>
-                    <h3 class="mb-0">89</h3>
+                    <h3 class="mb-0">{{ $cotacoesAprovadas }}</h3>
                     <p class="text-muted mb-0 small">Aprovadas</p>
                 </div>
             </div>
             <div class="mt-3">
-                <small class="text-success">
-                    <i class="bi bi-arrow-up"></i> +8% este mês
-                </small>
+                @if($variacaoAprovadas > 0)
+                    <small class="text-success">
+                        <i class="bi bi-arrow-up"></i> +{{ $variacaoAprovadas }}% este mês
+                    </small>
+                @elseif($variacaoAprovadas < 0)
+                    <small class="text-danger">
+                        <i class="bi bi-arrow-down"></i> {{ $variacaoAprovadas }}% este mês
+                    </small>
+                @else
+                    <small class="text-muted">
+                        <i class="bi bi-dash"></i> Sem mudança
+                    </small>
+                @endif
             </div>
         </div>
     </div>
@@ -73,13 +93,13 @@
                     <i class="bi bi-clock text-warning fs-4"></i>
                 </div>
                 <div>
-                    <h3 class="mb-0">23</h3>
+                    <h3 class="mb-0">{{ $cotacoesPendentes }}</h3>
                     <p class="text-muted mb-0 small">Pendentes</p>
                 </div>
             </div>
             <div class="mt-3">
-                <small class="text-muted">
-                    <i class="bi bi-dash"></i> Sem mudança
+                <small class="text-warning">
+                    <i class="bi bi-clock"></i> Aguardando resposta
                 </small>
             </div>
         </div>
@@ -92,14 +112,20 @@
                     <i class="bi bi-people text-info fs-4"></i>
                 </div>
                 <div>
-                    <h3 class="mb-0">45</h3>
+                    <h3 class="mb-0">{{ $clientesAtivos }}</h3>
                     <p class="text-muted mb-0 small">Clientes Ativos</p>
                 </div>
             </div>
             <div class="mt-3">
-                <small class="text-success">
-                    <i class="bi bi-arrow-up"></i> +3 novos
-                </small>
+                @if($clientesNovos > 0)
+                    <small class="text-success">
+                        <i class="bi bi-arrow-up"></i> +{{ $clientesNovos }} novos
+                    </small>
+                @else
+                    <small class="text-muted">
+                        <i class="bi bi-dash"></i> Nenhum novo
+                    </small>
+                @endif
             </div>
         </div>
     </div>
@@ -125,90 +151,52 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
-                                        <i class="bi bi-person text-primary"></i>
+                        @forelse($cotacoesRecentes as $cotacao)
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-{{ $cotacao['status_classe'] }} bg-opacity-10 rounded-circle p-2 me-2">
+                                            <i class="bi bi-person text-{{ $cotacao['status_classe'] }}"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-medium">{{ $cotacao['cliente_nome'] }}</div>
+                                            <small class="text-muted">ID: {{ $cotacao['id'] }}</small>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <div class="fw-medium">Maria Silva</div>
-                                        <small class="text-muted">maria@email.com</small>
+                                </td>
+                                <td>{{ $cotacao['produto_nome'] }}</td>
+                                <td>
+                                    <span class="badge bg-{{ $cotacao['status_classe'] }}">
+                                        {{ $cotacao['status_formatado'] }}
+                                    </span>
+                                </td>
+                                <td>
+                                    @if($cotacao['valor'])
+                                        R$ {{ number_format($cotacao['valor'], 2, ',', '.') }}
+                                    @else
+                                        <span class="text-muted">Pendente</span>
+                                    @endif
+                                </td>
+                                <td>{{ $cotacao['created_at']->format('d/m/Y') }}</td>
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="{{ $cotacao['route'] }}">Ver Detalhes</a></li>
+                                        </ul>
                                     </div>
-                                </div>
-                            </td>
-                            <td>Seguro Auto</td>
-                            <td><span class="badge bg-success">Aprovado</span></td>
-                            <td>R$ 1.200,00</td>
-                            <td>10/07/2025</td>
-                            <td>
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
-                                        <i class="bi bi-three-dots"></i>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#">Ver Detalhes</a></li>
-                                        <li><a class="dropdown-item" href="#">Editar</a></li>
-                                    </ul>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="bg-success bg-opacity-10 rounded-circle p-2 me-2">
-                                        <i class="bi bi-person text-success"></i>
-                                    </div>
-                                    <div>
-                                        <div class="fw-medium">João Santos</div>
-                                        <small class="text-muted">joao@email.com</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>Seguro Residencial</td>
-                            <td><span class="badge bg-warning">Pendente</span></td>
-                            <td>R$ 890,00</td>
-                            <td>09/07/2025</td>
-                            <td>
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
-                                        <i class="bi bi-three-dots"></i>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#">Ver Detalhes</a></li>
-                                        <li><a class="dropdown-item" href="#">Editar</a></li>
-                                    </ul>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="bg-info bg-opacity-10 rounded-circle p-2 me-2">
-                                        <i class="bi bi-person text-info"></i>
-                                    </div>
-                                    <div>
-                                        <div class="fw-medium">Ana Costa</div>
-                                        <small class="text-muted">ana@email.com</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>Seguro Vida</td>
-                            <td><span class="badge bg-info">Em Análise</span></td>
-                            <td>R$ 450,00</td>
-                            <td>08/07/2025</td>
-                            <td>
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
-                                        <i class="bi bi-three-dots"></i>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#">Ver Detalhes</a></li>
-                                        <li><a class="dropdown-item" href="#">Editar</a></li>
-                                    </ul>
-                                </div>
-                            </td>
-                        </tr>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox fs-4"></i>
+                                    <p class="mb-0 mt-2">Nenhuma cotação encontrada</p>
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -239,49 +227,23 @@
         <div class="modern-card p-4">
             <h5 class="mb-3">Atividades Recentes</h5>
             <div class="activity-feed">
-                <div class="activity-item d-flex mb-3">
-                    <div class="activity-icon bg-success bg-opacity-10 rounded-circle p-2 me-3">
-                        <i class="bi bi-check-circle text-success"></i>
+                @forelse($atividadesRecentes as $atividade)
+                    <div class="activity-item d-flex {{ !$loop->last ? 'mb-3' : '' }}">
+                        <div class="activity-icon bg-{{ $atividade['tipo_classe'] }} bg-opacity-10 rounded-circle p-2 me-3">
+                            <i class="bi {{ $atividade['tipo_icon'] }} text-{{ $atividade['tipo_classe'] }}"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium">{{ $atividade['descricao'] }}</div>
+                            <small class="text-muted">{{ $atividade['cliente'] }} - {{ $atividade['usuario'] }}</small>
+                            <div class="text-muted small">{{ $atividade['created_at']->diffForHumans() }}</div>
+                        </div>
                     </div>
-                    <div class="flex-grow-1">
-                        <div class="fw-medium">Cotação aprovada</div>
-                        <small class="text-muted">Maria Silva - Seguro Auto</small>
-                        <div class="text-muted small">2 horas atrás</div>
+                @empty
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-activity fs-4"></i>
+                        <p class="mb-0 mt-2">Nenhuma atividade recente</p>
                     </div>
-                </div>
-
-                <div class="activity-item d-flex mb-3">
-                    <div class="activity-icon bg-primary bg-opacity-10 rounded-circle p-2 me-3">
-                        <i class="bi bi-plus-circle text-primary"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <div class="fw-medium">Nova cotação criada</div>
-                        <small class="text-muted">João Santos - Seguro Residencial</small>
-                        <div class="text-muted small">4 horas atrás</div>
-                    </div>
-                </div>
-
-                <div class="activity-item d-flex mb-3">
-                    <div class="activity-icon bg-info bg-opacity-10 rounded-circle p-2 me-3">
-                        <i class="bi bi-person-plus text-info"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <div class="fw-medium">Novo cliente cadastrado</div>
-                        <small class="text-muted">Ana Costa</small>
-                        <div class="text-muted small">1 dia atrás</div>
-                    </div>
-                </div>
-
-                <div class="activity-item d-flex">
-                    <div class="activity-icon bg-warning bg-opacity-10 rounded-circle p-2 me-3">
-                        <i class="bi bi-clock text-warning"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <div class="fw-medium">Cotação pendente</div>
-                        <small class="text-muted">Carlos Lima - Seguro Empresarial</small>
-                        <div class="text-muted small">2 dias atrás</div>
-                    </div>
-                </div>
+                @endforelse
             </div>
         </div>
     </div>
@@ -322,19 +284,31 @@
                     <div class="row g-3">
                         <div class="col-12">
                             <div class="text-center p-3 bg-primary bg-opacity-10 rounded">
-                                <h4 class="text-primary mb-1">78%</h4>
+                                <h4 class="text-primary mb-1">{{ $taxaAprovacao }}%</h4>
                                 <small class="text-muted">Taxa de Aprovação</small>
                             </div>
                         </div>
                         <div class="col-12">
                             <div class="text-center p-3 bg-success bg-opacity-10 rounded">
-                                <h4 class="text-success mb-1">R$ 45.230</h4>
+                                <h4 class="text-success mb-1">
+                                    @if($receitaMes > 0)
+                                        R$ {{ number_format($receitaMes, 0, ',', '.') }}
+                                    @else
+                                        R$ 0
+                                    @endif
+                                </h4>
                                 <small class="text-muted">Receita do Mês</small>
                             </div>
                         </div>
                         <div class="col-12">
                             <div class="text-center p-3 bg-info bg-opacity-10 rounded">
-                                <h4 class="text-info mb-1">2.3 dias</h4>
+                                <h4 class="text-info mb-1">
+                                    @if($tempoMedio > 0)
+                                        {{ number_format($tempoMedio, 1) }} dias
+                                    @else
+                                        N/A
+                                    @endif
+                                </h4>
                                 <small class="text-muted">Tempo Médio</small>
                             </div>
                         </div>
