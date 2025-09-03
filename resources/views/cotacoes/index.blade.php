@@ -324,24 +324,6 @@
                                                             <i class="bi bi-gear"></i> Gerenciar
                                                         </a>
                                                     </div>
-                                                    
-                                                    @if($cs->data_envio)
-                                                        <small class="text-muted d-block">
-                                                            Enviado: {{ $cs->data_envio->format('d/m H:i') }}
-                                                        </small>
-                                                    @endif
-                                                    @if($cs->valor_premio)
-                                                        <div class="mt-1">
-                                                            <small class="fw-bold text-success">
-                                                                R$ {{ number_format($cs->valor_premio, 2, ',', '.') }}
-                                                            </small>
-                                                        </div>
-                                                    @endif
-                                                    @if($cs->observacoes)
-                                                        <div class="mt-1">
-                                                            <small class="text-muted">{{ Str::limit($cs->observacoes, 50) }}</small>
-                                                        </div>
-                                                    @endif
                                                 </div>
                                             </div>
                                         @endforeach

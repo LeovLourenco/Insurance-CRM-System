@@ -4,153 +4,162 @@
 
 @section('content')
 <div class="container">
-    {{-- Header Simplificado (apenas título e breadcrumb) --}}
-    <div class="mb-3">
-        <div>
-            <h1 class="h3 mb-2">
-                <i class="bi bi-file-earmark-text text-primary"></i> 
-                Cotação #{{ $cotacao->id }}
-                <span class="ms-2">
-                    @include('cotacoes.partials.status', ['cotacao' => $cotacao, 'tipo' => 'badge'])
-                </span>
-            </h1>
-            <nav aria-label="breadcrumb">
+    {{-- ===== ENTERPRISE HEADER ===== --}}
+    <div class="enterprise-header mb-4">
+        {{-- Navegação / Breadcrumb --}}
+        <div class="header-navigation">
+            <nav class="breadcrumb-nav" aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="{{ route('cotacoes.index') }}">Cotações</a></li>
-                    <li class="breadcrumb-item active">Cotação #{{ $cotacao->id }}</li>
+                    <li class="breadcrumb-item">
+                        <a href="{{ route('cotacoes.index') }}" class="breadcrumb-link">
+                            <i class="bi bi-list-ul me-1"></i>Cotações
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        Cotação #{{ $cotacao->id }}
+                    </li>
                 </ol>
             </nav>
         </div>
-    </div>
 
-    {{-- Nova Actions Bar Dedicada --}}
-    <div class="actions-bar-container mb-4">
-        <div class="actions-bar">
-            {{-- Grupo Principal (sempre visível) --}}
-            <div class="actions-primary">
-                <button class="btn btn-outline-secondary" onclick="window.history.back()">
-                    <i class="bi bi-arrow-left"></i> 
-                    <span class="btn-text">Voltar</span>
-                </button>
-                
-                @if($cotacao->status === 'em_andamento')
-                    @if($cotacao->pode_enviar)
-                        <button class="btn btn-success" onclick="marcarComoEnviada()">
-                            <i class="bi bi-send"></i> 
-                            <span class="btn-text">Enviar Todas</span>
-                        </button>
-                    @endif
-                    
-                    <button class="btn btn-primary" onclick="adicionarComentarioGeral()">
-                        <i class="bi bi-chat-dots"></i> 
-                        <span class="btn-text">Comentário</span>
-                    </button>
-                @endif
-            </div>
-
-            {{-- Grupo Secundário (desktop: visível, mobile: no menu) --}}
-            <div class="actions-secondary">
-                @if($cotacao->status === 'em_andamento')
-                    {{-- Desktop: Botões diretos --}}
-                    <div class="desktop-actions">
-                        <button class="btn btn-outline-success btn-sm" onclick="finalizarCotacao('finalizada')">
-                            <i class="bi bi-check-circle"></i> 
-                            <span class="btn-text">Finalizar</span>
-                        </button>
-                        
-                        <button class="btn btn-outline-danger btn-sm" onclick="finalizarCotacao('cancelada')">
-                            <i class="bi bi-x-circle"></i> 
-                            <span class="btn-text">Cancelar</span>
-                        </button>
+        {{-- Título Principal e Metadados --}}
+        <div class="header-title-section">
+            <div class="title-group">
+                <div class="title-content">
+                    <h1 class="page-title">
+                        <i class="bi bi-file-earmark-text title-icon"></i>
+                        Cotação #{{ $cotacao->id }}
+                    </h1>
+                    <div class="title-meta">
+                        @include('cotacoes.partials.status', ['cotacao' => $cotacao, 'tipo' => 'badge'])
                     </div>
-                @else
-                    {{-- Status finalizado/cancelado: sem ações específicas --}}
-                    <div class="desktop-actions">
-                        {{-- Sem botões específicos para cotações finalizadas --}}
-                    </div>
-                @endif
-
-                {{-- Ações Extras (sempre disponíveis) --}}
-                <div class="btn-group actions-menu">
-                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" 
-                            data-bs-toggle="dropdown" 
-                            aria-expanded="false">
-                        <i class="bi bi-three-dots-vertical"></i>
-                        <span class="btn-text">Mais</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        @if($cotacao->status === 'em_andamento')
-                            {{-- Mobile: Status actions --}}
-                            <li class="mobile-only">
-                                <h6 class="dropdown-header">Alterar Status</h6>
-                            </li>
-                            <li class="mobile-only">
-                                <a class="dropdown-item" onclick="finalizarCotacao('finalizada')">
-                                    <i class="bi bi-check-circle text-success"></i> Finalizar Cotação
-                                </a>
-                            </li>
-                            <li class="mobile-only">
-                                <a class="dropdown-item" onclick="finalizarCotacao('cancelada')">
-                                    <i class="bi bi-x-circle text-danger"></i> Cancelar Cotação
-                                </a>
-                            </li>
-                            <li class="mobile-only"><hr class="dropdown-divider"></li>
-                        @endif
-                        
-                        <li><h6 class="dropdown-header">Ações Adicionais</h6></li>
-
-                        <li>
-                            <a class="dropdown-item" onclick="funcionalidadeEmConstrucao()">
-                                <i class="bi bi-file-pdf text-danger"></i> Exportar PDF
-                            </a>
-                        </li>
-
-                        <li>
-                            <a class="dropdown-item" onclick="funcionalidadeEmConstrucao()">
-                                <i class="bi bi-file-earmark-excel text-success"></i> Exportar Excel
-                            </a>
-                        </li>
-
-                        <li><hr class="dropdown-divider"></li>
-
-                        <li>
-                            <a class="dropdown-item" onclick="funcionalidadeEmConstrucao()">
-                                <i class="bi bi-printer"></i> Imprimir
-                            </a>
-                        </li>
-
-                        <li>
-                            <a class="dropdown-item" onclick="funcionalidadeEmConstrucao()">
-                                <i class="bi bi-share"></i> Compartilhar
-                            </a>
-                        </li>
-                        
-                        @if(auth()->user()->can('delete', $cotacao))
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <a class="dropdown-item text-danger" onclick="excluirCotacao()">
-                                    <i class="bi bi-trash"></i> Excluir Cotação
-                                </a>
-                            </li>
-                        @endif
-                    </ul>
                 </div>
             </div>
         </div>
 
-        {{-- Indicador de Status Mobile --}}
-        <div class="mobile-status-info">
-            <small class="text-muted">
-                <i class="bi bi-info-circle"></i>
+        {{-- Ações Principais --}}
+        <div class="header-actions">
+            {{-- Navegação --}}
+            <div class="action-group navigation-group">
+                <button class="btn btn-outline-secondary btn-enterprise" onclick="window.history.back()" title="Voltar à lista">
+                    <i class="bi bi-arrow-left"></i>
+                    <span class="btn-label">Voltar</span>
+                </button>
+            </div>
+
+            {{-- Ações Principais (máximo 3) --}}
+            <div class="action-group primary-actions">
                 @if($cotacao->status === 'em_andamento')
-                    Cotação em andamento - você pode editar e enviar
-                @elseif($cotacao->status === 'finalizada')
-                    Cotação finalizada - apenas leitura
+                    @if($cotacao->pode_enviar)
+                        <button class="btn btn-success btn-enterprise primary-action" 
+                                onclick="marcarComoEnviada()" 
+                                title="Enviar todas as cotações pendentes">
+                            <i class="bi bi-send"></i>
+                            <span class="btn-label">Enviar Cotações</span>
+                        </button>
+                    @endif
+                    
+                    <button class="btn btn-primary btn-enterprise primary-action" 
+                            onclick="adicionarComentarioGeral()" 
+                            title="Adicionar comentário geral">
+                        <i class="bi bi-chat-dots"></i>
+                        <span class="btn-label">Comentário</span>
+                    </button>
+
+                    <button class="btn btn-outline-success btn-enterprise" 
+                            onclick="finalizarCotacao('finalizada')" 
+                            title="Finalizar cotação">
+                        <i class="bi bi-check-circle"></i>
+                        <span class="btn-label">Finalizar</span>
+                    </button>
                 @else
-                    Cotação cancelada - apenas leitura
+                    <button class="btn btn-outline-primary btn-enterprise" 
+                            onclick="funcionalidadeEmConstrucao()" 
+                            title="Exportar relatório">
+                        <i class="bi bi-file-pdf"></i>
+                        <span class="btn-label">Relatório</span>
+                    </button>
+
+                    @if($cotacao->status === 'finalizada')
+                        <button class="btn btn-outline-info btn-enterprise" 
+                                onclick="duplicarCotacao()" 
+                                title="Criar nova cotação baseada nesta">
+                            <i class="bi bi-files"></i>
+                            <span class="btn-label">Duplicar</span>
+                        </button>
+                    @endif
                 @endif
-            </small>
+            </div>
+
+            {{-- Menu Contextual --}}
+            <div class="action-group contextual-menu">
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary btn-enterprise dropdown-toggle" 
+                            type="button" 
+                            data-bs-toggle="dropdown" 
+                            aria-expanded="false"
+                            title="Mais ações">
+                        <i class="bi bi-three-dots"></i>
+                        <span class="btn-label d-none d-lg-inline">Mais</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end enterprise-dropdown">
+                        {{-- Seção: Status --}}
+                        @if($cotacao->status === 'em_andamento')
+                            <li><h6 class="dropdown-header"><i class="bi bi-gear me-1"></i>Gerenciar Status</h6></li>
+                            <li>
+                                <a class="dropdown-item" href="#" onclick="finalizarCotacao('cancelada')">
+                                    <i class="bi bi-x-circle text-danger"></i>
+                                    <span>Cancelar Cotação</span>
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                        @endif
+
+                        {{-- Seção: Exportação --}}
+                        <li><h6 class="dropdown-header"><i class="bi bi-download me-1"></i>Exportar</h6></li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="funcionalidadeEmConstrucao()">
+                                <i class="bi bi-file-pdf text-danger"></i>
+                                <span>PDF Completo</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="funcionalidadeEmConstrucao()">
+                                <i class="bi bi-file-earmark-excel text-success"></i>
+                                <span>Planilha Excel</span>
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+
+                        {{-- Seção: Ações --}}
+                        <li><h6 class="dropdown-header"><i class="bi bi-tools me-1"></i>Ações</h6></li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="funcionalidadeEmConstrucao()">
+                                <i class="bi bi-printer text-primary"></i>
+                                <span>Imprimir</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="funcionalidadeEmConstrucao()">
+                                <i class="bi bi-share text-info"></i>
+                                <span>Compartilhar</span>
+                            </a>
+                        </li>
+
+                        {{-- Histórico --}}
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="abrirHistoricoCompleto()">
+                                <i class="bi bi-clock-history text-secondary"></i>
+                                <span>Ver Histórico Completo</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
+    </div>
+
     </div>
 
     {{-- Métricas Compactas --}}
@@ -247,13 +256,8 @@
                     
                     {{-- Observações Gerais --}}
                     <div class="mt-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="mb-3">
                             <label class="mb-0">Observações Gerais</label>
-                            @if($cotacao->pode_editar)
-                                <button class="btn btn-sm btn-outline-secondary" onclick="editarObservacoesGerais()">
-                                    <i class="bi bi-pencil"></i> Editar
-                                </button>
-                            @endif
                         </div>
                         <div class="observacoes-container">
                             @if($cotacao->observacoes)
@@ -319,7 +323,6 @@
                                             </div>
                                             <div class="flex-grow-1 ms-3">
                                                 <h6 class="mb-0 fw-bold seguradora-name-compact">{{ $cs->seguradora->nome }}</h6>
-                                                <small class="text-muted">ID: {{ $cs->id }}</small>
                                             </div>
                                             <div class="flex-shrink-0">
                                                 <i class="bi bi-chevron-right text-muted"></i>
@@ -636,21 +639,6 @@
                         </div>
                     </div>
 
-                    {{-- Timeline --}}
-                    <div class="mb-3">
-                        <label class="fw-semibold mb-2 d-block">
-                            <i class="bi bi-clock-history text-info me-1"></i>
-                            Histórico da Seguradora
-                        </label>
-                        <div class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
-                            <div id="modalTimeline">
-                                <div class="text-center text-muted py-3">
-                                    <i class="bi bi-hourglass-split"></i>
-                                    Carregando histórico...
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 {{-- ===== VIEW 2: ALTERAR STATUS ===== --}}
@@ -885,6 +873,264 @@
 
 @push('styles')
 <style>
+/* ===== ENTERPRISE HEADER STYLES ===== */
+.enterprise-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+}
+
+.header-navigation {
+    margin-bottom: 1rem;
+}
+
+.breadcrumb-nav .breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin: 0;
+}
+
+.breadcrumb-link {
+    color: #6c757d;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb-link:hover {
+    color: var(--bs-primary);
+}
+
+.header-title-section {
+    margin-bottom: 1.5rem;
+}
+
+.page-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #212529;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.title-icon {
+    color: var(--bs-primary);
+    font-size: 1.5rem;
+}
+
+.title-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.meta-separator {
+    color: #adb5bd;
+    font-weight: 300;
+}
+
+.meta-info {
+    color: #6c757d;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.action-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.navigation-group {
+    flex: 0 0 auto;
+}
+
+.primary-actions {
+    flex: 1;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.contextual-actions {
+    flex: 0 0 auto;
+}
+
+.btn-enterprise {
+    padding: 0.7rem 1.5rem;
+    font-weight: 600;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    transition: all 0.2s ease;
+    min-width: 120px;
+    justify-content: center;
+    border-width: 1.5px;
+}
+
+.btn-enterprise:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.btn-label {
+    font-size: 0.875rem;
+}
+
+.primary-action {
+    position: relative;
+    overflow: hidden;
+}
+
+.primary-action::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.primary-action:hover::before {
+    left: 100%;
+}
+
+.enterprise-dropdown {
+    border: none;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    border-radius: 12px;
+    padding: 0.5rem 0;
+    min-width: 280px;
+}
+
+.enterprise-dropdown .dropdown-header {
+    color: #495057;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.75rem 1rem 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.enterprise-dropdown .dropdown-item {
+    padding: 0.75rem 1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.enterprise-dropdown .dropdown-item:hover {
+    background: rgba(var(--bs-primary-rgb), 0.08);
+    transform: translateX(4px);
+}
+
+.enterprise-dropdown .dropdown-item i {
+    width: 16px;
+    text-align: center;
+}
+
+/* Responsividade Enterprise Header */
+@media (max-width: 768px) {
+    .enterprise-header {
+        padding: 1rem;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .header-actions {
+        margin-top: 1rem;
+        gap: 1rem;
+        justify-content: center;
+    }
+    
+    .primary-actions {
+        justify-content: space-evenly;
+        flex: 1;
+        gap: 0.75rem;
+    }
+    
+    .btn-label {
+        display: none;
+    }
+    
+    .btn-enterprise {
+        padding: 0.6rem;
+        min-width: 48px;
+        min-height: 48px;
+        justify-content: center;
+    }
+    
+    .action-group {
+        gap: 0.25rem;
+    }
+    
+    .title-meta {
+        font-size: 0.8rem;
+    }
+}
+
+/* Tablets */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .header-actions {
+        gap: 1.25rem;
+    }
+    
+    .primary-actions {
+        gap: 0.85rem;
+    }
+    
+    .btn-enterprise {
+        padding: 0.65rem 1.3rem;
+        min-width: 110px;
+    }
+}
+
+@media (max-width: 576px) {
+    .header-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .primary-actions {
+        width: 100%;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+    
+    .btn-enterprise {
+        flex: 1;
+        min-width: auto;
+    }
+    
+    .enterprise-dropdown {
+        min-width: 200px;
+    }
+}
+
 /* ===== BASE STYLES ===== */
 .modern-card {
     background: #fff;
@@ -904,511 +1150,18 @@
     padding: 1.5rem;
 }
 
-/* ===== NOVA ACTIONS BAR ===== */
-.actions-bar-container {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-radius: 12px;
-    padding: 1rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-    border: 1px solid rgba(0,0,0,0.08);
-    position: relative;
-    overflow: visible;
-}
-
-.actions-bar-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #007bff, #6610f2, #6f42c1);
-    animation: shimmer 3s ease-in-out infinite;
-}
-
-@keyframes shimmer {
-    0%, 100% { opacity: 0.5; }
-    50% { opacity: 1; }
-}
-
-.actions-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-/* Grupos de ações */
-.actions-primary {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.actions-secondary {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.desktop-actions {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-}
-
-/* Botões da Actions Bar */
-.actions-bar .btn {
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    border-radius: 8px;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    white-space: nowrap;
-}
-
-.actions-bar .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.actions-bar .btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-    transition: left 0.5s ease;
-}
-
-.actions-bar .btn:hover::before {
-    left: 100%;
-}
-
-/* Ícones nos botões */
-.actions-bar .btn i {
-    font-size: 1rem;
-    transition: transform 0.3s ease;
-}
-
-.actions-bar .btn:hover i {
-    transform: scale(1.1);
-}
-
-/* Texto dos botões */
-.btn-text {
-    display: inline-block;
-    font-size: 0.875rem;
-}
-
-/* Status info mobile */
-.mobile-status-info {
-    display: none;
-    margin-top: 0.75rem;
-    padding: 0.5rem;
-    background: rgba(255,255,255,0.8);
-    border-radius: 8px;
-    border-left: 3px solid var(--bs-primary);
-}
-
-.mobile-status-info small {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-/* Dropdown customizado */
-.actions-menu .dropdown-menu {
-    border: none;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.12);
-    border-radius: 12px;
-    padding: 0.5rem 0;
-    min-width: 220px;
-    animation: fadeInDown 0.3s ease;
-}
-
-@keyframes fadeInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.actions-menu .dropdown-item {
-    padding: 0.6rem 1.2rem;
-    transition: all 0.2s ease;
-    border-radius: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.actions-menu .dropdown-item:hover {
-    background: linear-gradient(90deg, rgba(0,123,255,0.1) 0%, rgba(0,123,255,0.05) 100%);
-    transform: translateX(4px);
-}
-
-.actions-menu .dropdown-item i {
-    width: 20px;
-    text-align: center;
-}
-
-.actions-menu .dropdown-header {
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #6c757d;
-    padding: 0.5rem 1.2rem 0.25rem;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
-    margin-bottom: 0.25rem;
-}
-
-.actions-menu .dropdown-divider {
-    margin: 0.5rem 0;
-    border-top: 1px solid rgba(0,0,0,0.08);
-}
-
-.actions-menu .dropdown-item.text-danger:hover {
-    background: linear-gradient(90deg, rgba(220,53,69,0.1) 0%, rgba(220,53,69,0.05) 100%);
-    color: #dc3545;
-}
-
-/* Mobile only items (hidden on desktop) */
-.mobile-only {
-    display: none;
-}
-
-/* ===== RESPONSIVIDADE DA ACTIONS BAR ===== */
-@media (max-width: 768px) {
-    .actions-bar-container {
-        padding: 0.75rem;
-        margin-bottom: 1rem;
-        position: sticky;
-        top: 60px; /* Ajustar conforme altura do header */
-        z-index: 100;
-        background: rgba(248, 249, 250, 0.95);
-        backdrop-filter: blur(10px);
-    }
-    
-    .actions-bar {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.75rem;
-    }
-    
-    .actions-primary {
-        justify-content: center;
-        order: 1;
-    }
-    
-    .actions-secondary {
-        justify-content: center;
-        order: 2;
-    }
-    
-    /* Esconder ações desktop no mobile */
-    .desktop-actions {
-        display: none;
-    }
-    
-    /* Mostrar items mobile no dropdown */
-    .mobile-only {
-        display: block;
-    }
-    
-    /* Ajustar botões para mobile */
-    .actions-bar .btn {
-        padding: 0.6rem 0.8rem;
-        font-size: 0.875rem;
-        min-height: 44px; /* Touch target mínimo */
-    }
-    
-    /* Esconder texto em telas muito pequenas */
-    @media (max-width: 380px) {
-        .btn-text {
-            display: none;
-        }
-        
-        .actions-bar .btn {
-            padding: 0.6rem;
-            min-width: 44px;
-            justify-content: center;
-        }
-    }
-    
-    /* Mostrar status info no mobile */
-    .mobile-status-info {
-        display: block;
-        animation: slideInUp 0.3s ease;
-    }
-    
-    @keyframes slideInUp {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    /* Dropdown fullwidth no mobile */
-    .actions-menu .dropdown-menu {
-        position: fixed !important;
-        left: 1rem !important;
-        right: 1rem !important;
-        top: auto !important;
-        bottom: 1rem !important;
-        width: auto !important;
-        max-height: 70vh;
-        overflow-y: auto;
-        transform: none !important;
-    }
-    
-    .actions-menu.show .dropdown-menu {
-        animation: slideUp 0.3s ease;
-    }
-    
-    @keyframes slideUp {
-        from {
-            transform: translateY(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-}
-
-/* ===== TABLETS ===== */
-@media (min-width: 769px) and (max-width: 1024px) {
-    .actions-bar-container {
-        padding: 1rem 0.75rem;
-    }
-    
-    .actions-bar .btn {
-        padding: 0.4rem 0.75rem;
-        font-size: 0.85rem;
-    }
-    
-    .btn-text {
-        font-size: 0.8rem;
-    }
-    
-    /* Mostrar alguns itens mobile no tablet */
-    .mobile-only:not(.dropdown-divider) {
-        display: none;
-    }
-}
-
-/* ===== TELAS GRANDES ===== */
-@media (min-width: 1400px) {
-    .actions-bar-container {
-        padding: 1.25rem 1.5rem;
-    }
-    
-    .actions-bar .btn {
-        padding: 0.6rem 1.25rem;
-    }
-    
-    .btn-text {
-        font-size: 0.9rem;
-    }
-}
-
-/* ===== ESTADOS DOS BOTÕES ===== */
-
-/* Botão Enviar Todas */
-.btn-success {
-    background: linear-gradient(135deg, #28a745, #20c997);
-    border: none;
-    color: white;
-}
-
-.btn-success:hover {
-    background: linear-gradient(135deg, #20c997, #28a745);
-}
-
-/* Botão Comentário */
-.btn-primary {
-    background: linear-gradient(135deg, #007bff, #6610f2);
-    border: none;
-    color: white;
-}
-
-.btn-primary:hover {
-    background: linear-gradient(135deg, #6610f2, #007bff);
-}
-
-/* Botões Outline */
-.btn-outline-success {
-    position: relative;
-    overflow: hidden;
-}
-
-.btn-outline-success::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(40, 167, 69, 0.1);
-    transform: translate(-50%, -50%);
-    transition: width 0.5s ease, height 0.5s ease;
-}
-
-.btn-outline-success:hover::after {
-    width: 100%;
-    height: 100%;
-}
-
-.btn-outline-danger {
-    position: relative;
-    overflow: hidden;
-}
-
-.btn-outline-danger::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(220, 53, 69, 0.1);
-    transform: translate(-50%, -50%);
-    transition: width 0.5s ease, height 0.5s ease;
-}
-
-.btn-outline-danger:hover::after {
-    width: 100%;
-    height: 100%;
-}
-
-/* ===== ANIMAÇÕES EXTRAS ===== */
-
-/* Pulse para botões importantes */
-@media (min-width: 769px) {
-    .btn-success {
-        animation: subtle-pulse 2s infinite;
-    }
-    
-    @keyframes subtle-pulse {
-        0%, 100% {
-            box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
-        }
-        50% {
-            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.5);
-        }
-    }
-}
-
-/* Loading state */
-.actions-bar .btn.loading {
-    pointer-events: none;
-    opacity: 0.7;
-}
-
-.actions-bar .btn.loading i {
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-/* ===== INDICADORES VISUAIS ===== */
-
-/* Badge de contagem */
-.actions-bar .btn .badge {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 4px;
-    font-size: 0.65rem;
-    font-weight: 700;
-    border-radius: 50%;
-    background: #dc3545;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: bounceIn 0.5s ease;
-}
-
-@keyframes bounceIn {
-    0% {
-        transform: scale(0);
-    }
-    50% {
-        transform: scale(1.2);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-
-/* Tooltip customizado */
-.actions-bar .btn[title] {
-    position: relative;
-}
-
-.actions-bar .btn[title]:hover::after {
-    content: attr(title);
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 0.5rem 0.75rem;
-    background: rgba(0,0,0,0.9);
-    color: white;
-    font-size: 0.75rem;
-    border-radius: 6px;
-    white-space: nowrap;
-    pointer-events: none;
-    opacity: 0;
-    animation: fadeInTooltip 0.3s ease forwards;
-    margin-bottom: 0.5rem;
-    z-index: 1000;
-}
-
-@keyframes fadeInTooltip {
-    to {
-        opacity: 1;
-    }
-}
 
 /* ===== METRIC CARDS ===== */
 .metric-card {
     background: linear-gradient(135deg, var(--bs-primary), var(--bs-primary-dark, #0056b3));
-    border-radius: 12px;
-    padding: 1rem;
+    border-radius: 8px;
+    padding: 0.6rem;
     color: white;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    min-height: 80px;
+    gap: 0.4rem;
+    min-height: 44px;
+    max-height: 48px;
 }
 
 .metric-card.bg-success {
@@ -1425,27 +1178,29 @@
 }
 
 .metric-icon {
-    width: 36px;
-    height: 36px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 8px;
+    width: 24px;
+    height: 24px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
+    font-size: 0.8rem;
     flex-shrink: 0;
 }
 
 .metric-content h4 {
     margin: 0;
-    font-size: 1.5rem;
+    font-size: 1.15rem;
     font-weight: 700;
-    line-height: 1.2;
+    line-height: 1.1;
 }
 
 .metric-content span {
-    font-size: 0.8rem;
-    opacity: 0.9;
+    font-size: 0.7rem;
+    opacity: 0.85;
+    margin-top: -2px;
+    display: block;
 }
 
 /* ===== INFO ITEMS ===== */
@@ -1918,57 +1673,6 @@
     to { transform: rotate(360deg); }
 }
 
-/* Timeline no modal */
-#modalTimeline .timeline-item-modal {
-    transition: all 0.2s ease;
-    animation: fadeInTimeline 0.5s ease forwards;
-    opacity: 0;
-    display: flex;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-    padding: 0.75rem;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border-left: 3px solid var(--bs-primary);
-}
-
-#modalTimeline .timeline-item-modal:nth-child(1) { animation-delay: 0.1s; }
-#modalTimeline .timeline-item-modal:nth-child(2) { animation-delay: 0.2s; }
-#modalTimeline .timeline-item-modal:nth-child(3) { animation-delay: 0.3s; }
-#modalTimeline .timeline-item-modal:nth-child(4) { animation-delay: 0.4s; }
-#modalTimeline .timeline-item-modal:nth-child(5) { animation-delay: 0.5s; }
-
-@keyframes fadeInTimeline {
-    to { opacity: 1; transform: translateX(0); }
-}
-
-#modalTimeline .timeline-item-modal:hover {
-    transform: translateX(5px);
-    background: #e9ecef;
-}
-
-#modalTimeline .timeline-marker-modal {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-top: 0.5rem;
-    flex-shrink: 0;
-}
-
-#modalTimeline .timeline-content-modal {
-    flex-grow: 1;
-}
-
-#modalTimeline .timeline-meta-modal {
-    font-size: 0.75rem;
-    color: #6c757d;
-    margin-bottom: 0.25rem;
-}
-
-#modalTimeline .timeline-text-modal {
-    color: #495057;
-    line-height: 1.4;
-}
 
 /* Informações da proposta */
 .bg-light {
@@ -2073,13 +1777,24 @@
 /* RESPONSIVO */
 @media (max-width: 768px) {
     .metric-card {
-        margin-bottom: 0.75rem;
-        padding: 0.75rem;
-        min-height: 70px;
+        margin-bottom: 0.4rem;
+        padding: 0.45rem;
+        min-height: 42px;
+        gap: 0.35rem;
+    }
+    
+    .metric-icon {
+        width: 20px;
+        height: 20px;
+        font-size: 0.75rem;
     }
     
     .metric-content h4 {
-        font-size: 1.3rem;
+        font-size: 1.05rem;
+    }
+    
+    .metric-content span {
+        font-size: 0.65rem;
     }
     
     .stats-grid {
@@ -2250,8 +1965,6 @@ function abrirModalSeguradora(csId) {
         // Preencher dados
         preencherDadosModal();
         
-        // Carregar timeline
-        carregarTimelineSeguradora(csId);
         
         // Abrir modal
         if (modalSeguradoraDetalhes) {
@@ -2432,99 +2145,6 @@ function preencherDadosModal() {
     }
 }
 
-// ===== CARREGAR TIMELINE =====
-function carregarTimelineSeguradora(csId) {
-    const timelineContainer = document.getElementById('modalTimeline');
-    
-    if (!timelineContainer) {
-        return;
-    }
-    
-    // Loading inicial
-    timelineContainer.innerHTML = `
-        <div class="timeline-item-modal">
-            <div class="timeline-marker-modal bg-info"></div>
-            <div class="timeline-content-modal">
-                <div class="timeline-meta-modal">Carregando histórico...</div>
-                <div class="timeline-text-modal">🔍 Verificando atividades específicas</div>
-            </div>
-        </div>
-    `;
-    
-    // Tentar buscar API
-    fetch(`/cotacao-seguradoras/${csId}/atividades`)
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success && data.atividades.length > 0) {
-            let timelineHtml = '';
-            
-            data.atividades.forEach(atividade => {
-                const corMarcador = atividade.cor ? `bg-${atividade.cor}` : 'bg-info';
-                const icone = atividade.icone || 'bi-info-circle';
-                
-                timelineHtml += `
-                    <div class="timeline-item-modal">
-                        <div class="timeline-marker-modal ${corMarcador}">
-                            <i class="${icone}"></i>
-                        </div>
-                        <div class="timeline-content-modal">
-                            <div class="timeline-meta-modal">
-                                ${atividade.data_formatada || formatarData(atividade.created_at)}
-                                ${atividade.user ? ` - ${atividade.user.name}` : ''}
-                            </div>
-                            <div class="timeline-text-modal">${atividade.descricao}</div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            timelineContainer.innerHTML = timelineHtml;
-        } else {
-            mostrarTimelineVazia();
-        }
-    })
-    .catch(error => {
-        mostrarTimelineBasica();
-    });
-    
-    function mostrarTimelineVazia() {
-        timelineContainer.innerHTML = `
-            <div class="text-center text-muted py-4">
-                <i class="bi bi-clock-history fs-2 mb-2"></i>
-                <p class="mb-0">Nenhuma atividade específica registrada</p>
-                <small>As atividades aparecerão aqui conforme as ações forem realizadas</small>
-            </div>
-        `;
-    }
-    
-    function mostrarTimelineBasica() {
-        timelineContainer.innerHTML = `
-            <div class="timeline-item-modal">
-                <div class="timeline-marker-modal bg-primary">
-                    <i class="bi bi-plus-circle"></i>
-                </div>
-                <div class="timeline-content-modal">
-                    <div class="timeline-meta-modal">Sistema</div>
-                    <div class="timeline-text-modal">✅ Seguradora associada à cotação</div>
-                </div>
-            </div>
-            <div class="timeline-item-modal">
-                <div class="timeline-marker-modal bg-success">
-                    <i class="bi bi-info-circle"></i>
-                </div>
-                <div class="timeline-content-modal">
-                    <div class="timeline-meta-modal">Info</div>
-                    <div class="timeline-text-modal">🎯 Timeline será alimentada quando implementar a rota de atividades</div>
-                </div>
-            </div>
-        `;
-    }
-}
 
 // ===== SALVAR MUDANÇA DE STATUS =====
 function salvarMudancaStatus() {
@@ -2644,8 +2264,6 @@ function salvarComentario() {
                     </div>
                 `;
                 
-                // Recarregar timeline
-                carregarTimelineSeguradora(modalData.csId);
                 
                 // Voltar para detalhes
                 setTimeout(() => {
@@ -3107,52 +2725,6 @@ function exportarPDF() {
     }
 }
 
-function editarObservacoesGerais() {
-    try {
-        const observacoesAtual = document.querySelector('.observacoes-container .alert')?.textContent.trim() || '';
-        
-        const novaObservacao = prompt('Editar observações gerais:', observacoesAtual);
-        
-        if (novaObservacao === null) {
-            return; // Cancelou
-        }
-        
-        const cotacaoId = document.querySelector('h1').textContent.match(/#(\d+)/)[1];
-        
-        fetch(`/cotacoes/${cotacaoId}/observacoes`, {
-            method: 'PATCH',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                observacoes: novaObservacao
-            })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                showToast('Observações atualizadas!', 'success');
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                throw new Error(data.message);
-            }
-        })
-        .catch(error => {
-            console.log('API não implementada:', error);
-            showToast('Funcionalidade ainda não implementada', 'info');
-        });
-        
-    } catch (error) {
-        console.error('🚨 Erro ao editar observações:', error);
-        showToast('Erro ao editar observações', 'danger');
-    }
-}
 
 function marcarComoEnviada() {
     try {
