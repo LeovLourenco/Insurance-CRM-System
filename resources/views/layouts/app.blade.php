@@ -333,23 +333,34 @@
             </div>
 
             <!-- Cotações -->
+            @can('cotacoes.view')
             <div class="nav-section">
                 <div class="nav-section-title">Cotações</div>
                 <div class="nav-item">
                     <a href="{{ route('cotacoes.index') }}" class="nav-link {{ request()->routeIs('cotacoes.index') ? 'active' : '' }}">
                         <i class="bi bi-file-earmark-text"></i>
-                        <span class="nav-text">Todas Cotações</span>
+                        <span class="nav-text">
+                            @role('comercial')
+                                Minhas Cotações
+                            @else
+                                Todas Cotações
+                            @endrole
+                        </span>
                     </a>
                 </div>
+                @can('cotacoes.create')
                 <div class="nav-item">
                     <a href="{{ route('cotacoes.create') }}" class="nav-link {{ request()->routeIs('cotacoes.create') ? 'active' : '' }}">
                         <i class="bi bi-plus-circle"></i>
                         <span class="nav-text">Nova Cotação</span>
                     </a>
                 </div>
+                @endcan
             </div>
+            @endcan
 
             <!-- Consultas -->
+            @can('cotacoes.view')
             <div class="nav-section">
                 <div class="nav-section-title">Consultas</div>
                 <div class="nav-item">
@@ -359,35 +370,81 @@
                     </a>
                 </div>
             </div>
+            @endcan
 
-            <!-- Gerenciamento -->
+            <!-- Cadastros Base - TODOS DEVEM VER -->
             <div class="nav-section">
-                <div class="nav-section-title">Gerenciamento</div>
-                <div class="nav-item">
-                    <a href="{{ route('produtos.index') }}" class="nav-link {{ request()->routeIs('produtos.*') ? 'active' : '' }}">
-                        <i class="bi bi-box-seam"></i>
-                        <span class="nav-text">Produtos</span>
-                    </a>
+                <div class="nav-section-title">
+                    @role('comercial')
+                        Meus Cadastros
+                    @else
+                        Cadastros
+                    @endrole
                 </div>
-                <div class="nav-item">
-                    <a href="{{ route('seguradoras.index') }}" class="nav-link {{ request()->routeIs('seguradoras.*') ? 'active' : '' }}">
-                        <i class="bi bi-building"></i>
-                        <span class="nav-text">Seguradoras</span>
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="{{ route('corretoras.index') }}" class="nav-link {{ request()->routeIs('corretoras.*') ? 'active' : '' }}">
-                        <i class="bi bi-person-badge"></i>
-                        <span class="nav-text">Corretoras</span>
-                    </a>
-                </div>
+                
+                <!-- Segurados - TODOS -->
                 <div class="nav-item">
                     <a href="{{ route('segurados.index') }}" class="nav-link {{ request()->routeIs('segurados.*') ? 'active' : '' }}">
                         <i class="bi bi-person-check"></i>
                         <span class="nav-text">Segurados</span>
                     </a>
                 </div>
+                
+                <!-- Corretoras - TODOS -->
+                <div class="nav-item">
+                    <a href="{{ route('corretoras.index') }}" class="nav-link {{ request()->routeIs('corretoras.*') ? 'active' : '' }}">
+                        <i class="bi bi-person-badge"></i>
+                        <span class="nav-text">Corretoras</span>
+                    </a>
+                </div>
+                
+                <!-- Produtos - TODOS -->
+                <div class="nav-item">
+                    <a href="{{ route('produtos.index') }}" class="nav-link {{ request()->routeIs('produtos.*') ? 'active' : '' }}">
+                        <i class="bi bi-box-seam"></i>
+                        <span class="nav-text">
+                            @role('admin')
+                                Produtos
+                            @else
+                                Ver Produtos
+                            @endrole
+                        </span>
+                    </a>
+                </div>
+                
+                <!-- Seguradoras - TODOS -->
+                <div class="nav-item">
+                    <a href="{{ route('seguradoras.index') }}" class="nav-link {{ request()->routeIs('seguradoras.*') ? 'active' : '' }}">
+                        <i class="bi bi-building"></i>
+                        <span class="nav-text">
+                            @role('admin')
+                                Seguradoras
+                            @else
+                                Ver Seguradoras
+                            @endrole
+                        </span>
+                    </a>
+                </div>
             </div>
+
+            <!-- Administração (apenas para admin) -->
+            @role('admin')
+            <div class="nav-section">
+                <div class="nav-section-title">Sistema</div>
+                <div class="nav-item">
+                    <a href="#" onclick="mostrarDesenvolvimento('Gestão de usuários em desenvolvimento'); return false;" class="nav-link">
+                        <i class="bi bi-people"></i>
+                        <span class="nav-text">Usuários</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" onclick="mostrarDesenvolvimento('Configurações do sistema em desenvolvimento'); return false;" class="nav-link">
+                        <i class="bi bi-gear"></i>
+                        <span class="nav-text">Configurações</span>
+                    </a>
+                </div>
+            </div>
+            @endrole
         </nav>
 
         <!-- User Section -->
@@ -398,7 +455,17 @@
                     <x-avatar :name="Auth::user()->name" size="sm" />
                     <div class="user-details">
                         <p class="user-name">{{ Auth::user()->name }}</p>
-                        <p class="user-role">Usuário</p>
+                        <p class="user-role">
+                            @role('admin')
+                                Administrador
+                            @elserole('diretor')
+                                Diretor
+                            @elserole('comercial')
+                                Comercial
+                            @else
+                                Usuário
+                            @endrole
+                        </p>
                     </div>
                 </div>
                 

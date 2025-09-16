@@ -31,34 +31,37 @@
                 @csrf
                 <div class="row">
                     <div class="col-md-5">
-                        <label for="corretora_id" class="form-label">
+                        <label for="corretora_search" class="form-label">
                             <i class="bi bi-building me-1"></i>Corretora
                         </label>
-                        <select name="corretora_id" id="corretora_id" class="form-select">
-                            <option value="">Selecione uma corretora (opcional)</option>
-                            @foreach($corretoras as $c)
-                                <option value="{{ $c->id }}" {{ (isset($corretoraId) && $corretoraId == $c->id) ? 'selected' : '' }}>
-                                    {{ $c->nome }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <div class="position-relative">
+                            <input type="text" 
+                                   id="corretora_search" 
+                                   name="corretora_search"
+                                   class="form-control" 
+                                   placeholder="Digite o nome da corretora..."
+                                   autocomplete="off"
+                                   value="{{ isset($corretora) ? $corretora->nome : '' }}">
+                            <input type="hidden" name="corretora_id" id="corretora_id" value="{{ $corretoraId ?? '' }}">
+                            <div id="corretora_suggestions" class="autocomplete-suggestions"></div>
+                        </div>
                     </div>
                     
                     <div class="col-md-5">
-                        <label for="produto_id" class="form-label">
+                        <label for="produto_search" class="form-label">
                             <i class="bi bi-box me-1"></i>Produto
                         </label>
-                        <select name="produto_id" id="produto_id" class="form-select">
-                            <option value="">Selecione um produto (opcional)</option>
-                            @foreach($produtos as $p)
-                                <option value="{{ $p->id }}" {{ (isset($produtoId) && $produtoId == $p->id) ? 'selected' : '' }}>
-                                    {{ $p->nome }}
-                                    @if($p->linha)
-                                        <span class="text-muted">({{ $p->linha }})</span>
-                                    @endif
-                                </option>
-                            @endforeach
-                        </select>
+                        <div class="position-relative">
+                            <input type="text" 
+                                   id="produto_search" 
+                                   name="produto_search"
+                                   class="form-control" 
+                                   placeholder="Digite o nome do produto..."
+                                   autocomplete="off"
+                                   value="{{ isset($produto) ? $produto->nome : '' }}">
+                            <input type="hidden" name="produto_id" id="produto_id" value="{{ $produtoId ?? '' }}">
+                            <div id="produto_suggestions" class="autocomplete-suggestions"></div>
+                        </div>
                     </div>
                     
                     <div class="col-md-2 d-flex align-items-end">
@@ -365,6 +368,178 @@
     height: 2rem;
     font-size: 0.875rem;
 }
+
+/* Autocomplete Styles */
+.autocomplete-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-top: none;
+    border-radius: 0 0 0.375rem 0.375rem;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    display: none;
+}
+
+.autocomplete-suggestion {
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f8f9fa;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.autocomplete-suggestion:hover,
+.autocomplete-suggestion.active {
+    background-color: #f8f9fa;
+}
+
+.autocomplete-suggestion:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-suggestion .text-muted {
+    font-size: 0.875rem;
+}
+
+.form-control:focus + .autocomplete-suggestions {
+    border-color: #86b7fe;
+}
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Dados para autocomplete
+    const corretoras = @json($corretoras->map(function($c) { return ['id' => $c->id, 'nome' => $c->nome]; }));
+    const produtos = @json($produtos->map(function($p) { return ['id' => $p->id, 'nome' => $p->nome, 'linha' => $p->linha]; }));
+
+    // Função genérica para autocomplete
+    function setupAutocomplete(inputId, hiddenId, suggestionsId, data, formatFunction) {
+        const input = document.getElementById(inputId);
+        const hiddenInput = document.getElementById(hiddenId);
+        const suggestions = document.getElementById(suggestionsId);
+        let activeIndex = -1;
+
+        input.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            hiddenInput.value = '';
+            
+            if (query.length < 2) {
+                suggestions.style.display = 'none';
+                return;
+            }
+
+            const filteredData = data.filter(item => 
+                item.nome.toLowerCase().includes(query)
+            ).slice(0, 10); // Limitar a 10 resultados
+
+            if (filteredData.length === 0) {
+                suggestions.style.display = 'none';
+                return;
+            }
+
+            suggestions.innerHTML = '';
+            filteredData.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'autocomplete-suggestion';
+                div.innerHTML = formatFunction(item, query);
+                div.addEventListener('click', function() {
+                    input.value = item.nome;
+                    hiddenInput.value = item.id;
+                    suggestions.style.display = 'none';
+                });
+                suggestions.appendChild(div);
+            });
+
+            suggestions.style.display = 'block';
+            activeIndex = -1;
+        });
+
+        input.addEventListener('keydown', function(e) {
+            const suggestionItems = suggestions.querySelectorAll('.autocomplete-suggestion');
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activeIndex = Math.min(activeIndex + 1, suggestionItems.length - 1);
+                updateActiveItem(suggestionItems);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activeIndex = Math.max(activeIndex - 1, -1);
+                updateActiveItem(suggestionItems);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (activeIndex >= 0 && suggestionItems[activeIndex]) {
+                    suggestionItems[activeIndex].click();
+                }
+            } else if (e.key === 'Escape') {
+                suggestions.style.display = 'none';
+                activeIndex = -1;
+            }
+        });
+
+        function updateActiveItem(items) {
+            items.forEach((item, index) => {
+                item.classList.toggle('active', index === activeIndex);
+            });
+        }
+
+        // Fechar sugestões ao clicar fora
+        document.addEventListener('click', function(e) {
+            if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+                suggestions.style.display = 'none';
+            }
+        });
+    }
+
+    // Função para destacar texto correspondente
+    function highlightMatch(text, query) {
+        const regex = new RegExp(`(${query})`, 'gi');
+        return text.replace(regex, '<strong>$1</strong>');
+    }
+
+    // Configurar autocomplete para corretoras
+    setupAutocomplete(
+        'corretora_search', 
+        'corretora_id', 
+        'corretora_suggestions', 
+        corretoras,
+        function(item, query) {
+            return `<div>${highlightMatch(item.nome, query)}</div>`;
+        }
+    );
+
+    // Configurar autocomplete para produtos
+    setupAutocomplete(
+        'produto_search', 
+        'produto_id', 
+        'produto_suggestions', 
+        produtos,
+        function(item, query) {
+            let html = `<div>${highlightMatch(item.nome, query)}`;
+            if (item.linha) {
+                html += ` <span class="text-muted">(${item.linha})</span>`;
+            }
+            html += '</div>';
+            return html;
+        }
+    );
+
+    // Validar formulário antes do envio
+    document.getElementById('consultaForm').addEventListener('submit', function(e) {
+        const corretoraId = document.getElementById('corretora_id').value;
+        const produtoId = document.getElementById('produto_id').value;
+
+        if (!corretoraId && !produtoId) {
+            e.preventDefault();
+            alert('Selecione pelo menos uma corretora ou produto para realizar a consulta.');
+            return false;
+        }
+    });
+});
+</script>
 
 @endsection

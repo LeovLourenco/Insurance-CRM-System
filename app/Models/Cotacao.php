@@ -10,7 +10,14 @@ class Cotacao extends Model
     
     protected $fillable = [
         'corretora_id', 'produto_id', 'segurado_id', 
-        'observacoes', 'status'
+        'observacoes', 'status', 'user_id'
+        // ✅ user_id adicionado ao fillable para permitir mass assignment seguro
+    ];
+    
+    // ⚠️ CAMPOS PROTEGIDOS: Nunca podem ser atribuídos via mass assignment
+    protected $guarded = [
+        'id', 'created_at', 'updated_at'
+        // ✅ user_id removido do guarded para permitir atribuição controlada
     ];
 
     // Relacionamentos existentes
@@ -37,6 +44,11 @@ class Cotacao extends Model
     public function atividades()
     {
         return $this->hasMany(AtividadeCotacao::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
     // ===== NOVOS ACCESSORS PARA STATUS INTELIGENTE =====

@@ -7,12 +7,21 @@ use Illuminate\Http\Request;
 
 class CotacaoSeguradoraController extends Controller
 {
+    public function __construct()
+    {
+        $this->authorizeResource(CotacaoSeguradora::class, 'cotacao_seguradora');
+    }
+
     /**
      * Exibir dados de uma cotacao_seguradora específica
      * Rota: GET /cotacao-seguradoras/{cotacaoSeguradora}
      */
     public function show(CotacaoSeguradora $cotacaoSeguradora)
     {
+        // ✅ VALIDAÇÃO DUPLA DE SEGURANÇA (já feita pelo authorizeResource)
+        // Mas vamos manter verificação explícita para maior segurança
+        $this->authorize('view', $cotacaoSeguradora);
+        
         $cotacaoSeguradora->load(['cotacao', 'seguradora']);
 
         return response()->json([
@@ -49,6 +58,9 @@ class CotacaoSeguradoraController extends Controller
      */
     public function update(Request $request, CotacaoSeguradora $cotacaoSeguradora)
     {
+        // ✅ VALIDAÇÃO DUPLA DE SEGURANÇA
+        $this->authorize('update', $cotacaoSeguradora);
+        
         $request->validate([
             'status' => 'required|in:aguardando,em_analise,aprovada,rejeitada,repique',
             'valor_premio' => 'nullable|numeric|min:0',
@@ -60,14 +72,17 @@ class CotacaoSeguradoraController extends Controller
         $statusAnterior = $cotacaoSeguradora->status;
         $dadosAnteriores = $cotacaoSeguradora->only(['valor_premio', 'valor_is', 'observacoes']);
 
-        // Atualizar dados
-        $cotacaoSeguradora->update([
+        // ⚠️ SEGURANÇA: Apenas campos permitidos (proteger contra mass assignment)
+        $dadosPermitidos = [
             'status' => $request->status,
             'valor_premio' => $request->valor_premio,
             'valor_is' => $request->valor_is,
             'data_retorno' => $request->data_retorno ? now() : $cotacaoSeguradora->data_retorno,
             'observacoes' => $request->observacoes
-        ]);
+        ];
+        
+        // Atualizar dados
+        $cotacaoSeguradora->update($dadosPermitidos);
 
         // Registrar atividade na cotação principal
         $mudancas = [];

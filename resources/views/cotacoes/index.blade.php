@@ -6,17 +6,34 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="h3 mb-0">
-                <i class="bi bi-file-earmark-text me-2"></i>Cotações
+                <i class="bi bi-file-earmark-text me-2"></i>
+                @role('comercial')
+                    Minhas Cotações
+                @else
+                    Todas as Cotações
+                @endrole
             </h1>
-            <p class="text-muted mb-0">Gerencie todas as cotações do sistema</p>
+            <p class="text-muted mb-0">
+                @role('comercial')
+                    Gerencie suas cotações
+                @elserole('diretor')
+                    Supervisione todas as cotações do sistema
+                @else
+                    Administre todas as cotações do sistema
+                @endrole
+            </p>
         </div>
         <div class="d-flex gap-2">
-            <button class="btn btn-outline-primary" onclick="exportarTodos()">
-                <i class="bi bi-download me-1"></i>Exportar
-            </button>
-            <a href="{{ route('cotacoes.create') }}" class="btn btn-primary">
-                <i class="bi bi-plus-circle me-1"></i>Nova Cotação
-            </a>
+            @can('cotacoes.view')
+                <button class="btn btn-outline-primary" onclick="exportarTodos()">
+                    <i class="bi bi-download me-1"></i>Exportar
+                </button>
+            @endcan
+            @can('cotacoes.create')
+                <a href="{{ route('cotacoes.create') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i>Nova Cotação
+                </a>
+            @endcan
         </div>
     </div>
 
@@ -87,7 +104,7 @@
                     </div>
                     <div class="flex-grow-1 ms-3">
                         <h6 class="mb-0">Total de Cotações</h6>
-                        <h4 class="mb-0 text-primary">{{ $metricas['total'] ?? $cotacoes->total() }}</h4>
+                        <h4 class="mb-0 text-primary">{{ $metricas['total'] ?? (method_exists($cotacoes, 'total') ? $cotacoes->total() : $cotacoes->count()) }}</h4>
                     </div>
                 </div>
             </div>
@@ -155,6 +172,9 @@
                         <th>Seguradoras</th>
                         <th>Status</th>
                         <th>Aprovação</th>
+                        @unlessrole('comercial')
+                            <th>Comercial</th>
+                        @endunlessrole
                         <th>Criada em</th>
                         <th>Menu</th>
                     </tr>
@@ -233,6 +253,19 @@
                                     @endif
                                 </div>
                             </td>
+                            @unlessrole('comercial')
+                                <td onclick="toggleDetalhes({{ $cotacao->id }})" style="cursor: pointer;">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar avatar-sm bg-secondary text-white rounded-circle me-2">
+                                            {{ $cotacao->user ? substr($cotacao->user->name, 0, 1) : '?' }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-medium">{{ $cotacao->user->name ?? 'Sistema' }}</div>
+                                            <small class="text-muted">{{ $cotacao->user?->getRoleNames()?->first() ?? 'N/A' }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                            @endunlessrole
                             <td onclick="toggleDetalhes({{ $cotacao->id }})" style="cursor: pointer;">
                                 <div>{{ $cotacao->created_at->format('d/m/Y') }}</div>
                                 <small class="text-muted">{{ $cotacao->created_at->format('H:i') }}</small>
@@ -245,31 +278,35 @@
                                     </button>
                                     <ul class="dropdown-menu">
                                         <li><h6 class="dropdown-header">Visualizar</h6></li>
-                                        <li>
-                                            <a class="dropdown-item" href="{{ route('cotacoes.show', $cotacao->id) }}">
-                                                <i class="bi bi-eye me-2"></i>Detalhes Completos
-                                            </a>
-                                        </li>
-                                        
-                                        @if($cotacao->status === 'em_andamento')
-                                            <li><hr class="dropdown-divider"></li>
-                                            <li><h6 class="dropdown-header">Gerenciar</h6></li>
+                                        @can('view', $cotacao)
                                             <li>
                                                 <a class="dropdown-item" href="{{ route('cotacoes.show', $cotacao->id) }}">
-                                                    <i class="bi bi-gear me-2"></i>Gerenciar Seguradoras
+                                                    <i class="bi bi-eye me-2"></i>Detalhes Completos
                                                 </a>
                                             </li>
-                                        @endif
+                                        @endcan
                                         
-                                        @if($cotacao->pode_editar)
-                                            <li><hr class="dropdown-divider"></li>
-                                            <li><h6 class="dropdown-header">Edição</h6></li>
-                                            <li>
-                                                <a class="dropdown-item" href="{{ route('cotacoes.edit', $cotacao->id) }}">
-                                                    <i class="bi bi-pencil me-2"></i>Corrigir Dados
-                                                </a>
-                                            </li>
-                                        @endif
+                                        @can('view', $cotacao)
+                                            @if($cotacao->status === 'em_andamento')
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><h6 class="dropdown-header">Gerenciar</h6></li>
+                                                <li>
+                                                    <a class="dropdown-item" href="{{ route('cotacoes.show', $cotacao->id) }}">
+                                                        <i class="bi bi-gear me-2"></i>Gerenciar Seguradoras
+                                                    </a>
+                                                </li>
+                                            @endif
+                                            
+                                            @if($cotacao->pode_editar)
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><h6 class="dropdown-header">Edição</h6></li>
+                                                <li>
+                                                    <a class="dropdown-item" href="{{ route('cotacoes.edit', $cotacao->id) }}">
+                                                        <i class="bi bi-pencil me-2"></i>Corrigir Dados
+                                                    </a>
+                                                </li>
+                                            @endif
+                                        @endcan
                                         
                                         <li><hr class="dropdown-divider"></li>
                                         <li><h6 class="dropdown-header">Exportar</h6></li>
@@ -285,7 +322,7 @@
 
                         <!-- Linha expandível com detalhes das seguradoras -->
                         <tr class="collapse" id="detalhes-{{ $cotacao->id }}">
-                            <td colspan="9" class="bg-light">
+                            <td colspan="{{ auth()->user()->hasRole('comercial') ? '9' : '10' }}" class="bg-light">
                                 <div class="p-3">
                                     <h6>Detalhes por Seguradora:</h6>
                                     <div class="row">
@@ -354,10 +391,12 @@
             <div class="p-3 border-top bg-light">
                 <div class="d-flex justify-content-between align-items-center">
                     <span class="text-muted">
-                        Mostrando {{ $cotacoes->count() }} de {{ $cotacoes->total() }} cotações
+                        Mostrando {{ $cotacoes->count() }} de {{ method_exists($cotacoes, 'total') ? $cotacoes->total() : $cotacoes->count() }} cotações
                     </span>
                     <div class="d-flex gap-2">
-                        {{ $cotacoes->links() }}
+                        @if(method_exists($cotacoes, 'links'))
+                            {{ $cotacoes->links() }}
+                        @endif
                         <button class="btn btn-sm btn-outline-primary" onclick="exportarTodos()">
                             <i class="bi bi-download me-1"></i>Exportar Filtrados
                         </button>

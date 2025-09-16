@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\DB;
 
 class ProdutoController extends Controller
 {
+    public function __construct()
+    {
+        $this->authorizeResource(Produto::class, 'produto');
+    }
     /**
      * Display a listing of the resource.
      */
@@ -25,7 +29,18 @@ class ProdutoController extends Controller
             $query->where('linha', $request->linha);
         }
 
-        $produtos = $query->latest()->paginate(10);
+        // Aplicar filtro de cotações por role
+        $user = auth()->user();
+        if ($user->hasRole('comercial')) {
+            $produtos = $query->with(['seguradoras'])->withCount([
+                'cotacoes' => function($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                }
+            ])->latest()->paginate(10);
+        } else {
+            $produtos = $query->with(['seguradoras'])->withCount(['cotacoes'])
+                             ->latest()->paginate(10);
+        }
         
         // Buscar linhas únicas para o filtro
         $linhas = Produto::whereNotNull('linha')
@@ -101,12 +116,20 @@ class ProdutoController extends Controller
      */
     public function show(Produto $produto)
     {
-        // Carregar relacionamentos para mostrar detalhes
-        $produto->load(['seguradoras', 'cotacoes' => function($query) {
+        // Carregar relacionamentos para mostrar detalhes (filtrar por role)
+        $user = auth()->user();
+        
+        $cotacoesQuery = function($query) use ($user) {
             $query->with(['corretora', 'segurado', 'cotacaoSeguradoras.seguradora'])
                 ->latest()
                 ->limit(5);
-        }]);
+            
+            if ($user->hasRole('comercial')) {
+                $query->where('user_id', $user->id);
+            }
+        };
+        
+        $produto->load(['seguradoras', 'cotacoes' => $cotacoesQuery]);
 
         return view('produtos.show', compact('produto'));
     }

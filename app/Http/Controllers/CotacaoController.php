@@ -11,6 +11,11 @@ use Illuminate\Http\Request;
 
 class CotacaoController extends Controller
 {
+    public function __construct()
+    {
+        $this->authorizeResource(Cotacao::class, 'cotacao');
+    }
+
     public function index(Request $request)
     {
         // Query base com relacionamentos
@@ -18,8 +23,20 @@ class CotacaoController extends Controller
             'corretora', 
             'produto', 
             'segurado', 
-            'cotacaoSeguradoras'
+            'cotacaoSeguradoras',
+            'user' // Para exibir responsável da cotação
         ]);
+
+        // Aplicar filtro por role
+        $user = auth()->user();
+        if ($user->hasRole('comercial')) {
+            // Comerciais só veem suas próprias cotações
+            $query->where('user_id', $user->id);
+        } elseif ($user->hasRole('diretor')) {
+            // Diretores veem todas (já aplicado automaticamente)
+        } elseif ($user->hasRole('admin')) {
+            // Admins veem todas (já aplicado automaticamente)
+        }
 
         // Filtro por status geral (da tabela)
         if ($request->filled('status_geral')) {
@@ -80,15 +97,24 @@ class CotacaoController extends Controller
      */
     private function calcularMetricas()
     {
-        $total = Cotacao::count();
-        $emAndamento = Cotacao::where('status', 'em_andamento')->count();
-        $finalizadas = Cotacao::where('status', 'finalizada')->count();
-        $canceladas = Cotacao::where('status', 'cancelada')->count();
+        $user = auth()->user();
+        
+        // Aplicar filtro por role
+        $queryBase = Cotacao::query();
+        if ($user->hasRole('comercial')) {
+            $queryBase->where('user_id', $user->id);
+        }
 
-        // Taxa de sucesso: cotações com pelo menos uma seguradora aprovada
-        $cotacoesComAprovacao = Cotacao::whereHas('cotacaoSeguradoras', function($q) {
+        $total = $queryBase->count();
+        $emAndamento = (clone $queryBase)->where('status', 'em_andamento')->count();
+        $finalizadas = (clone $queryBase)->where('status', 'finalizada')->count();
+        $canceladas = (clone $queryBase)->where('status', 'cancelada')->count();
+
+        // Taxa de sucesso: cotações com pelo menos uma seguradora aprovada (filtrar por role)
+        $cotacoesComAprovacaoQuery = (clone $queryBase)->whereHas('cotacaoSeguradoras', function($q) {
             $q->where('status', 'aprovada');
-        })->count();
+        });
+        $cotacoesComAprovacao = $cotacoesComAprovacaoQuery->count();
 
         $taxaSucesso = $total > 0 ? round(($cotacoesComAprovacao / $total) * 100, 1) : 0;
 
@@ -100,10 +126,10 @@ class CotacaoController extends Controller
             'rejeitadas' => 0
         ];
 
-        // Contar cotações por status consolidado (apenas as em andamento)
-        $cotacoesEmAndamento = Cotacao::where('status', 'em_andamento')
-            ->with('cotacaoSeguradoras')
-            ->get();
+        // Contar cotações por status consolidado (apenas as em andamento) - filtrar por role
+        $cotacoesEmAndamentoQuery = (clone $queryBase)->where('status', 'em_andamento')
+            ->with('cotacaoSeguradoras');
+        $cotacoesEmAndamento = $cotacoesEmAndamentoQuery->get();
 
         foreach ($cotacoesEmAndamento as $cotacao) {
             $statusConsolidado = $cotacao->status_consolidado;
@@ -124,6 +150,7 @@ class CotacaoController extends Controller
 
     public function create(Request $request)
     {
+        // ✅ ENTIDADES BASE: Todos veem todas (arquitetura correta)
         $corretoras = Corretora::orderBy('nome')->get();
         $produtos = Produto::orderBy('nome')->get();
         $segurados = Segurado::orderBy('nome')->get();
@@ -158,23 +185,63 @@ class CotacaoController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        // ✅ VALIDAÇÃO DUPLA DE SEGURANÇA
+        $this->authorize('create', Cotacao::class);
+
+        // ⚠️ SEGURANÇA CRÍTICA: FORÇAR user_id do usuário autenticado
+        $user = $request->user();
+        if (!$user) {
+            return redirect()->back()->with('error', 'Usuário não autenticado.');
+        }
+
+        // Validação com regra customizada para comerciais
+        $rules = [
             'corretora_id' => 'required|exists:corretoras,id',
             'produto_id' => 'required|exists:produtos,id',
             'segurado_id' => 'required|exists:segurados,id',
             'seguradoras' => 'required|array|min:1',
             'seguradoras.*' => 'exists:seguradoras,id',
             'observacoes' => 'nullable|string|max:1000'
-        ]);
+        ];
 
-        // Criar cotação master
-        $cotacao = Cotacao::create([
+        // ✅ CORE OPERACIONAL: Comerciais só podem criar cotações para corretoras que atendem
+        if ($user->hasRole('comercial')) {
+            $rules['corretora_id'] = [
+                'required',
+                'exists:corretoras,id',
+                function ($attribute, $value, $fail) use ($user) {
+                    $corretora = Corretora::find($value);
+                    if (!$corretora || $corretora->usuario_id !== $user->id) {
+                        \Log::warning('Tentativa de criar cotação para corretora não atendida', [
+                            'user_id' => $user->id,
+                            'user_name' => $user->name,
+                            'corretora_id' => $value,
+                            'corretora_usuario_id' => $corretora?->usuario_id,
+                            'ip' => request()->ip()
+                        ]);
+                        $fail('Você só pode criar cotações para corretoras que atende.');
+                    }
+                }
+            ];
+        }
+
+        $request->validate($rules);
+        $userId = $user->id;
+        
+        $cotacaoData = [
             'corretora_id' => $request->corretora_id,
             'produto_id' => $request->produto_id,
             'segurado_id' => $request->segurado_id,
             'observacoes' => $request->observacoes,
-            'status' => 'em_andamento'
-        ]);
+            'status' => 'em_andamento',
+            'user_id' => $userId // ← SEMPRE do usuário logado
+        ];
+
+        // ⚠️ NUNCA permitir user_id via request (proteção contra ataques)
+        unset($request->user_id);
+
+        // Criar cotação master
+        $cotacao = Cotacao::create($cotacaoData);
 
         // Criar registros para cada seguradora
         foreach ($request->seguradoras as $seguradoraId) {
@@ -186,7 +253,7 @@ class CotacaoController extends Controller
 
         // Registrar atividade
         $cotacao->atividades()->create([
-            'user_id' => auth()->id(),
+            'user_id' => $userId,
             'tipo' => 'geral',
             'descricao' => 'Cotação criada para ' . count($request->seguradoras) . ' seguradora(s)'
         ]);
@@ -196,15 +263,17 @@ class CotacaoController extends Controller
             ->with('success', 'Cotação criada com sucesso!');
     }
 
-    public function show($id)
+    public function show(Cotacao $cotacao)
     {
-        $cotacao = Cotacao::with([
+        // Carregar relacionamentos necessários
+        $cotacao->load([
             'corretora',
             'produto', 
             'segurado',
             'cotacaoSeguradoras.seguradora',
-            'atividades.user'
-        ])->findOrFail($id);
+            'atividades.user',
+            'user' // Para exibir responsável da cotação
+        ]);
 
         return view('cotacoes.show', compact('cotacao'));
     }
@@ -213,6 +282,9 @@ class CotacaoController extends Controller
     {
         $cotacao = Cotacao::with(['cotacaoSeguradoras', 'corretora', 'produto'])->findOrFail($id);
         
+        // ✅ VALIDAÇÃO DUPLA DE SEGURANÇA
+        $this->authorize('update', $cotacao);
+        
         // Verificar se pode editar
         if (!$cotacao->pode_editar) {
             return redirect()
@@ -220,6 +292,7 @@ class CotacaoController extends Controller
                 ->with('error', 'Esta cotação não pode ser editada.');
         }
 
+        // ✅ ENTIDADES BASE: Todos veem todas (arquitetura correta)
         $corretoras = Corretora::orderBy('nome')->get();
         $produtos = Produto::orderBy('nome')->get();
         $segurados = Segurado::orderBy('nome')->get();
@@ -250,6 +323,9 @@ class CotacaoController extends Controller
     {
         $cotacao = Cotacao::findOrFail($id);
         
+        // ✅ VALIDAÇÃO DUPLA DE SEGURANÇA
+        $this->authorize('update', $cotacao);
+        
         // Verificar se pode editar
         if (!$cotacao->pode_editar) {
             return redirect()
@@ -264,10 +340,13 @@ class CotacaoController extends Controller
 
         $statusAnterior = $cotacao->status;
         
-        $cotacao->update([
+        // ⚠️ SEGURANÇA: Nunca permitir alteração de user_id ou outros campos críticos
+        $dadosPermitidos = [
             'observacoes' => $request->observacoes,
             'status' => $request->status
-        ]);
+        ];
+        
+        $cotacao->update($dadosPermitidos);
 
         // Registrar mudança de status
         if ($statusAnterior !== $request->status) {
@@ -571,14 +650,27 @@ class CotacaoController extends Controller
      */
     public function duplicar(Cotacao $cotacao)
     {
+        // ✅ VALIDAÇÃO DUPLA DE SEGURANÇA
+        $this->authorize('view', $cotacao); // Pode ver a original
+        $this->authorize('create', Cotacao::class); // Pode criar nova
+
         try {
-            // Criar nova cotação baseada na atual
+            // ⚠️ SEGURANÇA CRÍTICA: SEMPRE user_id do usuário logado
+            $userId = auth()->id();
+            if (!$userId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuário não autenticado.'
+                ], 401);
+            }
+            
             $novaCotacao = Cotacao::create([
                 'corretora_id' => $cotacao->corretora_id,
                 'produto_id' => $cotacao->produto_id,
                 'segurado_id' => $cotacao->segurado_id,
                 'observacoes' => "Duplicada da cotação #{$cotacao->id} - " . ($cotacao->observacoes ?? ''),
-                'status' => 'em_andamento'
+                'status' => 'em_andamento',
+                'user_id' => $userId // ← SEMPRE do usuário logado
             ]);
 
             // Duplicar seguradoras (resetando status)
@@ -591,14 +683,14 @@ class CotacaoController extends Controller
 
             // Registrar atividade na cotação original
             $cotacao->atividades()->create([
-                'user_id' => auth()->id(),
+                'user_id' => $userId,
                 'tipo' => 'geral',
                 'descricao' => "Cotação duplicada - Nova cotação: #{$novaCotacao->id}"
             ]);
 
             // Registrar atividade na nova cotação
             $novaCotacao->atividades()->create([
-                'user_id' => auth()->id(),
+                'user_id' => $userId,
                 'tipo' => 'geral',
                 'descricao' => "Cotação criada a partir da duplicação da cotação #{$cotacao->id}"
             ]);

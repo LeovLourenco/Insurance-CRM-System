@@ -49,37 +49,46 @@
 
             {{-- Ações Principais (máximo 3) --}}
             <div class="action-group primary-actions">
-                @if($cotacao->status === 'em_andamento')
-                    @if($cotacao->pode_enviar)
-                        <button class="btn btn-success btn-enterprise primary-action" 
-                                onclick="marcarComoEnviada()" 
-                                title="Enviar todas as cotações pendentes">
-                            <i class="bi bi-send"></i>
-                            <span class="btn-label">Enviar Cotações</span>
+                @can('update', $cotacao)
+                    @if($cotacao->status === 'em_andamento')
+                        @if($cotacao->pode_enviar)
+                            <button class="btn btn-success btn-enterprise primary-action" 
+                                    onclick="marcarComoEnviada()" 
+                                    title="Enviar todas as cotações pendentes">
+                                <i class="bi bi-send"></i>
+                                <span class="btn-label">Enviar Cotações</span>
+                            </button>
+                        @endif
+                        
+                        <button class="btn btn-primary btn-enterprise primary-action" 
+                                onclick="adicionarComentarioGeral()" 
+                                title="Adicionar comentário geral">
+                            <i class="bi bi-chat-dots"></i>
+                            <span class="btn-label">Comentário</span>
+                        </button>
+
+                        <button class="btn btn-outline-success btn-enterprise" 
+                                onclick="finalizarCotacao('finalizada')" 
+                                title="Finalizar cotação">
+                            <i class="bi bi-check-circle"></i>
+                            <span class="btn-label">Finalizar</span>
                         </button>
                     @endif
-                    
-                    <button class="btn btn-primary btn-enterprise primary-action" 
-                            onclick="adicionarComentarioGeral()" 
-                            title="Adicionar comentário geral">
-                        <i class="bi bi-chat-dots"></i>
-                        <span class="btn-label">Comentário</span>
-                    </button>
-
-                    <button class="btn btn-outline-success btn-enterprise" 
-                            onclick="finalizarCotacao('finalizada')" 
-                            title="Finalizar cotação">
-                        <i class="bi bi-check-circle"></i>
-                        <span class="btn-label">Finalizar</span>
-                    </button>
-                @else
-                    <button class="btn btn-outline-primary btn-enterprise" 
-                            onclick="funcionalidadeEmConstrucao()" 
-                            title="Exportar relatório">
-                        <i class="bi bi-file-pdf"></i>
+                @endcan
+                
+                @can('view', $cotacao)
+                    @if($cotacao->status !== 'em_andamento')
+                        <button class="btn btn-outline-primary btn-enterprise" 
+                                onclick="funcionalidadeEmConstrucao()" 
+                                title="Exportar relatório">
+                            <i class="bi bi-file-pdf"></i>
                         <span class="btn-label">Relatório</span>
                     </button>
 
+                    @endif
+                @endcan
+                
+                @can('cotacoes.create')
                     @if($cotacao->status === 'finalizada')
                         <button class="btn btn-outline-info btn-enterprise" 
                                 onclick="duplicarCotacao()" 
@@ -88,7 +97,7 @@
                             <span class="btn-label">Duplicar</span>
                         </button>
                     @endif
-                @endif
+                @endcan
             </div>
 
             {{-- Menu Contextual --}}
@@ -103,17 +112,19 @@
                         <span class="btn-label d-none d-lg-inline">Mais</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end enterprise-dropdown">
-                        {{-- Seção: Status --}}
-                        @if($cotacao->status === 'em_andamento')
-                            <li><h6 class="dropdown-header"><i class="bi bi-gear me-1"></i>Gerenciar Status</h6></li>
-                            <li>
-                                <a class="dropdown-item" href="#" onclick="finalizarCotacao('cancelada')">
-                                    <i class="bi bi-x-circle text-danger"></i>
-                                    <span>Cancelar Cotação</span>
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                        @endif
+                        {{-- Seção: Status (apenas para quem pode editar) --}}
+                        @can('update', $cotacao)
+                            @if($cotacao->status === 'em_andamento')
+                                <li><h6 class="dropdown-header"><i class="bi bi-gear me-1"></i>Gerenciar Status</h6></li>
+                                <li>
+                                    <a class="dropdown-item" href="#" onclick="finalizarCotacao('cancelada')">
+                                        <i class="bi bi-x-circle text-danger"></i>
+                                        <span>Cancelar Cotação</span>
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                            @endif
+                        @endcan
 
                         {{-- Seção: Exportação --}}
                         <li><h6 class="dropdown-header"><i class="bi bi-download me-1"></i>Exportar</h6></li>
@@ -232,6 +243,23 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        @unlessrole('comercial')
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Comercial Responsável</label>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar avatar-sm bg-secondary text-white rounded-circle me-2">
+                                            {{ $cotacao->user ? substr($cotacao->user->name, 0, 1) : '?' }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-medium">{{ $cotacao->user->name ?? 'Sistema' }}</div>
+                                            <small class="text-muted">{{ $cotacao->user?->getRoleNames()?->first() ?? 'N/A' }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endunlessrole
                         <div class="col-md-6">
                             <div class="info-item">
                                 <label>Corretora</label>

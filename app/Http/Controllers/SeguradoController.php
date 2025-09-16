@@ -31,9 +31,19 @@ class SeguradoController extends Controller
             $query->comCotacoes();
         }
 
-        $segurados = $query->withCount(['cotacoes'])
-                          ->latest()
-                          ->paginate(10);
+        // Aplicar filtro de cotações por role
+        $user = auth()->user();
+        if ($user->hasRole('comercial')) {
+            $segurados = $query->withCount([
+                'cotacoes' => function($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                }
+            ])->latest()->paginate(10);
+        } else {
+            $segurados = $query->withCount(['cotacoes'])
+                              ->latest()
+                              ->paginate(10);
+        }
 
         return view('segurados.index', compact('segurados'));
     }
@@ -120,15 +130,24 @@ class SeguradoController extends Controller
      */
     public function show(Request $request, Segurado $segurado)
     {
-        // Carregar cotações recentes
-        $cotacoes = $segurado->cotacoes()
-                            ->with(['corretora', 'produto', 'cotacaoSeguradoras.seguradora'])
-                            ->latest()
-                            ->limit(10)
-                            ->get();
+        // Carregar cotações recentes (filtrar por role)
+        $user = auth()->user();
+        $cotacoesQuery = $segurado->cotacoes()
+                                 ->with(['corretora', 'produto', 'cotacaoSeguradoras.seguradora'])
+                                 ->latest()
+                                 ->limit(10);
+        
+        if ($user->hasRole('comercial')) {
+            $cotacoesQuery->where('user_id', $user->id);
+        }
+        $cotacoes = $cotacoesQuery->get();
 
-        // Estatísticas de cotações por status
-        $cotacoesPorStatus = $segurado->cotacoesPorStatus();
+        // Estatísticas de cotações por status (filtrar por role)
+        if ($user->hasRole('comercial')) {
+            $cotacoesPorStatus = $segurado->cotacoesPorStatus($user->id);
+        } else {
+            $cotacoesPorStatus = $segurado->cotacoesPorStatus();
+        }
 
         return view('segurados.show', compact('segurado', 'cotacoes', 'cotacoesPorStatus'));
     }

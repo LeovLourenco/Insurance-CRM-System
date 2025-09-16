@@ -125,9 +125,13 @@
                                 <div class="form-text">
                                     <i class="bi bi-info-circle me-1"></i>
                                     Não encontrou o segurado? 
-                                    <a href="{{ route('segurados.create') }}" target="_blank" class="text-decoration-none">
-                                        Cadastre um novo segurado
-                                    </a>
+                                    @can('segurados.create')
+                                        <a href="{{ route('segurados.create') }}" target="_blank" class="text-decoration-none">
+                                            Cadastre um novo segurado
+                                        </a>
+                                    @else
+                                        <span class="text-muted">Entre em contato com o administrador</span>
+                                    @endcan
                                 </div>
                             </div>
 

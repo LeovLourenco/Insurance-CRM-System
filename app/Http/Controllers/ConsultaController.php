@@ -11,6 +11,7 @@ class ConsultaController extends Controller
 {
     public function index()
     {
+        // ✅ ENTIDADES BASE: Todos veem todas (arquitetura correta)
         $corretoras = Corretora::orderBy('nome')->get();
         $produtos = Produto::orderBy('nome')->get();
         return view('consultas.seguros', compact('corretoras', 'produtos'));
@@ -78,6 +79,7 @@ class ConsultaController extends Controller
         ];
 
         // Recarregar listas para os selects
+        // ✅ ENTIDADES BASE: Todos veem todas (arquitetura correta)
         $corretoras = Corretora::orderBy('nome')->get();
         $produtos = Produto::orderBy('nome')->get();
 

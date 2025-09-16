@@ -20,136 +20,123 @@ Route::get('/', function () {
 // Rotas de autenticação (login, registro, etc.)
 Auth::routes();
 
-// Agrupar todas as rotas protegidas pelo middleware 'auth'
+// ===== ROTAS PÚBLICAS AUTENTICADAS =====
 Route::middleware(['auth'])->group(function () {
-
     // Página inicial pós-login
     Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+});
 
-    // ===== ROTAS DE COTAÇÕES (ATUALIZADAS) =====
+// ===== GRUPO: COTAÇÕES - Para usuários com acesso a cotações =====
+Route::middleware(['auth', 'role:comercial|diretor|admin'])->group(function () {
     
-    // Rotas AJAX/API específicas (ANTES do resource para não conflitar)
+    // Rotas específicas (ANTES do resource)
     Route::get('/cotacoes/api/seguradoras', [CotacaoController::class, 'seguradoras'])
         ->name('cotacoes.api.seguradoras');
     
-    // Dashboard específico (ANTES do resource)
     Route::get('/cotacoes-dashboard', [CotacaoController::class, 'dashboard'])
         ->name('cotacoes.dashboard');
     
-    // Relatório com filtros (ANTES do resource - para não conflitar com {cotacao})
     Route::get('/cotacoes/relatorio', [CotacaoController::class, 'relatorioFiltrado'])
         ->name('cotacoes.relatorio');
     
-    // Rotas principais do resource
-    Route::resource('cotacoes', CotacaoController::class);
+    // Resource principal
+    Route::resource('cotacoes', CotacaoController::class)->parameters([
+        'cotacoes' => 'cotacao'
+    ]);
     
-    // ===== NOVAS ROTAS PARA VIEWS OTIMIZADAS =====
-    
-    // Status da cotação (finalizar/cancelar - usado no show)
+    // Ações da cotação - policies aplicam isolamento automático
     Route::patch('/cotacoes/{cotacao}/status', [CotacaoController::class, 'updateStatus'])
         ->name('cotacoes.update-status');
     
-    // Marcar como enviada (substitui o antigo "enviar-todas")
     Route::post('/cotacoes/{cotacao}/marcar-enviada', [CotacaoController::class, 'marcarEnviada'])
         ->name('cotacoes.marcar-enviada');
     
-    // Comentário rápido (modal do index)
     Route::post('/cotacoes/{cotacao}/comentario', [CotacaoController::class, 'adicionarComentario'])
         ->name('cotacoes.comentario');
     
-    // Atividade completa (modal do show)
     Route::post('/cotacoes/{cotacao}/atividade', [CotacaoController::class, 'adicionarAtividade'])
         ->name('cotacoes.atividade');
     
-    // Duplicar cotação (ação rápida do show)
     Route::post('/cotacoes/{cotacao}/duplicar', [CotacaoController::class, 'duplicar'])
         ->name('cotacoes.duplicar');
     
-    // ===== ROTAS PARA COTACAO_SEGURADORAS (GESTÃO INDIVIDUAL) =====
-    
-    // Dados da seguradora (para modal de edição no show)
+    // Cotação Seguradoras - policies aplicam isolamento
     Route::get('/cotacao-seguradoras/{cotacaoSeguradora}', [CotacaoSeguradoraController::class, 'show'])
         ->name('cotacao-seguradoras.show');
     
-    // Página de edição da seguradora
     Route::get('/cotacao-seguradoras/{cotacaoSeguradora}/edit', [CotacaoSeguradoraController::class, 'edit'])
         ->name('cotacao-seguradoras.edit');
     
-    // Atualizar dados completos da seguradora
     Route::put('/cotacao-seguradoras/{cotacaoSeguradora}', [CotacaoSeguradoraController::class, 'update'])
         ->name('cotacao-seguradoras.update');
     
-    // Status inline da seguradora (usado em ambas as views)
     Route::patch('/cotacao-seguradoras/{cotacaoSeguradora}/status', [CotacaoSeguradoraController::class, 'updateStatus'])
         ->name('cotacao-seguradoras.update-status');
     
-    // Marcar seguradora como enviada (individual)
     Route::post('/cotacao-seguradoras/{cotacaoSeguradora}/marcar-enviada', [CotacaoSeguradoraController::class, 'marcarEnviada'])
         ->name('cotacao-seguradoras.marcar-enviada');
     
-    // Adicionar observação específica (show)
     Route::post('/cotacao-seguradoras/{cotacaoSeguradora}/observacao', [CotacaoSeguradoraController::class, 'adicionarObservacao'])
         ->name('cotacao-seguradoras.observacao');
     
-    // ===== ROTAS DE COMPATIBILIDADE (MANTER TEMPORARIAMENTE) =====
+    // Rotas de compatibilidade (deprecated)
+    Route::post('/cotacoes/{cotacao}/enviar-todas', [CotacaoController::class, 'enviarTodas'])
+        ->name('cotacoes.enviar-todas');
     
-    // Rota original - manter funcionando mas marcar como DEPRECATED
-    Route::post('/cotacoes/{id}/enviar-todas', [CotacaoController::class, 'enviarTodas'])
-        ->name('cotacoes.enviar-todas'); // ⚠️ DEPRECATED - usar marcar-enviada
-    
-    // Status por seguradora (rota original - manter temporariamente)  
     Route::put('/cotacoes/{cotacao}/seguradoras/{seguradora}/status', [CotacaoController::class, 'atualizarStatusSeguradora'])
-        ->name('cotacoes.seguradoras.status'); // ⚠️ DEPRECATED - usar cotacao-seguradoras
+        ->name('cotacoes.seguradoras.status');
     
-    // ===== EXPORTAÇÕES E RELATÓRIOS =====
+    // Exportações por cotação individual - policies aplicam isolamento
+    Route::get('/cotacoes/{cotacao}/pdf', [CotacaoController::class, 'gerarPdf'])
+        ->name('cotacoes.pdf');
     
-    // Exportações por cotação individual
-    Route::prefix('cotacoes/{id}')->group(function () {
-        Route::get('/pdf', [CotacaoController::class, 'gerarPdf'])
-            ->name('cotacoes.pdf');
-        
-        Route::get('/excel', [CotacaoController::class, 'exportarExcel'])
-            ->name('cotacoes.excel');
-    });
-    
-    // Rotas de relatórios gerenciais (futuras implementações)
-    Route::prefix('relatorios/cotacoes')->group(function () {
-        Route::get('/dashboard-avancado', [CotacaoController::class, 'dashboardAvancado'])
-            ->name('relatorios.cotacoes.dashboard');
-        
-        Route::get('/performance', [CotacaoController::class, 'relatorioPerformance'])
-            ->name('relatorios.cotacoes.performance');
-        
-        Route::get('/seguradoras', [CotacaoController::class, 'relatorioSeguradoras'])
-            ->name('relatorios.cotacoes.seguradoras');
-    });
+    Route::get('/cotacoes/{cotacao}/excel', [CotacaoController::class, 'exportarExcel'])
+        ->name('cotacoes.excel');
+});
 
-    // ===== ROTAS DE CONSULTAS =====
+// ===== GRUPO: RELATÓRIOS - Admin e Diretor apenas =====
+Route::middleware(['auth', 'role:admin|diretor'])->group(function () {
+    Route::get('/relatorios/cotacoes/dashboard-avancado', [CotacaoController::class, 'dashboardAvancado'])
+        ->name('relatorios.cotacoes.dashboard');
+    
+    Route::get('/relatorios/cotacoes/performance', [CotacaoController::class, 'relatorioPerformance'])
+        ->name('relatorios.cotacoes.performance');
+    
+    Route::get('/relatorios/cotacoes/seguradoras', [CotacaoController::class, 'relatorioSeguradoras'])
+        ->name('relatorios.cotacoes.seguradoras');
+});
+
+// ===== GRUPO: CADASTROS BASE - Todos os usuários autenticados =====
+Route::middleware(['auth'])->group(function () {
+    // Consultas de seguros
     Route::get('/consultas/seguros', [ConsultaController::class, 'index'])->name('consultas.seguros');
     Route::post('/consultas/seguros', [ConsultaController::class, 'buscar'])->name('consultas.buscar');
 
-    // ===== ROTAS DE USUÁRIO =====
+    // Perfil do usuário
     Route::get('/usuario/perfil', [UsuarioController::class, 'perfil'])->name('usuario.perfil');
     Route::put('/usuario/perfil', [UsuarioController::class, 'atualizar'])->name('usuario.atualizar');
     Route::put('/usuario/alterar-senha', [UsuarioController::class, 'alterarSenha'])->name('usuario.alterar.senha');
 
-    // ===== ROTAS DE CADASTROS RÁPIDOS =====
-    Route::post('/segurados', [SeguradoController::class, 'store'])->name('segurados.store');
-    Route::post('/corretoras', [CorretoraController::class, 'store'])->name('corretoras.store');
-    
-    // ===== ROTAS DE RECURSOS (CRUD COMPLETO) =====
-    Route::resource('produtos', ProdutoController::class);
-    Route::resource('seguradoras', SeguradoraController::class);
-    Route::resource('corretoras', CorretoraController::class);
-    Route::resource('segurados', SeguradoController::class);
-
-    // ===== PÁGINA DE CADASTRO =====
+    // Página de cadastro geral
     Route::get('/cadastro', function () {
         $seguradoras = \App\Models\Seguradora::all();
         $produtos = \App\Models\Produto::all();
         return view('cadastro', compact('seguradoras', 'produtos'));
     })->name('cadastro');
+});
 
+// ===== GRUPO: CADASTROS COMERCIAIS - Comercial/Diretor/Admin =====
+Route::middleware(['auth', 'role:comercial|diretor|admin'])->group(function () {
+    // Resources com policies aplicando isolamento automático
+    Route::resource('segurados', SeguradoController::class);
+    Route::resource('corretoras', CorretoraController::class);
+});
+
+// ===== GRUPO: PRODUTOS E SEGURADORAS - Policy-based =====
+Route::middleware(['auth'])->group(function () {
+    // Policies controlam acesso: todos veem, apenas admin gere
+    Route::resource('produtos', ProdutoController::class);
+    Route::resource('seguradoras', SeguradoraController::class);
 });
 
 // ===== ROTAS DE DESENVOLVIMENTO (REMOVER EM PRODUÇÃO) =====
@@ -167,4 +154,5 @@ if (app()->environment('local')) {
                 ->values()
         ]);
     });
+    
 }

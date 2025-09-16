@@ -125,7 +125,7 @@
                             </td>
                             <td>
                                 <span class="badge bg-success bg-opacity-10 text-success">
-                                    {{ $produto->cotacoes->count() }}
+                                    {{ $produto->cotacoes_count ?? 0 }}
                                 </span>
                             </td>
                             <td>

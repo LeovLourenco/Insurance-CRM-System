@@ -76,4 +76,22 @@ class Produto extends Model
     {
         $this->attributes['linha'] = $value ? ucwords(strtolower($value)) : null;
     }
+
+    // Métodos de análise
+
+    /**
+     * Contar cotações por status
+     */
+    public function cotacoesPorStatus($userId = null)
+    {
+        $query = $this->cotacoes();
+        
+        if ($userId) {
+            $query->where('user_id', $userId);
+        }
+        
+        return $query->selectRaw('status, COUNT(*) as total')
+                    ->groupBy('status')
+                    ->pluck('total', 'status');
+    }
 }

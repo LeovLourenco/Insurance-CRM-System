@@ -34,36 +34,78 @@ class HomeController extends Controller
         $mesAnterior = Carbon::now()->subMonth()->startOfMonth();
         $fimMesAnterior = Carbon::now()->subMonth()->endOfMonth();
 
+        // Aplicar filtro por role do usuário
+        $user = auth()->user();
+
         // ===== MÉTRICAS PRINCIPAIS =====
         
-        // 1. Cotações Ativas (em andamento)
-        $cotacoesAtivas = Cotacao::where('status', 'em_andamento')->count();
-        $cotacoesAtivasAnterior = Cotacao::where('status', 'em_andamento')
+        // 1. Cotações Ativas (em andamento) - com filtro por role
+        $cotacoesAtivasQuery = Cotacao::where('status', 'em_andamento');
+        if ($user->hasRole('comercial')) {
+            $cotacoesAtivasQuery->where('user_id', $user->id);
+        }
+        $cotacoesAtivas = $cotacoesAtivasQuery->count();
+        $cotacoesAtivasAnteriorQuery = Cotacao::where('status', 'em_andamento')
             ->where('created_at', '>=', $mesAnterior)
-            ->where('created_at', '<=', $fimMesAnterior)
-            ->count();
+            ->where('created_at', '<=', $fimMesAnterior);
+        if ($user->hasRole('comercial')) {
+            $cotacoesAtivasAnteriorQuery->where('user_id', $user->id);
+        }
+        $cotacoesAtivasAnterior = $cotacoesAtivasAnteriorQuery->count();
         
-        // 2. Cotações Aprovadas (este mês)
-        $cotacoesAprovadas = CotacaoSeguradora::where('status', 'aprovada')
-            ->where('created_at', '>=', $mesAtual)
-            ->count();
-        $cotacoesAprovadasAnterior = CotacaoSeguradora::where('status', 'aprovada')
+        // 2. Cotações Aprovadas (este mês) - com filtro por role
+        $cotacoesAprovadasQuery = CotacaoSeguradora::where('status', 'aprovada')
+            ->where('created_at', '>=', $mesAtual);
+        if ($user->hasRole('comercial')) {
+            $cotacoesAprovadasQuery->whereHas('cotacao', function($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+        $cotacoesAprovadas = $cotacoesAprovadasQuery->count();
+
+        $cotacoesAprovadasAnteriorQuery = CotacaoSeguradora::where('status', 'aprovada')
             ->where('created_at', '>=', $mesAnterior)
-            ->where('created_at', '<=', $fimMesAnterior)
-            ->count();
+            ->where('created_at', '<=', $fimMesAnterior);
+        if ($user->hasRole('comercial')) {
+            $cotacoesAprovadasAnteriorQuery->whereHas('cotacao', function($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+        $cotacoesAprovadasAnterior = $cotacoesAprovadasAnteriorQuery->count();
 
-        // 3. Cotações Pendentes (aguardando + em_analise)
-        $cotacoesPendentes = CotacaoSeguradora::whereIn('status', ['aguardando', 'em_analise'])->count();
+        // 3. Cotações Pendentes (aguardando + em_analise) - com filtro por role
+        $cotacoesPendentesQuery = CotacaoSeguradora::whereIn('status', ['aguardando', 'em_analise']);
+        if ($user->hasRole('comercial')) {
+            $cotacoesPendentesQuery->whereHas('cotacao', function($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+        $cotacoesPendentes = $cotacoesPendentesQuery->count();
 
-        // 4. Clientes Ativos (segurados com cotações nos últimos 30 dias)
-        $clientesAtivos = Segurado::whereHas('cotacoes', function($query) {
+        // 4. Clientes Ativos (segurados com cotações nos últimos 30 dias) - com filtro por role
+        $clientesAtivosQuery = Segurado::whereHas('cotacoes', function($query) use ($user) {
             $query->where('created_at', '>=', Carbon::now()->subDays(30));
-        })->count();
-        $clientesNovos = Segurado::where('created_at', '>=', $mesAtual)->count();
+            if ($user->hasRole('comercial')) {
+                $query->where('user_id', $user->id);
+            }
+        });
+        $clientesAtivos = $clientesAtivosQuery->count();
+        
+        // Clientes Novos (este mês) - com filtro por role
+        $clientesNovosQuery = Segurado::where('created_at', '>=', $mesAtual);
+        if ($user->hasRole('comercial')) {
+            $clientesNovosQuery->whereHas('cotacoes', function($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+        $clientesNovos = $clientesNovosQuery->count();
 
         // ===== COTAÇÕES RECENTES =====
-        $cotacoesRecentes = Cotacao::with(['segurado', 'produto', 'cotacaoSeguradoras'])
-            ->latest()
+        $cotacoesRecentesQuery = Cotacao::with(['segurado', 'produto', 'cotacaoSeguradoras']);
+        if ($user->hasRole('comercial')) {
+            $cotacoesRecentesQuery->where('user_id', $user->id);
+        }
+        $cotacoesRecentes = $cotacoesRecentesQuery->latest()
             ->limit(5)
             ->get()
             ->map(function($cotacao) {
@@ -82,8 +124,13 @@ class HomeController extends Controller
             });
 
         // ===== ATIVIDADES RECENTES =====
-        $atividadesRecentes = AtividadeCotacao::with(['cotacao.segurado', 'user'])
-            ->latest()
+        $atividadesRecentesQuery = AtividadeCotacao::with(['cotacao.segurado', 'user']);
+        if ($user->hasRole('comercial')) {
+            $atividadesRecentesQuery->whereHas('cotacao', function($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+        $atividadesRecentes = $atividadesRecentesQuery->latest()
             ->limit(5)
             ->get()
             ->map(function($atividade) {
@@ -99,26 +146,47 @@ class HomeController extends Controller
 
         // ===== MÉTRICAS PERFORMANCE =====
         
-        // Taxa de aprovação (últimos 30 dias)
-        $totalRespostas = CotacaoSeguradora::whereNotNull('data_retorno')
-            ->where('data_retorno', '>=', Carbon::now()->subDays(30))
-            ->count();
-        $totalAprovadas = CotacaoSeguradora::where('status', 'aprovada')
-            ->where('data_retorno', '>=', Carbon::now()->subDays(30))
-            ->count();
+        // Taxa de aprovação (últimos 30 dias) - com filtro por role
+        $totalRespostasQuery = CotacaoSeguradora::whereNotNull('data_retorno')
+            ->where('data_retorno', '>=', Carbon::now()->subDays(30));
+        if ($user->hasRole('comercial')) {
+            $totalRespostasQuery->whereHas('cotacao', function($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+        $totalRespostas = $totalRespostasQuery->count();
+
+        $totalAprovadasQuery = CotacaoSeguradora::where('status', 'aprovada')
+            ->where('data_retorno', '>=', Carbon::now()->subDays(30));
+        if ($user->hasRole('comercial')) {
+            $totalAprovadasQuery->whereHas('cotacao', function($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+        $totalAprovadas = $totalAprovadasQuery->count();
         $taxaAprovacao = $totalRespostas > 0 ? round(($totalAprovadas / $totalRespostas) * 100) : 0;
 
-        // Receita do mês (soma dos prêmios aprovados)
-        $receitaMes = CotacaoSeguradora::where('status', 'aprovada')
+        // Receita do mês (soma dos prêmios aprovados) - com filtro por role
+        $receitaMesQuery = CotacaoSeguradora::where('status', 'aprovada')
             ->where('created_at', '>=', $mesAtual)
-            ->whereNotNull('valor_premio')
-            ->sum('valor_premio');
+            ->whereNotNull('valor_premio');
+        if ($user->hasRole('comercial')) {
+            $receitaMesQuery->whereHas('cotacao', function($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+        $receitaMes = $receitaMesQuery->sum('valor_premio');
 
-        // Tempo médio de resposta (em dias)
-        $tempoMedio = CotacaoSeguradora::whereNotNull('data_envio')
+        // Tempo médio de resposta (em dias) - com filtro por role
+        $tempoMedioQuery = CotacaoSeguradora::whereNotNull('data_envio')
             ->whereNotNull('data_retorno')
-            ->where('data_retorno', '>=', Carbon::now()->subDays(30))
-            ->selectRaw('AVG(DATEDIFF(data_retorno, data_envio)) as tempo_medio')
+            ->where('data_retorno', '>=', Carbon::now()->subDays(30));
+        if ($user->hasRole('comercial')) {
+            $tempoMedioQuery->whereHas('cotacao', function($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+        $tempoMedio = $tempoMedioQuery->selectRaw('AVG(DATEDIFF(data_retorno, data_envio)) as tempo_medio')
             ->first()
             ->tempo_medio ?? 0;
 

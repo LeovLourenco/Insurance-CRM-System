@@ -69,6 +69,23 @@
                     <span class="text-muted">Não informado</span>
                 @endif
             </div>
+
+            <div class="mb-3">
+                <h6 class="small text-muted text-uppercase fw-bold mb-2">Comercial Responsável</h6>
+                @if($corretora->usuario)
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                            <i class="bi bi-person text-primary"></i>
+                        </div>
+                        <div>
+                            <div class="fw-medium">{{ $corretora->usuario->name }}</div>
+                            <small class="text-muted">{{ $corretora->usuario->email }}</small>
+                        </div>
+                    </div>
+                @else
+                    <span class="text-muted">Não atribuído</span>
+                @endif
+            </div>
             
             <hr>
             
@@ -90,7 +107,35 @@
     <!-- Estatísticas -->
     <div class="col-lg-8">
         <div class="row">
-            <div class="col-md-6 mb-4">
+            <!-- Comercial Responsável Card -->
+            <div class="col-md-4 mb-4">
+                <div class="modern-card p-4 h-100">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-info bg-opacity-10 rounded-circle p-3 me-3">
+                            <i class="bi bi-person-badge text-info fs-5"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            @if($corretora->usuario)
+                                <h6 class="mb-1 fw-bold">{{ $corretora->usuario->name }}</h6>
+                                <p class="text-muted mb-0 small">Comercial Responsável</p>
+                            @else
+                                <h6 class="mb-1 text-muted">Não Atribuído</h6>
+                                <p class="text-muted mb-0 small">Comercial Responsável</p>
+                            @endif
+                        </div>
+                    </div>
+                    @if($corretora->usuario)
+                        <div class="text-center">
+                            <a href="mailto:{{ $corretora->usuario->email }}" 
+                               class="btn btn-sm btn-outline-info">
+                                <i class="bi bi-envelope me-1"></i>Contatar
+                            </a>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <div class="col-md-4 mb-4">
                 <div class="modern-card p-4 h-100">
                     <div class="d-flex align-items-center mb-3">
                         <div class="bg-success bg-opacity-10 rounded-circle p-3 me-3">
@@ -108,7 +153,7 @@
                 </div>
             </div>
             
-            <div class="col-md-6 mb-4">
+            <div class="col-md-4 mb-4">
                 <div class="modern-card p-4 h-100">
                     <div class="d-flex align-items-center mb-3">
                         <div class="bg-warning bg-opacity-10 rounded-circle p-3 me-3">

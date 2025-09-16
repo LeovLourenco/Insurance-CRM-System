@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\DB;
 
 class SeguradoraController extends Controller
 {
+    public function __construct()
+    {
+        $this->authorizeResource(Seguradora::class, 'seguradora');
+    }
     /**
      * Display a listing of the resource.
      */
@@ -32,9 +36,21 @@ class SeguradoraController extends Controller
             $query->comCorretoras();
         }
 
-        $seguradoras = $query->withCount(['produtos', 'corretoras', 'cotacoes'])
-                            ->latest()
-                            ->paginate(10);
+        // Aplicar filtro de cotações por role
+        $user = auth()->user();
+        if ($user->hasRole('comercial')) {
+            $seguradoras = $query->withCount([
+                'produtos',
+                'corretoras',
+                'cotacoes' => function($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                }
+            ])->latest()->paginate(10);
+        } else {
+            $seguradoras = $query->withCount(['produtos', 'corretoras', 'cotacoes'])
+                                ->latest()
+                                ->paginate(10);
+        }
 
         return view('seguradoras.index', compact('seguradoras'));
     }
@@ -114,15 +130,24 @@ class SeguradoraController extends Controller
                                 ->withPivot('created_at')
                                 ->paginate(10, ['*'], 'corretoras');
         
-        // Carregar cotações recentes
-        $cotacoes = $seguradora->cotacoes()
-                              ->with(['corretora', 'produto', 'segurado'])
-                              ->latest()
-                              ->limit(10)
-                              ->get();
+        // Carregar cotações recentes (filtrar por role)
+        $user = auth()->user();
+        $cotacoesQuery = $seguradora->cotacoes()
+                                   ->with(['corretora', 'produto', 'segurado'])
+                                   ->latest()
+                                   ->limit(10);
+        
+        if ($user->hasRole('comercial')) {
+            $cotacoesQuery->where('user_id', $user->id);
+        }
+        $cotacoes = $cotacoesQuery->get();
 
-        // Estatísticas de cotações por status
-        $cotacoesPorStatus = $seguradora->cotacoesPorStatus();
+        // Estatísticas de cotações por status (filtrar por role)
+        if ($user->hasRole('comercial')) {
+            $cotacoesPorStatus = $seguradora->cotacoesPorStatus($user->id);
+        } else {
+            $cotacoesPorStatus = $seguradora->cotacoesPorStatus();
+        }
 
         return view('seguradoras.show', compact('seguradora', 'corretoras', 'cotacoes', 'cotacoesPorStatus'));
     }

@@ -6,13 +6,38 @@
     <div class="col-12 mb-4">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <h1 class="h3 mb-1">Dashboard</h1>
-                <p class="text-muted mb-0">Bem-vindo de volta, {{ Auth::user()->name }}! 👋</p>
+                <h1 class="h3 mb-1">
+                    @role('comercial')
+                        Meu Dashboard
+                    @else
+                        Dashboard
+                        @role('diretor')
+                            <span class="badge bg-info ms-2">Supervisão</span>
+                        @endrole
+                        @role('admin')
+                            <span class="badge bg-danger ms-2">Administração</span>
+                        @endrole
+                    @endrole
+                </h1>
+                <p class="text-muted mb-0">
+                    @role('comercial')
+                        Acompanhe suas cotações e performance 👋
+                    @else
+                        Bem-vindo de volta, {{ Auth::user()->name }}! 👋
+                    @endrole
+                </p>
             </div>
             <div>
-                <a href="{{ route('cotacoes.create') }}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle me-1"></i>Nova Cotação
-                </a>
+                @can('cotacoes.create')
+                    <a href="{{ route('cotacoes.create') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i>Nova Cotação
+                    </a>
+                @endcan
+                @role('admin')
+                    <a href="{{ route('produtos.index') }}" class="btn btn-outline-secondary ms-2">
+                        <i class="bi bi-gear me-1"></i>Configurações
+                    </a>
+                @endrole
             </div>
         </div>
     </div>
@@ -134,8 +159,16 @@
     <div class="col-lg-8 mb-4">
         <div class="modern-card p-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="mb-0">Cotações Recentes</h5>
-                <a href="{{ route('cotacoes.index') }}" class="btn btn-sm btn-outline-primary">Ver Todas</a>
+                <h5 class="mb-0">
+                    @role('comercial')
+                        Minhas Cotações Recentes
+                    @else
+                        Cotações Recentes
+                    @endrole
+                </h5>
+                @can('cotacoes.view')
+                    <a href="{{ route('cotacoes.index') }}" class="btn btn-sm btn-outline-primary">Ver Todas</a>
+                @endcan
             </div>
             
             <div class="table-responsive">
@@ -147,6 +180,9 @@
                             <th>Status</th>
                             <th>Valor</th>
                             <th>Data</th>
+                            @unlessrole('comercial')
+                                <th>Responsável</th>
+                            @endunlessrole
                             <th></th>
                         </tr>
                     </thead>
@@ -178,6 +214,13 @@
                                     @endif
                                 </td>
                                 <td>{{ $cotacao['created_at']->format('d/m/Y') }}</td>
+                                @unlessrole('comercial')
+                                    <td>
+                                        <span class="badge bg-secondary">
+                                            {{ $cotacao['usuario_nome'] ?? 'N/A' }}
+                                        </span>
+                                    </td>
+                                @endunlessrole
                                 <td>
                                     <div class="dropdown">
                                         <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
@@ -191,9 +234,15 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-4">
+                                <td colspan="{{ auth()->user()->hasRole('comercial') ? '6' : '7' }}" class="text-center text-muted py-4">
                                     <i class="bi bi-inbox fs-4"></i>
-                                    <p class="mb-0 mt-2">Nenhuma cotação encontrada</p>
+                                    <p class="mb-0 mt-2">
+                                        @role('comercial')
+                                            Nenhuma cotação sua encontrada
+                                        @else
+                                            Nenhuma cotação encontrada
+                                        @endrole
+                                    </p>
                                 </td>
                             </tr>
                         @endforelse
@@ -208,24 +257,50 @@
         <div class="modern-card p-4 mb-4">
             <h5 class="mb-3">Ações Rápidas</h5>
             <div class="d-grid gap-2">
-                <a href="{{ route('cotacoes.create') }}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle me-2"></i>Nova Cotação
-                </a>
-                <a href="{{ route('consultas.seguros') }}" class="btn btn-outline-primary">
-                    <i class="bi bi-search me-2"></i>Buscar Seguros
-                </a>
-                <a href="{{ route('segurados.create') }}" class="btn btn-outline-secondary">
-                    <i class="bi bi-person-plus me-2"></i>Novo Cliente
-                </a>
-                <a href="#" onclick="mostrarDesenvolvimento(); return false;" class="btn btn-outline-info">
-                    <i class="bi bi-link-45deg me-2"></i>Relatórios
-                </a>
+                @can('cotacoes.create')
+                    <a href="{{ route('cotacoes.create') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Nova Cotação
+                    </a>
+                @endcan
+                
+                @can('cotacoes.view')
+                    <a href="{{ route('consultas.seguros') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-search me-2"></i>Buscar Seguros
+                    </a>
+                @endcan
+                
+                @can('segurados.create')
+                    <a href="{{ route('segurados.create') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-person-plus me-2"></i>Novo Cliente
+                    </a>
+                @endcan
+                
+                @role('admin')
+                    <a href="{{ route('produtos.index') }}" class="btn btn-outline-warning">
+                        <i class="bi bi-box me-2"></i>Gerenciar Produtos
+                    </a>
+                    <a href="{{ route('seguradoras.index') }}" class="btn btn-outline-info">
+                        <i class="bi bi-building me-2"></i>Seguradoras
+                    </a>
+                @endrole
+                
+                @role('diretor|admin')
+                    <a href="#" onclick="mostrarDesenvolvimento(); return false;" class="btn btn-outline-info">
+                        <i class="bi bi-link-45deg me-2"></i>Relatórios
+                    </a>
+                @endrole
             </div>
         </div>
 
         <!-- Activity Feed -->
         <div class="modern-card p-4">
-            <h5 class="mb-3">Atividades Recentes</h5>
+            <h5 class="mb-3">
+                @role('comercial')
+                    Minhas Atividades
+                @else
+                    Atividades Recentes
+                @endrole
+            </h5>
             <div class="activity-feed">
                 @forelse($atividadesRecentes as $atividade)
                     <div class="activity-item d-flex {{ !$loop->last ? 'mb-3' : '' }}">

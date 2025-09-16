@@ -207,10 +207,15 @@ class Segurado extends Model
     /**
      * Contar cotações por status
      */
-    public function cotacoesPorStatus()
+    public function cotacoesPorStatus($userId = null)
     {
-        return $this->cotacoes()
-                    ->selectRaw('status, COUNT(*) as total')
+        $query = $this->cotacoes();
+        
+        if ($userId) {
+            $query->where('user_id', $userId);
+        }
+        
+        return $query->selectRaw('status, COUNT(*) as total')
                     ->groupBy('status')
                     ->pluck('total', 'status');
     }

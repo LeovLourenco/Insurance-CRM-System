@@ -77,6 +77,7 @@
                 </div>
 
                 <!-- Seguradoras Parceiras -->
+                @role('admin')
                 @if($seguradoras->count() > 0)
                 <div class="mb-4">
                     <h5 class="border-bottom pb-2 mb-3">
@@ -116,6 +117,7 @@
                     @enderror
                 </div>
                 @endif
+                @endrole
 
                 <!-- Botões -->
                 <div class="d-flex gap-2">
