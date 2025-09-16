@@ -86,7 +86,7 @@ class UsersProdutivosSeeder extends Seeder
 
         // 3. CRIAR USUÁRIOS COM DADOS ADEQUADOS
         $this->command->info('Criando usuários reais...');
-        $senhaDefault = 'Inova@2024'; // Senha documentada para primeiro acesso
+        $senhaDefault = 'Inova@2025'; // Senha documentada para primeiro acesso
 
         foreach ($usuariosReais as $userData) {
             // Verificar se já existe
