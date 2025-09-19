@@ -55,7 +55,103 @@
                         </div>
                         
                         <div class="col-md-6 mb-3">
-                            <label for="email" class="form-label">Email</label>
+                            <label for="estado" class="form-label">Estado</label>
+                            <input type="text" 
+                                   class="form-control @error('estado') is-invalid @enderror" 
+                                   id="estado" 
+                                   name="estado" 
+                                   value="{{ old('estado', $corretora->estado) }}" 
+                                   placeholder="RS, SP, RJ...">
+                            @error('estado')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="cidade" class="form-label">Cidade</label>
+                            <input type="text" 
+                                   class="form-control @error('cidade') is-invalid @enderror" 
+                                   id="cidade" 
+                                   name="cidade" 
+                                   value="{{ old('cidade', $corretora->cidade) }}" 
+                                   placeholder="Nome da cidade">
+                            @error('cidade')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="suc_cpd" class="form-label">SUC-CPD</label>
+                            <input type="text" 
+                                   class="form-control @error('suc_cpd') is-invalid @enderror" 
+                                   id="suc_cpd" 
+                                   name="suc_cpd" 
+                                   value="{{ old('suc_cpd', $corretora->suc_cpd) }}" 
+                                   placeholder="Código SUC-CPD">
+                            @error('suc_cpd')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="telefone" class="form-label">Telefone</label>
+                            <input type="text" 
+                                   class="form-control @error('telefone') is-invalid @enderror" 
+                                   id="telefone" 
+                                   name="telefone" 
+                                   value="{{ old('telefone', $corretora->telefone_formatado ?? $corretora->telefone) }}" 
+                                   placeholder="(11) 99999-9999">
+                            @error('telefone')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Documentação -->
+                <div class="mb-4">
+                    <h5 class="border-bottom pb-2 mb-3">
+                        <i class="bi bi-file-text me-2"></i>Documentação
+                    </h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="cpf_cnpj" class="form-label">CPF/CNPJ</label>
+                            <input type="text" 
+                                   class="form-control @error('cpf_cnpj') is-invalid @enderror" 
+                                   id="cpf_cnpj" 
+                                   name="cpf_cnpj" 
+                                   value="{{ old('cpf_cnpj', $corretora->cpf_cnpj) }}" 
+                                   placeholder="000.000.000-00 ou 00.000.000/0000-00">
+                            @error('cpf_cnpj')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="susep" class="form-label">SUSEP</label>
+                            <input type="text" 
+                                   class="form-control @error('susep') is-invalid @enderror" 
+                                   id="susep" 
+                                   name="susep" 
+                                   value="{{ old('susep', $corretora->susep) }}" 
+                                   placeholder="Código SUSEP">
+                            @error('susep')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Contatos -->
+                <div class="mb-4">
+                    <h5 class="border-bottom pb-2 mb-3">
+                        <i class="bi bi-envelope me-2"></i>Contatos
+                    </h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email Principal</label>
                             <input type="email" 
                                    class="form-control @error('email') is-invalid @enderror" 
                                    id="email" 
@@ -68,14 +164,40 @@
                         </div>
                         
                         <div class="col-md-6 mb-3">
-                            <label for="telefone" class="form-label">Telefone</label>
+                            <label for="email1" class="form-label">Email 1</label>
                             <input type="text" 
-                                   class="form-control @error('telefone') is-invalid @enderror" 
-                                   id="telefone" 
-                                   name="telefone" 
-                                   value="{{ old('telefone', $corretora->telefone_formatado) }}" 
-                                   placeholder="(11) 99999-9999">
-                            @error('telefone')
+                                   class="form-control @error('email1') is-invalid @enderror" 
+                                   id="email1" 
+                                   name="email1" 
+                                   value="{{ old('email1', $corretora->email1) }}" 
+                                   placeholder="Emails adicionais separados por ;">
+                            @error('email1')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="email2" class="form-label">Email 2</label>
+                            <input type="text" 
+                                   class="form-control @error('email2') is-invalid @enderror" 
+                                   id="email2" 
+                                   name="email2" 
+                                   value="{{ old('email2', $corretora->email2) }}" 
+                                   placeholder="Emails adicionais separados por ;">
+                            @error('email2')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="email3" class="form-label">Email 3</label>
+                            <input type="text" 
+                                   class="form-control @error('email3') is-invalid @enderror" 
+                                   id="email3" 
+                                   name="email3" 
+                                   value="{{ old('email3', $corretora->email3) }}" 
+                                   placeholder="Emails adicionais separados por ;">
+                            @error('email3')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>

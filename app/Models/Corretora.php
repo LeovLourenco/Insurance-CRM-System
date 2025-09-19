@@ -13,7 +13,15 @@ class Corretora extends Model
         'nome',
         'email',
         'telefone',
-        'usuario_id'
+        'usuario_id',
+        'suc_cpd',
+        'estado',
+        'cidade',
+        'cpf_cnpj',
+        'susep',
+        'email1',
+        'email2',
+        'email3'
     ];
 
     protected $casts = [

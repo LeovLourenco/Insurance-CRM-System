@@ -30,20 +30,26 @@ class ProdutoPolicy
 
     /**
      * Determine whether the user can create models.
-     * - Apenas admins podem criar produtos
+     * 🔒 ENTIDADES BASE: Apenas admin/diretor podem criar
+     * - ADMIN: sim
+     * - DIRETOR: sim
+     * - COMERCIAL: não (READ-ONLY)
      */
     public function create(User $user)
     {
-        return $user->hasRole('admin');
+        return $user->hasAnyRole(['admin', 'diretor']);
     }
 
     /**
      * Determine whether the user can update the model.
-     * - Apenas admins podem editar produtos
+     * 🔒 ENTIDADES BASE: Apenas admin/diretor podem editar
+     * - ADMIN: sim
+     * - DIRETOR: sim
+     * - COMERCIAL: não (READ-ONLY)
      */
     public function update(User $user, Produto $produto)
     {
-        return $user->hasRole('admin');
+        return $user->hasAnyRole(['admin', 'diretor']);
     }
 
     /**

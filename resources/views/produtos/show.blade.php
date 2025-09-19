@@ -7,9 +7,11 @@
         <p class="text-muted mb-0">Detalhes do produto</p>
     </div>
     <div class="d-flex gap-2">
-        <a href="{{ route('produtos.edit', $produto) }}" class="btn btn-outline-primary">
-            <i class="bi bi-pencil me-2"></i>Editar
-        </a>
+        @can('update', $produto)
+            <a href="{{ route('produtos.edit', $produto) }}" class="btn btn-outline-primary">
+                <i class="bi bi-pencil me-2"></i>Editar
+            </a>
+        @endcan
         <a href="{{ route('produtos.index') }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-2"></i>Voltar
         </a>

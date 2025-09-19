@@ -71,6 +71,14 @@ class CorretoraController extends Controller
             'nome' => 'required|string|max:191|unique:corretoras,nome',
             'email' => 'nullable|email|max:191|unique:corretoras,email',
             'telefone' => 'nullable|string|max:20',
+            'suc_cpd' => 'nullable|string|max:191',
+            'estado' => 'nullable|string|max:191',
+            'cidade' => 'nullable|string|max:191',
+            'cpf_cnpj' => 'nullable|string|max:191',
+            'susep' => 'nullable|string|max:191',
+            'email1' => 'nullable|string',
+            'email2' => 'nullable|string',
+            'email3' => 'nullable|string',
             'seguradoras' => 'nullable|array',
             'seguradoras.*' => 'exists:seguradoras,id'
         ], [
@@ -81,6 +89,11 @@ class CorretoraController extends Controller
             'email.unique' => 'Este email já está sendo usado por outra corretora.',
             'email.max' => 'O email deve ter no máximo 191 caracteres.',
             'telefone.max' => 'O telefone deve ter no máximo 20 caracteres.',
+            'suc_cpd.max' => 'O SUC-CPD deve ter no máximo 191 caracteres.',
+            'estado.max' => 'O estado deve ter no máximo 191 caracteres.',
+            'cidade.max' => 'A cidade deve ter no máximo 191 caracteres.',
+            'cpf_cnpj.max' => 'O CPF/CNPJ deve ter no máximo 191 caracteres.',
+            'susep.max' => 'O SUSEP deve ter no máximo 191 caracteres.',
             'seguradoras.*.exists' => 'Uma das seguradoras selecionadas é inválida.'
         ]);
 
@@ -91,7 +104,15 @@ class CorretoraController extends Controller
             $corretora = Corretora::create([
                 'nome' => $validated['nome'],
                 'email' => $validated['email'],
-                'telefone' => $validated['telefone']
+                'telefone' => $validated['telefone'],
+                'suc_cpd' => $validated['suc_cpd'],
+                'estado' => $validated['estado'],
+                'cidade' => $validated['cidade'],
+                'cpf_cnpj' => $validated['cpf_cnpj'],
+                'susep' => $validated['susep'],
+                'email1' => $validated['email1'],
+                'email2' => $validated['email2'],
+                'email3' => $validated['email3']
             ]);
             
             // 2. Vincular seguradoras se selecionadas
@@ -172,6 +193,14 @@ class CorretoraController extends Controller
             'nome' => 'required|string|max:191|unique:corretoras,nome,' . $corretora->id,
             'email' => 'nullable|email|max:191|unique:corretoras,email,' . $corretora->id,
             'telefone' => 'nullable|string|max:20',
+            'suc_cpd' => 'nullable|string|max:191',
+            'estado' => 'nullable|string|max:191',
+            'cidade' => 'nullable|string|max:191',
+            'cpf_cnpj' => 'nullable|string|max:191',
+            'susep' => 'nullable|string|max:191',
+            'email1' => 'nullable|string',
+            'email2' => 'nullable|string',
+            'email3' => 'nullable|string',
             'seguradoras' => 'nullable|array',
             'seguradoras.*' => 'exists:seguradoras,id'
         ], [
@@ -182,6 +211,11 @@ class CorretoraController extends Controller
             'email.unique' => 'Este email já está sendo usado por outra corretora.',
             'email.max' => 'O email deve ter no máximo 191 caracteres.',
             'telefone.max' => 'O telefone deve ter no máximo 20 caracteres.',
+            'suc_cpd.max' => 'O SUC-CPD deve ter no máximo 191 caracteres.',
+            'estado.max' => 'O estado deve ter no máximo 191 caracteres.',
+            'cidade.max' => 'A cidade deve ter no máximo 191 caracteres.',
+            'cpf_cnpj.max' => 'O CPF/CNPJ deve ter no máximo 191 caracteres.',
+            'susep.max' => 'O SUSEP deve ter no máximo 191 caracteres.',
             'seguradoras.*.exists' => 'Uma das seguradoras selecionadas é inválida.'
         ]);
 
@@ -192,7 +226,15 @@ class CorretoraController extends Controller
             $corretora->update([
                 'nome' => $validated['nome'],
                 'email' => $validated['email'],
-                'telefone' => $validated['telefone']
+                'telefone' => $validated['telefone'],
+                'suc_cpd' => $validated['suc_cpd'],
+                'estado' => $validated['estado'],
+                'cidade' => $validated['cidade'],
+                'cpf_cnpj' => $validated['cpf_cnpj'],
+                'susep' => $validated['susep'],
+                'email1' => $validated['email1'],
+                'email2' => $validated['email2'],
+                'email3' => $validated['email3']
             ]);
             
             // 2. Atualizar vínculos com seguradoras

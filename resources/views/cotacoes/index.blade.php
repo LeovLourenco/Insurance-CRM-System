@@ -29,7 +29,7 @@
                     <i class="bi bi-download me-1"></i>Exportar
                 </button>
             @endcan
-            @can('cotacoes.create')
+            @can('create', App\Models\Cotacao::class)
                 <a href="{{ route('cotacoes.create') }}" class="btn btn-primary">
                     <i class="bi bi-plus-circle me-1"></i>Nova Cotação
                 </a>
@@ -297,7 +297,7 @@
                                                 </li>
                                             @endif
                                             
-                                            @if($cotacao->pode_editar)
+                                            @can('update', $cotacao)
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li><h6 class="dropdown-header">Edição</h6></li>
                                                 <li>
@@ -305,7 +305,7 @@
                                                         <i class="bi bi-pencil me-2"></i>Corrigir Dados
                                                     </a>
                                                 </li>
-                                            @endif
+                                            @endcan
                                         @endcan
                                         
                                         <li><hr class="dropdown-divider"></li>

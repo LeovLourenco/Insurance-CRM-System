@@ -6,9 +6,11 @@
         <h1 class="h3 mb-1">Seguradoras</h1>
         <p class="text-muted mb-0">Gerencie as seguradoras parceiras do sistema</p>
     </div>
-    <a href="{{ route('seguradoras.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-2"></i>Nova Seguradora
-    </a>
+    @can('create', App\Models\Seguradora::class)
+        <a href="{{ route('seguradoras.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Nova Seguradora
+        </a>
+    @endcan
 </div>
 
 <!-- Alerts -->
@@ -157,11 +159,14 @@
                                                 <i class="bi bi-eye me-2"></i>Visualizar
                                             </a>
                                         </li>
+                                        @can('update', $seguradora)
                                         <li>
                                             <a class="dropdown-item" href="{{ route('seguradoras.edit', $seguradora) }}">
                                                 <i class="bi bi-pencil me-2"></i>Editar
                                             </a>
                                         </li>
+                                        @endcan
+                                        @can('delete', $seguradora)
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
                                             <form action="{{ route('seguradoras.destroy', $seguradora) }}" 
@@ -173,6 +178,7 @@
                                                 <button type="submit" class="dropdown-item text-danger">
                                                     <i class="bi bi-trash me-2"></i>Excluir
                                                 </button>
+                                        @endcan
                                             </form>
                                         </li>
                                     </ul>

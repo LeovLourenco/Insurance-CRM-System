@@ -204,22 +204,23 @@ class CotacaoController extends Controller
             'observacoes' => 'nullable|string|max:1000'
         ];
 
-        // ✅ CORE OPERACIONAL: Comerciais só podem criar cotações para corretoras que atendem
-        if ($user->hasRole('comercial')) {
+        // ✅ CORE OPERACIONAL: DIRETOR e COMERCIAL só podem criar cotações para corretoras que atendem
+        if ($user->hasRole(['comercial', 'diretor'])) {
             $rules['corretora_id'] = [
                 'required',
                 'exists:corretoras,id',
                 function ($attribute, $value, $fail) use ($user) {
                     $corretora = Corretora::find($value);
                     if (!$corretora || $corretora->usuario_id !== $user->id) {
-                        \Log::warning('Tentativa de criar cotação para corretora não atendida', [
+                        \Log::warning('Tentativa de criar cotação para corretora não própria', [
                             'user_id' => $user->id,
                             'user_name' => $user->name,
+                            'user_role' => $user->getRoleNames()->first(),
                             'corretora_id' => $value,
                             'corretora_usuario_id' => $corretora?->usuario_id,
                             'ip' => request()->ip()
                         ]);
-                        $fail('Você só pode criar cotações para corretoras que atende.');
+                        $fail('Você só pode criar cotações para corretoras que lhe pertencem.');
                     }
                 }
             ];

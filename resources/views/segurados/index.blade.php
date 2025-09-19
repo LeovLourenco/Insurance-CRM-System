@@ -6,9 +6,11 @@
         <h1 class="h3 mb-1">Segurados</h1>
         <p class="text-muted mb-0">Gerencie o banco de dados de clientes segurados</p>
     </div>
-    <a href="{{ route('segurados.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-2"></i>Novo Segurado
-    </a>
+    @can('create', App\Models\Segurado::class)
+        <a href="{{ route('segurados.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Novo Segurado
+        </a>
+    @endcan
 </div>
 
 <!-- Alerts -->
@@ -153,11 +155,14 @@
                                                 <i class="bi bi-eye me-2"></i>Visualizar
                                             </a>
                                         </li>
+                                        @can('update', $segurado)
                                         <li>
                                             <a class="dropdown-item" href="{{ route('segurados.edit', $segurado) }}">
                                                 <i class="bi bi-pencil me-2"></i>Editar
                                             </a>
                                         </li>
+                                        @endcan
+                                        @can('delete', $segurado)
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
                                             <form action="{{ route('segurados.destroy', $segurado) }}" 
@@ -170,6 +175,7 @@
                                                     <i class="bi bi-trash me-2"></i>Excluir
                                                 </button>
                                             </form>
+                                        @endcan
                                         </li>
                                     </ul>
                                 </div>

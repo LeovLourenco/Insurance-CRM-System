@@ -13,7 +13,7 @@ class CotacaoPolicy
     /**
      * Determine whether the user can view any models.
      * - ADMIN: todas
-     * - DIRETOR: todas (supervisiona)
+     * - DIRETOR: todas (supervisão hierárquica)
      * - COMERCIAL: apenas suas
      */
     public function viewAny(User $user)
@@ -25,7 +25,7 @@ class CotacaoPolicy
     /**
      * Determine whether the user can view the model.
      * - ADMIN: todas
-     * - DIRETOR: todas (supervisiona) 
+     * - DIRETOR: todas (supervisão hierárquica)
      * - COMERCIAL: apenas suas
      */
     public function view(User $user, Cotacao $cotacao)
@@ -35,7 +35,7 @@ class CotacaoPolicy
             return true;
         }
         
-        // Diretor pode ver todas (supervisiona)
+        // Diretor pode ver todas (supervisão hierárquica)
         if ($user->hasRole('diretor')) {
             return true;
         }
@@ -50,20 +50,23 @@ class CotacaoPolicy
 
     /**
      * Determine whether the user can create models.
-     * - ADMIN: sim
-     * - DIRETOR: não (apenas supervisiona)
-     * - COMERCIAL: sim
+     * - ADMIN: sim (qualquer corretora)
+     * - DIRETOR: sim (apenas suas corretoras)
+     * - COMERCIAL: sim (apenas suas corretoras)
+     * 
+     * Nota: Ownership é validado no Controller
      */
     public function create(User $user)
     {
-        return $user->hasPermissionTo('cotacoes.create');
+        return $user->hasAnyRole(['admin', 'diretor']) || 
+               $user->hasPermissionTo('cotacoes.create');
     }
 
     /**
      * Determine whether the user can update the model.
      * - ADMIN: todas
-     * - DIRETOR: nenhuma (apenas supervisiona)
-     * - COMERCIAL: apenas suas
+     * - DIRETOR: apenas que ELE CRIOU (ownership + permissão)
+     * - COMERCIAL: apenas que ELE CRIOU (ownership + permissão)
      */
     public function update(User $user, Cotacao $cotacao)
     {
@@ -72,13 +75,8 @@ class CotacaoPolicy
             return true;
         }
         
-        // Diretor não pode editar (apenas supervisiona)
-        if ($user->hasRole('diretor')) {
-            return false;
-        }
-        
-        // Comercial só pode editar suas próprias
-        if ($user->hasRole('comercial')) {
+        // DIRETOR e COMERCIAL: validação uniforme (ownership + permissão)
+        if ($user->hasAnyRole(['diretor', 'comercial'])) {
             return $cotacao->user_id === $user->id && $user->hasPermissionTo('cotacoes.update');
         }
         
@@ -88,8 +86,8 @@ class CotacaoPolicy
     /**
      * Determine whether the user can delete the model.
      * - ADMIN: todas
-     * - DIRETOR: nenhuma (apenas supervisiona)
-     * - COMERCIAL: apenas suas
+     * - DIRETOR: apenas que ELE CRIOU (ownership + permissão)
+     * - COMERCIAL: apenas que ELE CRIOU (ownership + permissão)
      */
     public function delete(User $user, Cotacao $cotacao)
     {
@@ -98,13 +96,8 @@ class CotacaoPolicy
             return true;
         }
         
-        // Diretor não pode deletar
-        if ($user->hasRole('diretor')) {
-            return false;
-        }
-        
-        // Comercial só pode deletar suas próprias
-        if ($user->hasRole('comercial')) {
+        // DIRETOR e COMERCIAL: validação uniforme (ownership + permissão)
+        if ($user->hasAnyRole(['diretor', 'comercial'])) {
             return $cotacao->user_id === $user->id && $user->hasPermissionTo('cotacoes.delete');
         }
         

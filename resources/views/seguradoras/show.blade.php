@@ -7,9 +7,11 @@
         <p class="text-muted mb-0">Detalhes da seguradora</p>
     </div>
     <div class="d-flex gap-2">
-        <a href="{{ route('seguradoras.edit', $seguradora) }}" class="btn btn-outline-primary">
-            <i class="bi bi-pencil me-2"></i>Editar
-        </a>
+        @can('update', $seguradora)
+            <a href="{{ route('seguradoras.edit', $seguradora) }}" class="btn btn-outline-primary">
+                <i class="bi bi-pencil me-2"></i>Editar
+            </a>
+        @endcan
         <a href="{{ route('seguradoras.index') }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-2"></i>Voltar
         </a>

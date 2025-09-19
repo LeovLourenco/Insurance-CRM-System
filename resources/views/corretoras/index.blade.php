@@ -6,9 +6,11 @@
         <h1 class="h3 mb-1">Corretoras</h1>
         <p class="text-muted mb-0">Gerencie as corretoras parceiras do sistema</p>
     </div>
-    <a href="{{ route('corretoras.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-2"></i>Nova Corretora
-    </a>
+    @can('create', App\Models\Corretora::class)
+        <a href="{{ route('corretoras.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Nova Corretora
+        </a>
+    @endcan
 </div>
 
 <!-- Alerts -->
@@ -152,11 +154,14 @@
                                                 <i class="bi bi-eye me-2"></i>Visualizar
                                             </a>
                                         </li>
+                                        @can('update', $corretora)
                                         <li>
                                             <a class="dropdown-item" href="{{ route('corretoras.edit', $corretora) }}">
                                                 <i class="bi bi-pencil me-2"></i>Editar
                                             </a>
                                         </li>
+                                        @endcan
+                                        @can('delete', $corretora)
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
                                             <form action="{{ route('corretoras.destroy', $corretora) }}" 
@@ -170,6 +175,7 @@
                                                 </button>
                                             </form>
                                         </li>
+                                        @endcan
                                     </ul>
                                 </div>
                             </td>
@@ -204,8 +210,10 @@
                 @endif
             </p>
             @if(!request()->hasAny(['search', 'com_seguradoras', 'com_cotacoes']))
-                <a href="{{ route('corretoras.create') }}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle me-2"></i>Criar Primeira Corretora
+                @can('create', App\Models\Corretora::class)
+                    <a href="{{ route('corretoras.create') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Criar Primeira Corretora
+                @endcan
                 </a>
             @endif
         </div>

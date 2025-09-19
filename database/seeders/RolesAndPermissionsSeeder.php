@@ -89,7 +89,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $adminRole = Role::firstOrCreate(['name' => 'admin']);
         $adminRole->syncPermissions(Permission::all());
 
-        // 2. DIRETOR - READ base + READ todos os cores
+        // 2. DIRETOR - READ base + CRUD cotações próprias + READ todas (supervisão)
         $diretorRole = Role::firstOrCreate(['name' => 'diretor']);
         $diretorRole->syncPermissions([
             // Base entities - full read access
@@ -98,10 +98,23 @@ class RolesAndPermissionsSeeder extends Seeder
             'produtos.view',
             'seguradoras.view',
             
-            // Core - read all (supervisiona)
-            'cotacoes.view.all',
+            // Core - CRUD próprias + supervisão de todas
+            'cotacoes.view',        // ✅ Para ver suas próprias
+            'cotacoes.view.all',    // ✅ Para supervisionar todas
+            'cotacoes.create',      // ✅ Para criar (com ownership)
+            'cotacoes.update',      // ✅ Para editar suas próprias
+            'cotacoes.delete',      // ✅ Para deletar suas próprias
+            
+            'cotacao-seguradoras.view',
             'cotacao-seguradoras.view.all',
+            'cotacao-seguradoras.create',
+            'cotacao-seguradoras.update',
+            'cotacao-seguradoras.delete',
+            
+            'atividades-cotacao.view',
             'atividades-cotacao.view.all',
+            'atividades-cotacao.create',
+            'atividades-cotacao.update',
         ]);
 
         // 3. COMERCIAL - READ base + CRUD cadastros necessários + CRUD apenas suas cotações
@@ -142,7 +155,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $this->command->info('Roles e permissions criadas com sucesso!');
         $this->command->info('- admin: CRUD total');
-        $this->command->info('- diretor: READ base + READ todos cores');
+        $this->command->info('- diretor: READ base + CRUD próprias cotações + supervisão todas');
         $this->command->info('- comercial: READ base + CRUD próprias cotações');
         $this->command->info('- visitante: Sem permissions (implementação futura)');
     }

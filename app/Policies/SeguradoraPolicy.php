@@ -35,25 +35,26 @@ class SeguradoraPolicy
 
     /**
      * Determine whether the user can create models.
-     *
-     * @param  \App\Models\User  $user
-     * @return \Illuminate\Auth\Access\Response|bool
+     * 🔒 ENTIDADES BASE: Apenas admin/diretor podem criar
+     * - ADMIN: sim
+     * - DIRETOR: sim
+     * - COMERCIAL: não (READ-ONLY)
      */
     public function create(User $user)
     {
-        return $user->hasRole('admin');
+        return $user->hasAnyRole(['admin', 'diretor']);
     }
 
     /**
      * Determine whether the user can update the model.
-     *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Seguradora  $seguradora
-     * @return \Illuminate\Auth\Access\Response|bool
+     * 🔒 ENTIDADES BASE: Apenas admin/diretor podem editar
+     * - ADMIN: sim
+     * - DIRETOR: sim
+     * - COMERCIAL: não (READ-ONLY)
      */
     public function update(User $user, Seguradora $seguradora)
     {
-        return $user->hasRole('admin');
+        return $user->hasAnyRole(['admin', 'diretor']);
     }
 
     /**

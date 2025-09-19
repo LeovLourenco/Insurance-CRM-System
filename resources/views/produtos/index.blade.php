@@ -6,9 +6,11 @@
         <h1 class="h3 mb-1">Produtos</h1>
         <p class="text-muted mb-0">Gerencie os produtos de seguro disponíveis</p>
     </div>
-    <a href="{{ route('produtos.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle me-2"></i>Novo Produto
-    </a>
+    @can('create', App\Models\Produto::class)
+        <a href="{{ route('produtos.create') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Novo Produto
+        </a>
+    @endcan
 </div>
 
 <!-- Alerts -->
@@ -144,11 +146,14 @@
                                                 <i class="bi bi-eye me-2"></i>Visualizar
                                             </a>
                                         </li>
+                                        @can('update', $produto)
                                         <li>
                                             <a class="dropdown-item" href="{{ route('produtos.edit', $produto) }}">
                                                 <i class="bi bi-pencil me-2"></i>Editar
                                             </a>
                                         </li>
+                                        @endcan
+                                        @can('delete', $produto)
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
                                             <form action="{{ route('produtos.destroy', $produto) }}" 
@@ -160,6 +165,7 @@
                                                 <button type="submit" class="dropdown-item text-danger">
                                                     <i class="bi bi-trash me-2"></i>Excluir
                                                 </button>
+                                        @endcan
                                             </form>
                                         </li>
                                     </ul>

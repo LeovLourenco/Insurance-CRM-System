@@ -12,88 +12,61 @@ class CorretoraPolicy
 
     /**
      * Determine whether the user can view any models.
+     * ✅ ENTIDADES BASE: Todos veem todas (arquitetura correta)
      * - ADMIN: todas
-     * - DIRETOR: todas (supervisiona)
-     * - COMERCIAL: apenas suas
+     * - DIRETOR: todas
+     * - COMERCIAL: todas (READ-ONLY)
      */
     public function viewAny(User $user)
     {
-        return $user->hasAnyRole(['admin', 'diretor']) || 
-               $user->hasPermissionTo('corretoras.view');
+        return true; // Entidades base são compartilhadas
     }
 
     /**
      * Determine whether the user can view the model.
+     * ✅ ENTIDADES BASE: Todos veem todas (arquitetura correta)
      * - ADMIN: todas
-     * - DIRETOR: todas (supervisiona)
-     * - COMERCIAL: apenas as que são responsáveis
+     * - DIRETOR: todas
+     * - COMERCIAL: todas (READ-ONLY)
      */
     public function view(User $user, Corretora $corretora)
     {
-        // Admin pode ver todas
-        if ($user->hasRole('admin')) {
-            return true;
-        }
-        
-        // Diretor pode ver todas (supervisiona)
-        if ($user->hasRole('diretor')) {
-            return true;
-        }
-        
-        // Comercial só pode ver corretoras que são responsáveis
-        if ($user->hasRole('comercial')) {
-            return $corretora->usuario_id === $user->id;
-        }
-        
-        return false;
+        return true; // Entidades base são compartilhadas
     }
 
     /**
      * Determine whether the user can create models.
+     * 🔒 ENTIDADES BASE: Apenas admin/diretor podem criar
      * - ADMIN: sim
-     * - DIRETOR: sim
-     * - COMERCIAL: não (apenas admins/diretores podem criar corretoras)
+     * - DIRETOR: sim  
+     * - COMERCIAL: não (READ-ONLY)
      */
     public function create(User $user)
     {
-        return $user->hasPermissionTo('corretoras.create');
+        return $user->hasAnyRole(['admin', 'diretor']);
     }
 
     /**
      * Determine whether the user can update the model.
+     * 🔒 ENTIDADES BASE: Apenas admin/diretor podem editar
      * - ADMIN: todas
      * - DIRETOR: todas
-     * - COMERCIAL: apenas as que são responsáveis
+     * - COMERCIAL: não (READ-ONLY)
      */
     public function update(User $user, Corretora $corretora)
     {
-        // Admin pode editar todas
-        if ($user->hasRole('admin') || $user->hasPermissionTo('corretoras.update.all')) {
-            return true;
-        }
-        
-        // Diretor pode editar todas
-        if ($user->hasRole('diretor')) {
-            return true;
-        }
-        
-        // Comercial só pode editar corretoras que são responsáveis
-        if ($user->hasRole('comercial')) {
-            return $corretora->usuario_id === $user->id && $user->hasPermissionTo('corretoras.update');
-        }
-        
-        return false;
+        return $user->hasAnyRole(['admin', 'diretor']);
     }
 
     /**
      * Determine whether the user can delete the model.
-     * - ADMIN: todas
-     * - DIRETOR: nenhuma (apenas supervisiona)
-     * - COMERCIAL: nenhuma
+     * 🔒 ENTIDADES BASE: Apenas admin pode deletar
+     * - ADMIN: sim
+     * - DIRETOR: não (apenas supervisiona)
+     * - COMERCIAL: não (READ-ONLY)
      */
     public function delete(User $user, Corretora $corretora)
     {
-        // Apenas admin pode deletar corretoras
         return $user->hasRole('admin');
     }
 

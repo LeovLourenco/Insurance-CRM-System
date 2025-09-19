@@ -10,9 +10,11 @@
         </p>
     </div>
     <div class="d-flex gap-2">
-        <a href="{{ route('segurados.edit', $segurado) }}" class="btn btn-primary">
-            <i class="bi bi-pencil me-2"></i>Editar
-        </a>
+        @can('update', $segurado)
+            <a href="{{ route('segurados.edit', $segurado) }}" class="btn btn-primary">
+                <i class="bi bi-pencil me-2"></i>Editar
+            </a>
+        @endcan
         <a href="{{ route('segurados.index') }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-2"></i>Voltar
         </a>

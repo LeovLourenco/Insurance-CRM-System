@@ -10,9 +10,11 @@
         </p>
     </div>
     <div class="d-flex gap-2">
-        <a href="{{ route('corretoras.edit', $corretora) }}" class="btn btn-primary">
-            <i class="bi bi-pencil me-2"></i>Editar
-        </a>
+        @can('update', $corretora)
+            <a href="{{ route('corretoras.edit', $corretora) }}" class="btn btn-primary">
+                <i class="bi bi-pencil me-2"></i>Editar
+            </a>
+        @endcan
         <a href="{{ route('corretoras.index') }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-2"></i>Voltar
         </a>
@@ -34,176 +36,190 @@
     </div>
 @endif
 
-<!-- Informações da Corretora -->
+<!-- Layout Principal -->
 <div class="row mb-4">
-    <div class="col-lg-4">
+    <!-- Card Principal: Dados Gerais + Documentação -->
+    <div class="col-lg-8">
         <div class="modern-card p-4">
-            <div class="text-center mb-4">
-                <div class="bg-primary bg-opacity-10 rounded-circle p-4 d-inline-flex mb-3">
-                    <i class="bi bi-person-badge text-primary" style="font-size: 2.5rem;"></i>
+            <div class="d-flex align-items-center mb-4">
+                <div class="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                    <i class="bi bi-person-badge text-primary fs-4"></i>
                 </div>
-                <h4 class="mb-1">{{ $corretora->nome }}</h4>
-                <p class="text-muted mb-0">Corretora</p>
-            </div>
-            
-            <hr>
-            
-            <div class="mb-3">
-                <h6 class="small text-muted text-uppercase fw-bold mb-2">Email</h6>
-                @if($corretora->email)
-                    <a href="mailto:{{ $corretora->email }}" class="text-decoration-none">
-                        <i class="bi bi-envelope me-2"></i>{{ $corretora->email }}
-                    </a>
-                @else
-                    <span class="text-muted">Não informado</span>
-                @endif
-            </div>
-            
-            <div class="mb-3">
-                <h6 class="small text-muted text-uppercase fw-bold mb-2">Telefone</h6>
-                @if($corretora->telefone)
-                    <a href="tel:{{ $corretora->telefone }}" class="text-decoration-none">
-                        <i class="bi bi-telephone me-2"></i>{{ $corretora->telefone_formatado }}
-                    </a>
-                @else
-                    <span class="text-muted">Não informado</span>
-                @endif
+                <div class="flex-grow-1">
+                    <h4 class="mb-1">{{ $corretora->nome }}</h4>
+                    <p class="text-muted mb-0">Informações da Corretora</p>
+                </div>
+                <div class="d-flex gap-4 text-center">
+                    <div>
+                        <h5 class="text-primary mb-0">{{ $corretora->seguradoras->count() }}</h5>
+                        <small class="text-muted">Seguradoras</small>
+                    </div>
+                    <div>
+                        <h5 class="text-success mb-0">{{ $cotacoes->count() }}</h5>
+                        <small class="text-muted">Cotações</small>
+                    </div>
+                </div>
             </div>
 
-            <div class="mb-3">
-                <h6 class="small text-muted text-uppercase fw-bold mb-2">Comercial Responsável</h6>
-                @if($corretora->usuario)
-                    <div class="d-flex align-items-center">
-                        <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+            <div class="row">
+                <!-- Dados Gerais -->
+                <div class="col-md-6">
+                    <h6 class="text-uppercase text-muted fw-bold mb-3 border-bottom pb-2">
+                        <i class="bi bi-info-circle me-2"></i>Dados Gerais
+                    </h6>
+                    
+                    @if($corretora->estado || $corretora->cidade)
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="bg-info bg-opacity-10 rounded-circle p-2 me-3 mt-1">
+                            <i class="bi bi-geo-alt text-info"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium mb-1">Localização</div>
+                            <div class="text-muted">
+                                {{ $corretora->cidade ? $corretora->cidade : '' }}{{ $corretora->cidade && $corretora->estado ? ' - ' : '' }}{{ $corretora->estado ? $corretora->estado : 'Não informado' }}
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+                    
+                    @if($corretora->suc_cpd)
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="bg-warning bg-opacity-10 rounded-circle p-2 me-3 mt-1">
+                            <i class="bi bi-building text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium mb-1">SUC-CPD</div>
+                            <div class="text-muted">{{ $corretora->suc_cpd }}</div>
+                        </div>
+                    </div>
+                    @endif
+
+                    @if($corretora->usuario)
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3 mt-1">
                             <i class="bi bi-person text-primary"></i>
                         </div>
-                        <div>
-                            <div class="fw-medium">{{ $corretora->usuario->name }}</div>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium mb-1">Comercial Responsável</div>
+                            <div class="text-muted">{{ $corretora->usuario->name }}</div>
                             <small class="text-muted">{{ $corretora->usuario->email }}</small>
                         </div>
                     </div>
-                @else
-                    <span class="text-muted">Não atribuído</span>
-                @endif
-            </div>
-            
-            <hr>
-            
-            <div class="row text-center">
-                <div class="col-6">
-                    <div class="border-end">
-                        <h4 class="text-primary mb-1">{{ $corretora->seguradoras->count() }}</h4>
-                        <small class="text-muted">Seguradoras</small>
-                    </div>
+                    @endif
                 </div>
-                <div class="col-6">
-                    <h4 class="text-success mb-1">{{ $cotacoes->count() }}</h4>
-                    <small class="text-muted">Cotações</small>
+
+                <!-- Documentação -->
+                <div class="col-md-6">
+                    <h6 class="text-uppercase text-muted fw-bold mb-3 border-bottom pb-2">
+                        <i class="bi bi-file-text me-2"></i>Documentação
+                    </h6>
+                    
+                    @if($corretora->cpf_cnpj)
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3 mt-1">
+                            <i class="bi bi-card-text text-success"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium mb-1">CPF/CNPJ</div>
+                            <div class="text-muted font-monospace">{{ $corretora->cpf_cnpj }}</div>
+                        </div>
+                    </div>
+                    @endif
+                    
+                    @if($corretora->susep)
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="bg-secondary bg-opacity-10 rounded-circle p-2 me-3 mt-1">
+                            <i class="bi bi-shield-check text-secondary"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium mb-1">SUSEP</div>
+                            <div class="text-muted font-monospace">{{ $corretora->susep }}</div>
+                        </div>
+                    </div>
+                    @endif
+
+                    @if(!$corretora->cpf_cnpj && !$corretora->susep)
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-file-earmark-x display-6 text-muted mb-2"></i>
+                        <p class="mb-0">Nenhum documento cadastrado</p>
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Estatísticas -->
-    <div class="col-lg-8">
-        <div class="row">
-            <!-- Comercial Responsável Card -->
-            <div class="col-md-4 mb-4">
-                <div class="modern-card p-4 h-100">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="bg-info bg-opacity-10 rounded-circle p-3 me-3">
-                            <i class="bi bi-person-badge text-info fs-5"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            @if($corretora->usuario)
-                                <h6 class="mb-1 fw-bold">{{ $corretora->usuario->name }}</h6>
-                                <p class="text-muted mb-0 small">Comercial Responsável</p>
-                            @else
-                                <h6 class="mb-1 text-muted">Não Atribuído</h6>
-                                <p class="text-muted mb-0 small">Comercial Responsável</p>
-                            @endif
-                        </div>
-                    </div>
-                    @if($corretora->usuario)
-                        <div class="text-center">
-                            <a href="mailto:{{ $corretora->usuario->email }}" 
-                               class="btn btn-sm btn-outline-info">
-                                <i class="bi bi-envelope me-1"></i>Contatar
-                            </a>
-                        </div>
-                    @endif
-                </div>
-            </div>
 
-            <div class="col-md-4 mb-4">
-                <div class="modern-card p-4 h-100">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="bg-success bg-opacity-10 rounded-circle p-3 me-3">
-                            <i class="bi bi-building text-success fs-5"></i>
-                        </div>
-                        <div>
-                            <h5 class="mb-1">{{ $corretora->seguradoras->count() }}</h5>
-                            <p class="text-muted mb-0">Seguradoras Parceiras</p>
-                        </div>
-                    </div>
-                    <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-success" 
-                             style="width: {{ $corretora->seguradoras->count() > 0 ? min(($corretora->seguradoras->count() / 10) * 100, 100) : 0 }}%"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4 mb-4">
-                <div class="modern-card p-4 h-100">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="bg-warning bg-opacity-10 rounded-circle p-3 me-3">
-                            <i class="bi bi-file-earmark-text text-warning fs-5"></i>
-                        </div>
-                        <div>
-                            <h5 class="mb-1">{{ $cotacoes->count() }}</h5>
-                            <p class="text-muted mb-0">Cotações Realizadas</p>
-                        </div>
-                    </div>
-                    <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-warning" 
-                             style="width: {{ $cotacoes->count() > 0 ? min(($cotacoes->count() / 50) * 100, 100) : 0 }}%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Status das Cotações -->
-        @if($cotacoesPorStatus->count() > 0)
-        <div class="modern-card p-4">
-            <h6 class="fw-bold mb-3">
-                <i class="bi bi-pie-chart me-2"></i>Status das Cotações
+    <!-- Card Lateral: Contatos -->
+    <div class="col-lg-4">
+        <div class="modern-card p-4 h-100">
+            <h6 class="text-uppercase text-muted fw-bold mb-3 border-bottom pb-2">
+                <i class="bi bi-telephone me-2"></i>Contatos
             </h6>
-            <div class="row">
-                @foreach($cotacoesPorStatus as $status => $total)
-                    <div class="col-md-3 mb-2">
-                        <div class="d-flex align-items-center">
-                            <div class="flex-shrink-0 me-2">
-                                @switch($status)
-                                    @case('pendente')
-                                        <span class="badge bg-warning">{{ $total }}</span>
-                                        @break
-                                    @case('aprovada')
-                                        <span class="badge bg-success">{{ $total }}</span>
-                                        @break
-                                    @case('rejeitada')
-                                        <span class="badge bg-danger">{{ $total }}</span>
-                                        @break
-                                    @default
-                                        <span class="badge bg-secondary">{{ $total }}</span>
-                                @endswitch
-                            </div>
-                            <small class="text-muted">{{ ucfirst($status) }}</small>
-                        </div>
-                    </div>
-                @endforeach
+            
+            @if($corretora->telefone)
+            <div class="d-flex align-items-start mb-3">
+                <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3 mt-1">
+                    <i class="bi bi-telephone text-primary"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-medium mb-1">Telefone</div>
+                    <a href="tel:{{ $corretora->telefone }}" class="text-decoration-none">
+                        <div class="text-muted">{{ $corretora->telefone_formatado ?? $corretora->telefone }}</div>
+                    </a>
+                </div>
             </div>
+            @endif
+            
+            @if($corretora->email)
+            <div class="d-flex align-items-start mb-3">
+                <div class="bg-info bg-opacity-10 rounded-circle p-2 me-3 mt-1">
+                    <i class="bi bi-envelope text-info"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-medium mb-1">Email Principal</div>
+                    <a href="mailto:{{ $corretora->email }}" class="text-decoration-none">
+                        <div class="text-muted text-break">{{ $corretora->email }}</div>
+                    </a>
+                </div>
+            </div>
+            @endif
+            
+            @if($corretora->email1 || $corretora->email2 || $corretora->email3)
+            <div class="border-top pt-3">
+                <div class="fw-medium mb-2 text-muted">
+                    <i class="bi bi-envelope-plus me-2"></i>Emails Adicionais
+                </div>
+                
+                @if($corretora->email1)
+                <div class="mb-2">
+                    <small class="text-muted d-block">Email 1:</small>
+                    <div class="text-break small">{{ $corretora->email1 }}</div>
+                </div>
+                @endif
+                
+                @if($corretora->email2)
+                <div class="mb-2">
+                    <small class="text-muted d-block">Email 2:</small>
+                    <div class="text-break small">{{ $corretora->email2 }}</div>
+                </div>
+                @endif
+                
+                @if($corretora->email3)
+                <div class="mb-2">
+                    <small class="text-muted d-block">Email 3:</small>
+                    <div class="text-break small">{{ $corretora->email3 }}</div>
+                </div>
+                @endif
+            </div>
+            @endif
+
+            @if(!$corretora->telefone && !$corretora->email && !$corretora->email1 && !$corretora->email2 && !$corretora->email3)
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-telephone-x display-6 text-muted mb-2"></i>
+                <p class="mb-0">Nenhum contato cadastrado</p>
+            </div>
+            @endif
         </div>
-        @endif
     </div>
 </div>
 
@@ -212,10 +228,16 @@
 <div class="modern-card mb-4">
     <div class="p-4 border-bottom">
         <div class="d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">
-                <i class="bi bi-building me-2"></i>Seguradoras Parceiras
-            </h5>
-            <span class="badge bg-primary bg-opacity-10 text-primary">
+            <div class="d-flex align-items-center">
+                <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3">
+                    <i class="bi bi-building text-success"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0">Seguradoras Parceiras</h5>
+                    <small class="text-muted">Parcerias ativas da corretora</small>
+                </div>
+            </div>
+            <span class="badge bg-success bg-opacity-10 text-success fs-6">
                 {{ $seguradoras->total() }} {{ $seguradoras->total() == 1 ? 'parceria' : 'parcerias' }}
             </span>
         </div>
@@ -295,13 +317,36 @@
 
 <!-- Cotações Recentes -->
 @if($cotacoes->count() > 0)
-<div class="modern-card">
+<div class="modern-card mb-4">
     <div class="p-4 border-bottom">
         <div class="d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">
-                <i class="bi bi-file-earmark-text me-2"></i>Cotações Recentes
-            </h5>
-            <small class="text-muted">Últimas 10 cotações</small>
+            <div class="d-flex align-items-center">
+                <div class="bg-warning bg-opacity-10 rounded-circle p-2 me-3">
+                    <i class="bi bi-file-earmark-text text-warning"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0">Cotações Recentes</h5>
+                    <small class="text-muted">Últimas 10 cotações da corretora</small>
+                </div>
+            </div>
+            
+            @if($cotacoesPorStatus->count() > 0)
+            <div class="d-flex gap-2">
+                @foreach($cotacoesPorStatus as $status => $total)
+                    @switch($status)
+                        @case('pendente')
+                            <span class="badge bg-warning">{{ $total }} Pendente{{ $total > 1 ? 's' : '' }}</span>
+                            @break
+                        @case('aprovada')
+                            <span class="badge bg-success">{{ $total }} Aprovada{{ $total > 1 ? 's' : '' }}</span>
+                            @break
+                        @case('rejeitada')
+                            <span class="badge bg-danger">{{ $total }} Rejeitada{{ $total > 1 ? 's' : '' }}</span>
+                            @break
+                    @endswitch
+                @endforeach
+            </div>
+            @endif
         </div>
     </div>
     
@@ -396,8 +441,9 @@
     padding: 0.5rem 0.75rem;
 }
 
-.progress {
-    background-color: #f1f5f9;
+
+.text-break {
+    word-break: break-word !important;
 }
 </style>
 @endsection
