@@ -95,7 +95,7 @@
                 </thead>
                 <tbody>
                     @foreach($produtos as $produto)
-                        <tr>
+                        <tr data-url="{{ route('produtos.show', $produto) }}" class="clickable-row">
                             <td>
                                 <div class="d-flex align-items-center">
                                     <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
@@ -135,7 +135,7 @@
                                     {{ $produto->created_at->format('d/m/Y') }}
                                 </small>
                             </td>
-                            <td>
+                            <td class="action-column">
                                 <div class="dropdown">
                                     <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
                                         <i class="bi bi-three-dots"></i>
@@ -486,6 +486,46 @@ document.addEventListener('DOMContentLoaded', function() {
             input.value = selectedItem.querySelector('span').textContent;
         }
     }
+    
+    // Make table rows clickable
+    document.querySelectorAll('.clickable-row').forEach(function(row) {
+        row.addEventListener('click', function(e) {
+            // Prevent row click when clicking on action column
+            if (!e.target.closest('.action-column')) {
+                window.location.href = this.dataset.url;
+            }
+        });
+    });
 });
 </script>
+
+<style>
+/* Clickable rows */
+.clickable-row {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.clickable-row:hover {
+    background-color: #f8f9fa !important;
+}
+
+/* Ensure cursor pointer on all clickable elements */
+.clickable-row td,
+.clickable-row td *:not(.action-column *) {
+    cursor: pointer !important;
+}
+
+/* Prevent action column from triggering row click and reset cursor */
+.action-column,
+.action-column *,
+.action-column button,
+.action-column .dropdown-menu,
+.action-column .dropdown-item {
+    cursor: default !important;
+    position: relative;
+    z-index: 10;
+}
+</style>
+
 @endsection

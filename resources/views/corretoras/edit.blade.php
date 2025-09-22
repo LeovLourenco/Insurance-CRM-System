@@ -163,21 +163,9 @@
                             @enderror
                         </div>
                         
-                        <div class="col-md-6 mb-3">
-                            <label for="email1" class="form-label">Email 1</label>
-                            <input type="text" 
-                                   class="form-control @error('email1') is-invalid @enderror" 
-                                   id="email1" 
-                                   name="email1" 
-                                   value="{{ old('email1', $corretora->email1) }}" 
-                                   placeholder="Emails adicionais separados por ;">
-                            @error('email1')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
                         
                         <div class="col-md-6 mb-3">
-                            <label for="email2" class="form-label">Email 2</label>
+                            <label for="email2" class="form-label">Email Adicional 1</label>
                             <input type="text" 
                                    class="form-control @error('email2') is-invalid @enderror" 
                                    id="email2" 
@@ -190,7 +178,7 @@
                         </div>
                         
                         <div class="col-md-6 mb-3">
-                            <label for="email3" class="form-label">Email 3</label>
+                            <label for="email3" class="form-label">Email Adicional 2</label>
                             <input type="text" 
                                    class="form-control @error('email3') is-invalid @enderror" 
                                    id="email3" 

@@ -12,9 +12,9 @@ use App\Http\Controllers\SeguradoraController;
 use App\Http\Controllers\ProdutoController;
 use Illuminate\Support\Facades\Auth;
 
-// Página inicial pública
+// Página inicial - redireciona para login
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 });
 
 // Rotas de autenticação (login, registro, etc.)
@@ -127,6 +127,7 @@ Route::middleware(['auth'])->group(function () {
 
 // ===== GRUPO: CADASTROS COMERCIAIS - Comercial/Diretor/Admin =====
 Route::middleware(['auth', 'role:comercial|diretor|admin'])->group(function () {
+    
     // Resources com policies aplicando isolamento automático
     Route::resource('segurados', SeguradoController::class);
     Route::resource('corretoras', CorretoraController::class);

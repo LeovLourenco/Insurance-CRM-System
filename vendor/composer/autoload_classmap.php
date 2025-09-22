@@ -48,6 +48,7 @@ return array(
     'App\\Policies\\CotacaoPolicy' => $baseDir . '/app/Policies/CotacaoPolicy.php',
     'App\\Policies\\CotacaoSeguradoraPolicy' => $baseDir . '/app/Policies/CotacaoSeguradoraPolicy.php',
     'App\\Policies\\ProdutoPolicy' => $baseDir . '/app/Policies/ProdutoPolicy.php',
+    'App\\Policies\\SeguradoPolicy' => $baseDir . '/app/Policies/SeguradoPolicy.php',
     'App\\Policies\\SeguradoraPolicy' => $baseDir . '/app/Policies/SeguradoraPolicy.php',
     'App\\Providers\\AppServiceProvider' => $baseDir . '/app/Providers/AppServiceProvider.php',
     'App\\Providers\\AuthServiceProvider' => $baseDir . '/app/Providers/AuthServiceProvider.php',

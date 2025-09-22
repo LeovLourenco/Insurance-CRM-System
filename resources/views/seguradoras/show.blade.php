@@ -146,6 +146,7 @@
         @endif
 
         <!-- Card de Ações -->
+        @unless(auth()->user()->hasRole('comercial'))
         <div class="modern-card p-4 mt-4">
             <h6 class="mb-3">
                 <i class="bi bi-lightning text-warning me-2"></i>
@@ -177,6 +178,7 @@
                 @endif
             </div>
         </div>
+        @endunless
     </div>
 </div>
 

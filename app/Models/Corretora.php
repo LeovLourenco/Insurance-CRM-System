@@ -19,7 +19,6 @@ class Corretora extends Model
         'cidade',
         'cpf_cnpj',
         'susep',
-        'email1',
         'email2',
         'email3'
     ];
@@ -136,6 +135,22 @@ class Corretora extends Model
         }
         
         return $telefone;
+    }
+
+    /**
+     * Accessor para primeiro email (quando field email contém múltiplos emails separados por ;)
+     */
+    public function getPrimeiroEmailAttribute()
+    {
+        return $this->email ? trim(explode(';', $this->email)[0]) : null;
+    }
+
+    /**
+     * Accessor para emails adicionais (excluindo o principal)
+     */
+    public function getEmailsAdicionaisAttribute()
+    {
+        return collect([$this->email2, $this->email3])->filter()->values();
     }
 
     // Métodos auxiliares

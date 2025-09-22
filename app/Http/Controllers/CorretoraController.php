@@ -69,14 +69,13 @@ class CorretoraController extends Controller
     {
         $validated = $request->validate([
             'nome' => 'required|string|max:191|unique:corretoras,nome',
-            'email' => 'nullable|email|max:191|unique:corretoras,email',
+            'email' => 'nullable|email|max:500|unique:corretoras,email',
             'telefone' => 'nullable|string|max:20',
             'suc_cpd' => 'nullable|string|max:191',
             'estado' => 'nullable|string|max:191',
             'cidade' => 'nullable|string|max:191',
             'cpf_cnpj' => 'nullable|string|max:191',
             'susep' => 'nullable|string|max:191',
-            'email1' => 'nullable|string',
             'email2' => 'nullable|string',
             'email3' => 'nullable|string',
             'seguradoras' => 'nullable|array',
@@ -110,7 +109,6 @@ class CorretoraController extends Controller
                 'cidade' => $validated['cidade'],
                 'cpf_cnpj' => $validated['cpf_cnpj'],
                 'susep' => $validated['susep'],
-                'email1' => $validated['email1'],
                 'email2' => $validated['email2'],
                 'email3' => $validated['email3']
             ]);
@@ -168,7 +166,12 @@ class CorretoraController extends Controller
             $cotacoesPorStatus = $corretora->cotacoesPorStatus();
         }
 
-        return view('corretoras.show', compact('corretora', 'seguradoras', 'cotacoes', 'cotacoesPorStatus'));
+        // Carregar seguradoras disponíveis (não vinculadas)
+        $seguradoras_disponiveis = \App\Models\Seguradora::whereNotIn('id', $corretora->seguradoras->pluck('id'))
+                                                          ->orderBy('nome')
+                                                          ->get();
+
+        return view('corretoras.show', compact('corretora', 'seguradoras', 'cotacoes', 'cotacoesPorStatus', 'seguradoras_disponiveis'));
     }
 
     /**
@@ -191,14 +194,13 @@ class CorretoraController extends Controller
     {
         $validated = $request->validate([
             'nome' => 'required|string|max:191|unique:corretoras,nome,' . $corretora->id,
-            'email' => 'nullable|email|max:191|unique:corretoras,email,' . $corretora->id,
+            'email' => 'nullable|email|max:500|unique:corretoras,email,' . $corretora->id,
             'telefone' => 'nullable|string|max:20',
             'suc_cpd' => 'nullable|string|max:191',
             'estado' => 'nullable|string|max:191',
             'cidade' => 'nullable|string|max:191',
             'cpf_cnpj' => 'nullable|string|max:191',
             'susep' => 'nullable|string|max:191',
-            'email1' => 'nullable|string',
             'email2' => 'nullable|string',
             'email3' => 'nullable|string',
             'seguradoras' => 'nullable|array',
@@ -232,7 +234,6 @@ class CorretoraController extends Controller
                 'cidade' => $validated['cidade'],
                 'cpf_cnpj' => $validated['cpf_cnpj'],
                 'susep' => $validated['susep'],
-                'email1' => $validated['email1'],
                 'email2' => $validated['email2'],
                 'email3' => $validated['email3']
             ]);
@@ -308,4 +309,5 @@ class CorretoraController extends Controller
 
         return response()->json($corretoras);
     }
+
 }

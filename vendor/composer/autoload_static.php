@@ -517,6 +517,7 @@ class ComposerStaticInit65c4e8704290891510230f307283993e
         'App\\Policies\\CotacaoPolicy' => __DIR__ . '/../..' . '/app/Policies/CotacaoPolicy.php',
         'App\\Policies\\CotacaoSeguradoraPolicy' => __DIR__ . '/../..' . '/app/Policies/CotacaoSeguradoraPolicy.php',
         'App\\Policies\\ProdutoPolicy' => __DIR__ . '/../..' . '/app/Policies/ProdutoPolicy.php',
+        'App\\Policies\\SeguradoPolicy' => __DIR__ . '/../..' . '/app/Policies/SeguradoPolicy.php',
         'App\\Policies\\SeguradoraPolicy' => __DIR__ . '/../..' . '/app/Policies/SeguradoraPolicy.php',
         'App\\Providers\\AppServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AppServiceProvider.php',
         'App\\Providers\\AuthServiceProvider' => __DIR__ . '/../..' . '/app/Providers/AuthServiceProvider.php',

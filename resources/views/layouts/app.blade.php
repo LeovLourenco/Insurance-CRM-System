@@ -402,13 +402,7 @@
                 <div class="nav-item">
                     <a href="{{ route('produtos.index') }}" class="nav-link {{ request()->routeIs('produtos.*') ? 'active' : '' }}">
                         <i class="bi bi-box-seam"></i>
-                        <span class="nav-text">
-                            @role('admin')
-                                Produtos
-                            @else
-                                Ver Produtos
-                            @endrole
-                        </span>
+                        <span class="nav-text">Produtos</span>
                     </a>
                 </div>
                 
@@ -416,13 +410,7 @@
                 <div class="nav-item">
                     <a href="{{ route('seguradoras.index') }}" class="nav-link {{ request()->routeIs('seguradoras.*') ? 'active' : '' }}">
                         <i class="bi bi-building"></i>
-                        <span class="nav-text">
-                            @role('admin')
-                                Seguradoras
-                            @else
-                                Ver Seguradoras
-                            @endrole
-                        </span>
+                        <span class="nav-text">Seguradoras</span>
                     </a>
                 </div>
             </div>
@@ -523,9 +511,21 @@
                                     default => ucfirst($segment)
                                 };
                             @endphp
-                            <li class="breadcrumb-item active d-flex align-items-center" aria-current="page">
-                                <i class="bi bi-{{ $icon }} me-1"></i>{{ $nome }}
-                            </li>
+                            @if(!View::hasSection('breadcrumb-extra'))
+                                <li class="breadcrumb-item active d-flex align-items-center" aria-current="page">
+                                    <i class="bi bi-{{ $icon }} me-1"></i>{{ $nome }}
+                                </li>
+                            @else
+                                <li class="breadcrumb-item d-flex align-items-center">
+                                    @php
+                                        $indexRoute = $segment . '.index';
+                                    @endphp
+                                    <a href="{{ route($indexRoute) }}" class="text-decoration-none">
+                                        <i class="bi bi-{{ $icon }} me-1"></i>{{ $nome }}
+                                    </a>
+                                </li>
+                                @yield('breadcrumb-extra')
+                            @endif
                         @endif
                     </ol>
                 </nav>

@@ -1,13 +1,14 @@
 @extends('layouts.app')
 
+@section('breadcrumb-extra')
+    <li class="breadcrumb-item active" aria-current="page">
+        {{ $corretora->nome }}
+    </li>
+@endsection
+
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h1 class="h3 mb-1">{{ $corretora->nome }}</h1>
-        <p class="text-muted mb-0">
-            <i class="bi bi-calendar3 me-1"></i>
-            Criada em {{ $corretora->created_at->format('d/m/Y') }}
-        </p>
     </div>
     <div class="d-flex gap-2">
         @can('update', $corretora)
@@ -39,7 +40,7 @@
 <!-- Layout Principal -->
 <div class="row mb-4">
     <!-- Card Principal: Dados Gerais + Documentação -->
-    <div class="col-lg-8">
+    <div class="col-lg-7">
         <div class="modern-card p-4">
             <div class="d-flex align-items-center mb-4">
                 <div class="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
@@ -121,7 +122,7 @@
                         </div>
                         <div class="flex-grow-1">
                             <div class="fw-medium mb-1">CPF/CNPJ</div>
-                            <div class="text-muted font-monospace">{{ $corretora->cpf_cnpj }}</div>
+                            <div class="text-muted font">{{ $corretora->cpf_cnpj }}</div>
                         </div>
                     </div>
                     @endif
@@ -133,7 +134,7 @@
                         </div>
                         <div class="flex-grow-1">
                             <div class="fw-medium mb-1">SUSEP</div>
-                            <div class="text-muted font-monospace">{{ $corretora->susep }}</div>
+                            <div class="text-muted font">{{ $corretora->susep }}</div>
                         </div>
                     </div>
                     @endif
@@ -150,8 +151,8 @@
     </div>
 
     <!-- Card Lateral: Contatos -->
-    <div class="col-lg-4">
-        <div class="modern-card p-4 h-100">
+    <div class="col-lg-5">
+        <div class="modern-card p-4 h-100 contatos-card">
             <h6 class="text-uppercase text-muted fw-bold mb-3 border-bottom pb-2">
                 <i class="bi bi-telephone me-2"></i>Contatos
             </h6>
@@ -176,44 +177,31 @@
                     <i class="bi bi-envelope text-info"></i>
                 </div>
                 <div class="flex-grow-1">
-                    <div class="fw-medium mb-1">Email Principal</div>
+                    <div class="fw-medium mb-1">Email</div>
                     <a href="mailto:{{ $corretora->email }}" class="text-decoration-none">
-                        <div class="text-muted text-break">{{ $corretora->email }}</div>
+                        <div class="text-muted email-text">{{ $corretora->email }}</div>
                     </a>
                 </div>
             </div>
             @endif
             
-            @if($corretora->email1 || $corretora->email2 || $corretora->email3)
+            @if($corretora->emails_adicionais->count() > 0)
             <div class="border-top pt-3">
                 <div class="fw-medium mb-2 text-muted">
                     <i class="bi bi-envelope-plus me-2"></i>Emails Adicionais
                 </div>
                 
-                @if($corretora->email1)
+                @foreach($corretora->emails_adicionais as $email)
                 <div class="mb-2">
-                    <small class="text-muted d-block">Email 1:</small>
-                    <div class="text-break small">{{ $corretora->email1 }}</div>
+                    <a href="mailto:{{ $email }}" class="text-decoration-none">
+                        <div class="email-text small">{{ $email }}</div>
+                    </a>
                 </div>
-                @endif
-                
-                @if($corretora->email2)
-                <div class="mb-2">
-                    <small class="text-muted d-block">Email 2:</small>
-                    <div class="text-break small">{{ $corretora->email2 }}</div>
-                </div>
-                @endif
-                
-                @if($corretora->email3)
-                <div class="mb-2">
-                    <small class="text-muted d-block">Email 3:</small>
-                    <div class="text-break small">{{ $corretora->email3 }}</div>
-                </div>
-                @endif
+                @endforeach
             </div>
             @endif
 
-            @if(!$corretora->telefone && !$corretora->email && !$corretora->email1 && !$corretora->email2 && !$corretora->email3)
+            @if(!$corretora->telefone && !$corretora->email)
             <div class="text-center text-muted py-4">
                 <i class="bi bi-telephone-x display-6 text-muted mb-2"></i>
                 <p class="mb-0">Nenhum contato cadastrado</p>
@@ -223,97 +211,181 @@
     </div>
 </div>
 
-<!-- Seguradoras Parceiras -->
-@if($seguradoras->count() > 0)
-<div class="modern-card mb-4">
-    <div class="p-4 border-bottom">
-        <div class="d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center">
-                <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3">
-                    <i class="bi bi-building text-success"></i>
-                </div>
-                <div>
-                    <h5 class="mb-0">Seguradoras Parceiras</h5>
-                    <small class="text-muted">Parcerias ativas da corretora</small>
+<!-- Gestão de Seguradoras -->
+<div class="row mb-4">
+    <!-- Card Esquerdo: Seguradoras Parceiras -->
+    <div class="col-lg-6">
+        <div class="modern-card h-100">
+            <div class="p-4 border-bottom">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3">
+                            <i class="bi bi-building text-success"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">Seguradoras Parceiras</h5>
+                            <small class="text-muted">Parcerias ativas da corretora</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success fs-6">
+                        {{ $seguradoras->total() }} {{ $seguradoras->total() == 1 ? 'parceria' : 'parcerias' }}
+                    </span>
                 </div>
             </div>
-            <span class="badge bg-success bg-opacity-10 text-success fs-6">
-                {{ $seguradoras->total() }} {{ $seguradoras->total() == 1 ? 'parceria' : 'parcerias' }}
-            </span>
+            
+            @if($seguradoras->count() > 0)
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Seguradora</th>
+                                {{-- <th>Site</th> --}}
+                                {{-- <th>Produtos</th> --}}
+                                {{-- <th>Parceria desde</th> --}}
+                                <th width="120">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($seguradoras as $seguradora)
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                                                <i class="bi bi-building text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium">{{ $seguradora->nome }}</div>
+                                                @if($seguradora->observacoes)
+                                                    <small class="text-muted">
+                                                        {{ Str::limit($seguradora->observacoes, 50) }}
+                                                    </small>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </td>
+                                    {{-- <td>
+                                        @if($seguradora->site)
+                                            <a href="{{ $seguradora->site }}" 
+                                               target="_blank" 
+                                               class="text-decoration-none">
+                                                <i class="bi bi-globe me-1"></i>
+                                                {{ $seguradora->site_formatado }}
+                                                <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+                                            </a>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success bg-opacity-10 text-success">
+                                            {{ $seguradora->produtos_count ?? 0 }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ \Carbon\Carbon::parse($seguradora->pivot->created_at)->format('d/m/Y') }}
+                                        </small>
+                                    </td> --}}
+                                    <td>
+                                        <a href="{{ route('seguradoras.show', $seguradora) }}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                
+                @if($seguradoras->hasPages())
+                    <div class="p-4 border-top">
+                        {{ $seguradoras->links() }}
+                    </div>
+                @endif
+            @else
+                <div class="p-4 text-center text-muted">
+                    <i class="bi bi-building-x display-6 mb-3"></i>
+                    <p class="mb-0">Nenhuma seguradora vinculada</p>
+                </div>
+            @endif
         </div>
     </div>
-    
-    <div class="table-responsive">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Seguradora</th>
-                    <th>Site</th>
-                    <th>Produtos</th>
-                    <th>Parceria desde</th>
-                    <th width="120">Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($seguradoras as $seguradora)
-                    <tr>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
-                                    <i class="bi bi-building text-primary"></i>
-                                </div>
-                                <div>
-                                    <div class="fw-medium">{{ $seguradora->nome }}</div>
-                                    @if($seguradora->observacoes)
-                                        <small class="text-muted">
-                                            {{ Str::limit($seguradora->observacoes, 50) }}
-                                        </small>
-                                    @endif
+
+    <!-- Card Direito: Seguradoras Disponíveis -->
+    <div class="col-lg-6">
+        <div class="modern-card h-100">
+            <div class="p-4 border-bottom">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-info bg-opacity-10 rounded-circle p-2 me-3">
+                            <i class="bi bi-building-add text-info"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">Seguradoras Disponíveis</h5>
+                            <small class="text-muted">Seguradoras sem vínculo com a corretora</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-info bg-opacity-10 text-info fs-6">
+                        {{ $seguradoras_disponiveis->count() }} disponível{{ $seguradoras_disponiveis->count() != 1 ? 'is' : '' }}
+                    </span>
+                </div>
+            </div>
+            
+            @if($seguradoras_disponiveis->count() > 0)
+                <div class="p-4">
+                    <div class="row g-3">
+                        @foreach($seguradoras_disponiveis->take(6) as $seguradora)
+                            <div class="col-12">
+                                <div class="d-flex align-items-center justify-content-between p-3 border rounded hover-card">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-secondary bg-opacity-10 rounded-circle p-2 me-3">
+                                            <i class="bi bi-building text-secondary"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-medium">{{ $seguradora->nome }}</div>
+                                            @if($seguradora->observacoes)
+                                                <small class="text-muted">
+                                                    {{ Str::limit($seguradora->observacoes, 30) }}
+                                                </small>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-1">
+                                        <a href="{{ route('seguradoras.show', $seguradora) }}" 
+                                           class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        @can('update', $corretora)
+                                            <button class="btn btn-sm btn-outline-success" 
+                                                    title="Vincular à corretora"
+                                                    onclick="mostrarDesenvolvimento('Funcionalidade de vinculação em desenvolvimento')">
+                                                <i class="bi bi-plus-circle"></i>
+                                            </button>
+                                        @endcan
+                                    </div>
                                 </div>
                             </div>
-                        </td>
-                        <td>
-                            @if($seguradora->site)
-                                <a href="{{ $seguradora->site }}" 
-                                   target="_blank" 
-                                   class="text-decoration-none">
-                                    <i class="bi bi-globe me-1"></i>
-                                    {{ $seguradora->site_formatado }}
-                                    <i class="bi bi-box-arrow-up-right ms-1 small"></i>
-                                </a>
-                            @else
-                                <span class="text-muted">-</span>
-                            @endif
-                        </td>
-                        <td>
-                            <span class="badge bg-success bg-opacity-10 text-success">
-                                {{ $seguradora->produtos_count ?? 0 }}
-                            </span>
-                        </td>
-                        <td>
-                            <small class="text-muted">
-                                {{ \Carbon\Carbon::parse($seguradora->pivot->created_at)->format('d/m/Y') }}
-                            </small>
-                        </td>
-                        <td>
-                            <a href="{{ route('seguradoras.show', $seguradora) }}" 
-                               class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
-    
-    @if($seguradoras->hasPages())
-        <div class="p-4 border-top">
-            {{ $seguradoras->links() }}
+                        @endforeach
+                        
+                        @if($seguradoras_disponiveis->count() > 6)
+                            <div class="col-12 text-center mt-3">
+                                <small class="text-muted">
+                                    E mais {{ $seguradoras_disponiveis->count() - 6 }} seguradoras disponíveis...
+                                </small>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @else
+                <div class="p-4 text-center text-muted">
+                    <i class="bi bi-check-circle display-6 mb-3 text-success"></i>
+                    <p class="mb-0">Todas as seguradoras já estão vinculadas</p>
+                </div>
+            @endif
         </div>
-    @endif
+    </div>
 </div>
-@endif
 
 <!-- Cotações Recentes -->
 @if($cotacoes->count() > 0)
@@ -445,5 +517,46 @@
 .text-break {
     word-break: break-word !important;
 }
+
+/* Hover effects para cards de seguradoras disponíveis */
+.hover-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.hover-card:hover {
+    background-color: #f8fafc;
+    border-color: #e5e7eb !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Melhorias para card de contatos e emails longos */
+.contatos-card {
+    min-width: 350px;
+}
+
+.email-text {
+    word-break: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.4;
+    hyphens: auto;
+}
+
+/* Responsividade para o novo layout 7-5 */
+@media (max-width: 991.98px) {
+    .contatos-card {
+        min-width: auto;
+        margin-top: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .email-text {
+        word-break: break-all;
+        font-size: 0.875rem;
+    }
+}
+
 </style>
 @endsection
