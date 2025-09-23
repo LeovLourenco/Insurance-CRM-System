@@ -2,10 +2,17 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema de Cotações</title>
+    <title>Plataforma Inova</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/images/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/images/favicon-16x16.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/images/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ asset('assets/images/site.webmanifest') }}">
 
     <!-- App CSS (includes Bootstrap with custom variables) -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
@@ -67,7 +74,6 @@
             width: auto;
             max-width: 140px;
             transition: all 0.3s ease;
-            filter: brightness(0) invert(1); /* Torna o logo branco */
         }
 
         .sidebar-toggle {
@@ -316,7 +322,7 @@
                 <i class="bi bi-list"></i>
             </button>
             <div class="brand-logo">
-                <img src="{{ asset('assets/svg/logo-horizontal-inova.svg') }}" alt="INOVA" class="sidebar-logo">
+                <img src="{{ asset('assets/svg/Logo_inova.svg') }}" alt="INOVA" class="sidebar-logo">
             </div>
         </div>
 

@@ -327,7 +327,7 @@
                         </div>
                     </div>
                     <span class="badge bg-info bg-opacity-10 text-info fs-6">
-                        {{ $seguradoras_disponiveis->count() }} disponível{{ $seguradoras_disponiveis->count() != 1 ? 'is' : '' }}
+                        {{ $seguradoras_disponiveis->count() }} {{ $seguradoras_disponiveis->count() == 1 ? 'disponível' : 'disponíveis' }}
                     </span>
                 </div>
             </div>

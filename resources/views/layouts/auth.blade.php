@@ -272,10 +272,8 @@
         <div class="auth-header">
             <div class="content">
                 <h1>
-                    <img src="{{ asset('assets/svg/logo-login.svg') }}" alt="INOVA" class="auth-logo">
-                    <span class="auth-brand-text">INOVA</span>
+                    <img src="{{ asset('assets/svg/logo_inova.svg') }}" alt="INOVA" class="auth-logo">
                 </h1>
-                <p>@yield('header-subtitle', 'Plataforma de Seguros')</p>
             </div>
         </div>
 
