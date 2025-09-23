@@ -213,7 +213,7 @@
 
 <!-- Gestão de Seguradoras -->
 <div class="row mb-4">
-    <!-- Card Esquerdo: Seguradoras Parceiras -->
+    <!-- Card Esquerdo: Seguradoras Atendidas -->
     <div class="col-lg-6">
         <div class="modern-card h-100">
             <div class="p-4 border-bottom">
@@ -223,12 +223,12 @@
                             <i class="bi bi-building text-success"></i>
                         </div>
                         <div>
-                            <h5 class="mb-0">Seguradoras Parceiras</h5>
+                            <h5 class="mb-0">Seguradoras vinculadas</h5>
                             <small class="text-muted">Parcerias ativas da corretora</small>
                         </div>
                     </div>
                     <span class="badge bg-success bg-opacity-10 text-success fs-6">
-                        {{ $seguradoras->total() }} {{ $seguradoras->total() == 1 ? 'parceria' : 'parcerias' }}
+                        {{ $seguradoras->total() }} {{ $seguradoras->total() == 1 ? 'vinculo' : 'vinculos' }}
                     </span>
                 </div>
             </div>
@@ -322,7 +322,7 @@
                             <i class="bi bi-building-add text-info"></i>
                         </div>
                         <div>
-                            <h5 class="mb-0">Seguradoras Disponíveis</h5>
+                            <h5 class="mb-0">Seguradoras não vinculadas</h5>
                             <small class="text-muted">Seguradoras sem vínculo com a corretora</small>
                         </div>
                     </div>
@@ -335,7 +335,7 @@
             @if($seguradoras_disponiveis->count() > 0)
                 <div class="p-4">
                     <div class="row g-3">
-                        @foreach($seguradoras_disponiveis->take(6) as $seguradora)
+                        @foreach($seguradoras_disponiveis as $seguradora)
                             <div class="col-12">
                                 <div class="d-flex align-items-center justify-content-between p-3 border rounded hover-card">
                                     <div class="d-flex align-items-center">
@@ -367,14 +367,6 @@
                                 </div>
                             </div>
                         @endforeach
-                        
-                        @if($seguradoras_disponiveis->count() > 6)
-                            <div class="col-12 text-center mt-3">
-                                <small class="text-muted">
-                                    E mais {{ $seguradoras_disponiveis->count() - 6 }} seguradoras disponíveis...
-                                </small>
-                            </div>
-                        @endif
                     </div>
                 </div>
             @else
