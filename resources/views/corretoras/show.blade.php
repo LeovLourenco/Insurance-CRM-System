@@ -223,8 +223,7 @@
                             <i class="bi bi-building text-success"></i>
                         </div>
                         <div>
-                            <h5 class="mb-0">Seguradoras vinculadas</h5>
-                            <small class="text-muted">Parcerias ativas da corretora</small>
+                            <h5 class="mb-0">Seguradoras</h5>
                         </div>
                     </div>
                     <span class="badge bg-success bg-opacity-10 text-success fs-6">
@@ -323,7 +322,6 @@
                         </div>
                         <div>
                             <h5 class="mb-0">Seguradoras não vinculadas</h5>
-                            <small class="text-muted">Seguradoras sem vínculo com a corretora</small>
                         </div>
                     </div>
                     <span class="badge bg-info bg-opacity-10 text-info fs-6">
