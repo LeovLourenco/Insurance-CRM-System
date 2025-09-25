@@ -5,6 +5,9 @@
     <title>@yield('title', 'Login - Sistema de Cotações')</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <!-- Favicon -->
+    @include('partials.favicon')
+
     <!-- App CSS (includes Bootstrap with INOVA colors) -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
     <!-- Bootstrap Icons -->
