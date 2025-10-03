@@ -447,6 +447,13 @@
                         <span class="nav-text">Configurações</span>
                     </a>
                 </div>
+                <div class="nav-item">
+                    <a href="{{ route('admin.downloads-cadastros') }}" 
+                       class="nav-link {{ request()->routeIs('admin.downloads-cadastros') ? 'active' : '' }}">
+                        <i class="bi bi-download"></i>
+                        <span class="nav-text">Downloads</span>
+                    </a>
+                </div>
             </div>
             @endrole
         </nav>

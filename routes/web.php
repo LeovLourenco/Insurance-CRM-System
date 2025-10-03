@@ -10,6 +10,7 @@ use App\Http\Controllers\SeguradoController;
 use App\Http\Controllers\CorretoraController;
 use App\Http\Controllers\SeguradoraController;
 use App\Http\Controllers\ProdutoController;
+use App\Http\Controllers\DownloadsCadastrosController;
 use Illuminate\Support\Facades\Auth;
 
 // Página inicial - redireciona para login
@@ -146,6 +147,16 @@ Route::middleware(['auth'])->group(function () {
     // Policies controlam acesso: todos veem, apenas admin gere
     Route::resource('produtos', ProdutoController::class);
     Route::resource('seguradoras', SeguradoraController::class);
+});
+
+// ===== GRUPO: ADMINISTRAÇÃO - Apenas Admin =====
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    // Downloads de cadastros
+    Route::get('/admin/downloads-cadastros', [DownloadsCadastrosController::class, 'index'])
+        ->name('admin.downloads-cadastros');
+    
+    Route::get('/admin/downloads-cadastros/csv', [DownloadsCadastrosController::class, 'downloadCSV'])
+        ->name('admin.downloads-cadastros.csv');
 });
 
 // ===== ROTAS DE DESENVOLVIMENTO (REMOVER EM PRODUÇÃO) =====
