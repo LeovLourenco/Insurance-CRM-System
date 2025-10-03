@@ -13,6 +13,7 @@
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
         "laravel/ui": "*",
+        "spatie/laravel-activitylog": "^4.10",
         "spatie/laravel-permission": "^6.21"
     },
     "require-dev": {
