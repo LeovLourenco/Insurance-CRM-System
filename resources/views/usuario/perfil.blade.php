@@ -2,6 +2,21 @@
 
 @section('content')
 <div class="container-fluid">
+
+    <!-- Flash Messages -->
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+    
+    @if(session('warning'))
+        <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>{{ session('warning') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
     <div class="row">
         <div class="col-md-4">
             <!-- Profile Avatar Card -->
@@ -89,16 +104,6 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="cpf" class="form-label">CPF</label>
-                                <input type="text" class="form-control @error('cpf') is-invalid @enderror" 
-                                       id="cpf" name="cpf" value="{{ old('cpf', $usuario->cpf ?? '') }}" 
-                                       placeholder="000.000.000-00" readonly>
-                                @error('cpf')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <small class="form-text text-muted">CPF não pode ser alterado</small>
-                            </div>
                         </div>
 
                         <div class="row">
@@ -135,8 +140,13 @@
 
             <!-- Change Password Card -->
             <div class="card">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0"><i class="fas fa-lock me-2"></i>Alterar Senha</h5>
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lock me-2"></i>Alterar Senha
+                        @if(!auth()->user()->password_changed)
+                            <span class="badge bg-warning text-dark ms-2">Senha padrão</span>
+                        @endif
+                    </h5>
                 </div>
                 <div class="card-body">
                     <form action="{{ route('usuario.alterar.senha') }}" method="POST" id="senhaForm">

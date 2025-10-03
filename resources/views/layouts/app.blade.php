@@ -417,6 +417,20 @@
                 </div>
             </div>
 
+            <!-- Relatórios (Admin e Diretor) -->
+            @role('admin|diretor')
+            <div class="nav-section">
+                <div class="nav-section-title">Relatórios</div>
+                <div class="nav-item">
+                    <a href="{{ route('relatorios.auditoria') }}" 
+                       class="nav-link {{ request()->routeIs('relatorios.auditoria') ? 'active' : '' }}">
+                        <i class="bi bi-clock-history"></i>
+                        <span class="nav-text">Histórico de Auditoria</span>
+                    </a>
+                </div>
+            </div>
+            @endrole
+
             <!-- Administração (apenas para admin) -->
             @role('admin')
             <div class="nav-section">

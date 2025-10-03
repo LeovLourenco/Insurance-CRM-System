@@ -25,6 +25,8 @@ class User extends Authenticatable
         'telefone',
         'endereco',
         'cep',
+        'password_changed',
+        'password_changed_at',
         // ⚠️ SEGURANÇA: Roles/permissions não estão no fillable
         // Devem ser atribuídos via métodos específicos do Spatie
     ];
@@ -51,6 +53,8 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'password_changed_at' => 'datetime',
+        'password_changed' => 'boolean',
     ];
 
     // Relacionamentos

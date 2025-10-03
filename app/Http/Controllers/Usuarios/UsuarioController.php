@@ -50,9 +50,11 @@ class UsuarioController extends Controller
             return redirect()->back()->withErrors(['current_password' => 'A senha atual está incorreta.']);
         }
 
-        // Atualizar a senha
+        // Atualizar a senha e marcar como alterada
         $user->update([
             'password' => Hash::make($request->password),
+            'password_changed' => true,
+            'password_changed_at' => now(),
         ]);
 
         return redirect()->route('usuario.perfil')->with('success', 'Senha alterada com sucesso!');
