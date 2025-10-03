@@ -40,6 +40,14 @@ class Corretora extends Model
     }
 
     /**
+     * Vínculos com seguradoras (para auditoria)
+     */
+    public function vinculos()
+    {
+        return $this->hasMany(CorretoraSeguradora::class);
+    }
+
+    /**
      * Cotações desta corretora
      */
     public function cotacoes()

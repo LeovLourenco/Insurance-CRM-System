@@ -96,6 +96,14 @@ Route::middleware(['auth', 'role:comercial|diretor|admin'])->group(function () {
 
 // ===== GRUPO: RELATÓRIOS - Admin e Diretor apenas =====
 Route::middleware(['auth', 'role:admin|diretor'])->group(function () {
+    // Relatórios de auditoria
+    Route::get('/relatorios/auditoria', [App\Http\Controllers\AuditoriaController::class, 'index'])
+        ->name('relatorios.auditoria');
+    
+    Route::get('/relatorios/auditoria/{id}/detalhes', [App\Http\Controllers\AuditoriaController::class, 'detalhes'])
+        ->name('relatorios.auditoria.detalhes');
+    
+    // Relatórios de cotações
     Route::get('/relatorios/cotacoes/dashboard-avancado', [CotacaoController::class, 'dashboardAvancado'])
         ->name('relatorios.cotacoes.dashboard');
     
