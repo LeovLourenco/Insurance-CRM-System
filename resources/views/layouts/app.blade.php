@@ -318,7 +318,7 @@
                 <i class="bi bi-list"></i>
             </button>
             <div class="brand-logo">
-                <img src="{{ asset('assets/svg/Logo_inova.svg') }}" alt="INOVA" class="sidebar-logo">
+                <img src="{{ asset('assets/svg/Logo_Inova.svg') }}" alt="INOVA" class="sidebar-logo">
             </div>
         </div>
 
