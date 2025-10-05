@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Produto;
+use App\Models\SeguradoraProduto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -92,8 +93,13 @@ class ProdutoController extends Controller
                 'descricao' => $validated['descricao']
             ]);
             
-            // 2. Vincular seguradoras (tabela pivot)
-            $produto->seguradoras()->sync($validated['seguradoras']);
+            // 2. Vincular seguradoras (com auditoria)
+            foreach ($validated['seguradoras'] as $seguradoraId) {
+                SeguradoraProduto::firstOrCreate([
+                    'seguradora_id' => $seguradoraId,
+                    'produto_id' => $produto->id
+                ]);
+            }
             
             DB::commit();
             
@@ -179,8 +185,26 @@ class ProdutoController extends Controller
                 'descricao' => $validated['descricao']
             ]);
             
-            // 2. Atualizar vínculos com seguradoras (sync remove antigas e adiciona novas)
-            $produto->seguradoras()->sync($validated['seguradoras']);
+            // 2. Atualizar vínculos com seguradoras (com auditoria)
+            $seguradoras_atuais = $produto->seguradoras->pluck('id')->toArray();
+            $seguradoras_novas = $validated['seguradoras'];
+            
+            // Remover seguradoras que não estão mais selecionadas
+            $seguradoras_remover = array_diff($seguradoras_atuais, $seguradoras_novas);
+            foreach ($seguradoras_remover as $seguradoraId) {
+                SeguradoraProduto::where('produto_id', $produto->id)
+                    ->where('seguradora_id', $seguradoraId)
+                    ->delete();
+            }
+            
+            // Adicionar novas seguradoras
+            $seguradoras_adicionar = array_diff($seguradoras_novas, $seguradoras_atuais);
+            foreach ($seguradoras_adicionar as $seguradoraId) {
+                SeguradoraProduto::create([
+                    'seguradora_id' => $seguradoraId,
+                    'produto_id' => $produto->id
+                ]);
+            }
             
             DB::commit();
             

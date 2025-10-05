@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class CadastroCorretor extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
     
     protected $table = 'cadastros_corretores';
     
@@ -106,5 +108,20 @@ class CadastroCorretor extends Model
         }, $seguradoras);
         
         return implode(', ', $seguradorasFormatadas);
+    }
+
+    /**
+     * Configuração do ActivityLog
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'data_hora', 'corretora', 'cnpj', 'email', 'responsavel',
+                'telefone', 'seguradoras', 'tipo'
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn(string $eventName) => "Cadastro de Corretor foi {$eventName}");
     }
 }

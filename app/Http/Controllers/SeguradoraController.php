@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Seguradora;
 use App\Models\Produto;
 use App\Models\Corretora;
+use App\Models\CorretoraSeguradora;
+use App\Models\SeguradoraProduto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -96,9 +98,14 @@ class SeguradoraController extends Controller
                 'observacoes' => $validated['observacoes']
             ]);
             
-            // 2. Vincular produtos se selecionados
+            // 2. Vincular produtos se selecionados (com auditoria)
             if (!empty($validated['produtos'])) {
-                $seguradora->produtos()->sync($validated['produtos']);
+                foreach ($validated['produtos'] as $produtoId) {
+                    SeguradoraProduto::firstOrCreate([
+                        'seguradora_id' => $seguradora->id,
+                        'produto_id' => $produtoId
+                    ]);
+                }
             }
             
             DB::commit();
@@ -197,8 +204,26 @@ class SeguradoraController extends Controller
                 'observacoes' => $validated['observacoes']
             ]);
             
-            // 2. Atualizar vínculos com produtos
-            $seguradora->produtos()->sync($validated['produtos'] ?? []);
+            // 2. Atualizar vínculos com produtos (com auditoria)
+            $produtos_atuais = $seguradora->produtos->pluck('id')->toArray();
+            $produtos_novos = $validated['produtos'] ?? [];
+            
+            // Remover produtos que não estão mais selecionados
+            $produtos_remover = array_diff($produtos_atuais, $produtos_novos);
+            foreach ($produtos_remover as $produtoId) {
+                SeguradoraProduto::where('seguradora_id', $seguradora->id)
+                    ->where('produto_id', $produtoId)
+                    ->delete();
+            }
+            
+            // Adicionar novos produtos
+            $produtos_adicionar = array_diff($produtos_novos, $produtos_atuais);
+            foreach ($produtos_adicionar as $produtoId) {
+                SeguradoraProduto::create([
+                    'seguradora_id' => $seguradora->id,
+                    'produto_id' => $produtoId
+                ]);
+            }
             
             DB::commit();
             
@@ -234,8 +259,8 @@ class SeguradoraController extends Controller
             }
 
             // 1. Limpar relacionamentos nas pivots
-            $seguradora->produtos()->detach();
-            $seguradora->corretoras()->detach();
+            SeguradoraProduto::where('seguradora_id', $seguradora->id)->delete();
+            CorretoraSeguradora::where('seguradora_id', $seguradora->id)->delete();
             
             // 2. Deletar a seguradora
             $seguradora->delete();

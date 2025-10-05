@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class CotacaoSeguradora extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $fillable = [
         'cotacao_id',
@@ -302,5 +304,20 @@ class CotacaoSeguradora extends Model
             self::STATUS_REPIQUE => 'Repique',
             self::STATUS_CANCELADA => 'Cancelada'
         ];
+    }
+
+    /**
+     * Configuração do ActivityLog
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'cotacao_id', 'seguradora_id', 'status', 'observacoes',
+                'data_envio', 'data_retorno', 'valor_premio', 'valor_is'
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn(string $eventName) => "Cotação-Seguradora foi {$eventName}");
     }
 }

@@ -113,19 +113,16 @@
                                         </small>
                                     </td>
                                     <td>
-                                        <div class="d-flex align-items-center">
-                                            @if($atividade->causer)
-                                                <x-avatar :name="$atividade->causer->name" size="xs" class="me-2" />
-                                                <div>
-                                                    <div class="fw-medium">{{ $atividade->causer->name }}</div>
-                                                    <small class="text-muted">{{ $atividade->causer->email }}</small>
-                                                </div>
-                                            @else
-                                                <div class="text-muted">
-                                                    <i class="bi bi-robot me-1"></i>Sistema
-                                                </div>
-                                            @endif
-                                        </div>
+                                        @if($atividade->causer)
+                                            <div>
+                                                <strong>{{ $atividade->causer->name }}</strong><br>
+                                                <small class="text-muted">{{ $atividade->causer->email }}</small>
+                                            </div>
+                                        @else
+                                            <span class="text-muted">
+                                                <i class="bi bi-robot me-1"></i>Sistema
+                                            </span>
+                                        @endif
                                     </td>
                                     <td>
                                         <span class="badge {{ 
@@ -149,7 +146,7 @@
                                     </td>
                                     <td>
                                         <div class="fw-medium">{{ $atividade->description }}</div>
-                                        @if($atividade->log_name)
+                                        @if($atividade->log_name && $atividade->log_name !== 'default')
                                             <small class="text-muted">
                                                 <i class="bi bi-tag me-1"></i>{{ ucfirst($atividade->log_name) }}
                                             </small>

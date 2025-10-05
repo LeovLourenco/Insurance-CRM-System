@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Corretora extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $fillable = [
         'nome',
@@ -203,5 +205,20 @@ class Corretora extends Model
         return Seguradora::whereNotIn('id', $this->seguradoras->pluck('id'))
                         ->orderBy('nome')
                         ->get();
+    }
+
+    /**
+     * Configuração do ActivityLog
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'nome', 'email', 'telefone', 'cpf_cnpj', 'cidade', 
+                'estado', 'susep', 'email2', 'email3', 'suc_cpd', 'usuario_id'
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn(string $eventName) => "Corretora foi {$eventName}");
     }
 }

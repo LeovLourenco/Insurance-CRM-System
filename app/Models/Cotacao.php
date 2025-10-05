@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Cotacao extends Model
 {
+    use LogsActivity;
     protected $table = 'cotacoes';
     
     protected $fillable = [
@@ -261,5 +264,20 @@ class Cotacao extends Model
     public function getSeguradoras()
     {
         return $this->getSeguradoraStats();
+    }
+
+    /**
+     * Configuração do ActivityLog
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'corretora_id', 'produto_id', 'segurado_id', 'user_id',
+                'status', 'observacoes'
+            ])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn(string $eventName) => "Cotação foi {$eventName}");
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Corretora;
 use App\Models\Seguradora;
+use App\Models\CorretoraSeguradora;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -113,9 +114,14 @@ class CorretoraController extends Controller
                 'email3' => $validated['email3']
             ]);
             
-            // 2. Vincular seguradoras se selecionadas
+            // 2. Vincular seguradoras se selecionadas (com auditoria)
             if (!empty($validated['seguradoras'])) {
-                $corretora->seguradoras()->sync($validated['seguradoras']);
+                foreach ($validated['seguradoras'] as $seguradoraId) {
+                    CorretoraSeguradora::firstOrCreate([
+                        'corretora_id' => $corretora->id,
+                        'seguradora_id' => $seguradoraId
+                    ]);
+                }
             }
             
             DB::commit();
@@ -238,8 +244,26 @@ class CorretoraController extends Controller
                 'email3' => $validated['email3']
             ]);
             
-            // 2. Atualizar vínculos com seguradoras
-            $corretora->seguradoras()->sync($validated['seguradoras'] ?? []);
+            // 2. Atualizar vínculos com seguradoras (com auditoria)
+            $seguradoras_atuais = $corretora->seguradoras->pluck('id')->toArray();
+            $seguradoras_novas = $validated['seguradoras'] ?? [];
+            
+            // Remover seguradoras que não estão mais selecionadas
+            $seguradoras_remover = array_diff($seguradoras_atuais, $seguradoras_novas);
+            foreach ($seguradoras_remover as $seguradoraId) {
+                CorretoraSeguradora::where('corretora_id', $corretora->id)
+                    ->where('seguradora_id', $seguradoraId)
+                    ->delete();
+            }
+            
+            // Adicionar novas seguradoras
+            $seguradoras_adicionar = array_diff($seguradoras_novas, $seguradoras_atuais);
+            foreach ($seguradoras_adicionar as $seguradoraId) {
+                CorretoraSeguradora::create([
+                    'corretora_id' => $corretora->id,
+                    'seguradora_id' => $seguradoraId
+                ]);
+            }
             
             DB::commit();
             
@@ -274,8 +298,8 @@ class CorretoraController extends Controller
                     ->with('error', 'Não é possível excluir esta corretora pois ela possui cotações associadas.');
             }
 
-            // 1. Limpar relacionamentos nas pivots
-            $corretora->seguradoras()->detach();
+            // 1. Limpar relacionamentos nas pivots (com auditoria)
+            CorretoraSeguradora::where('corretora_id', $corretora->id)->delete();
             
             // 2. Deletar a corretora
             $corretora->delete();
