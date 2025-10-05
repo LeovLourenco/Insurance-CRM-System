@@ -1,4 +1,14 @@
-# Dockerfile simples para Sistema de Seguro Laravel
+FROM node:18-alpine AS frontend-builder
+
+WORKDIR /app
+
+COPY package*.json webpack.mix.js ./
+COPY resources/ ./resources/
+COPY public/ ./public/
+
+RUN npm ci && npm run production
+
+# ============================================
 FROM php:8.2-apache
 
 # Instalar dependências do sistema
@@ -34,6 +44,11 @@ COPY . .
 
 # Instalar dependências do Composer
 RUN composer install --no-dev --optimize-autoloader
+
+# IMPORTANTE: Copiar assets compilados DEPOIS do COPY . .
+COPY --from=frontend-builder /app/public/css ./public/css
+COPY --from=frontend-builder /app/public/js ./public/js
+COPY --from=frontend-builder /app/public/mix-manifest.json ./public/mix-manifest.json
 
 # Configurar permissões
 RUN chown -R www-data:www-data /var/www/html \
