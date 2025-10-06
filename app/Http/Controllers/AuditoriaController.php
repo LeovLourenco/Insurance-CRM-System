@@ -109,21 +109,31 @@ class AuditoriaController extends Controller
             foreach ($attributes as $key => $newValue) {
                 $oldValue = $old[$key] ?? null;
                 
+                // Ocultar campos sensíveis
+                if (in_array($key, ['password', 'remember_token', 'api_token'])) {
+                    continue;
+                }
+                
                 if ($oldValue !== $newValue) {
                     $changes[] = [
                         'field' => $this->formatFieldName($key),
-                        'old' => $oldValue,
-                        'new' => $newValue
+                        'old' => $this->formatFieldValue($key, $oldValue),
+                        'new' => $this->formatFieldValue($key, $newValue)
                     ];
                 }
             }
         } elseif (isset($properties['attributes'])) {
             // Para criações, mostrar apenas valores novos
             foreach ($properties['attributes'] as $key => $value) {
+                // Ocultar campos sensíveis
+                if (in_array($key, ['password', 'remember_token', 'api_token'])) {
+                    continue;
+                }
+                
                 $changes[] = [
                     'field' => $this->formatFieldName($key),
                     'old' => null,
-                    'new' => $value
+                    'new' => $this->formatFieldValue($key, $value)
                 ];
             }
         }
@@ -139,13 +149,101 @@ class AuditoriaController extends Controller
         $fieldNames = [
             'corretora_id' => 'Corretora',
             'seguradora_id' => 'Seguradora',
+            'produto_id' => 'Produto',
+            'usuario_id' => 'Usuário Responsável',
+            'user_id' => 'Usuário',
+            'causer_id' => 'Usuário que Alterou',
             'nome' => 'Nome',
+            'name' => 'Nome',
             'email' => 'Email',
             'telefone' => 'Telefone',
+            'cpf_cnpj' => 'CPF/CNPJ',
+            'endereco' => 'Endereço',
+            'cidade' => 'Cidade',
+            'estado' => 'Estado',
+            'cep' => 'CEP',
+            'susep' => 'SUSEP',
+            'suc_cpd' => 'SUC-CPD',
+            'documento' => 'Documento',
+            'observacoes' => 'Observações',
+            'descricao' => 'Descrição',
+            'linha' => 'Linha',
+            'site' => 'Site',
+            'status' => 'Status',
+            'password_changed' => 'Senha Alterada',
+            'password_changed_at' => 'Data da Alteração de Senha',
+            'data_envio' => 'Data de Envio',
+            'data_retorno' => 'Data de Retorno',
+            'data_hora' => 'Data/Hora',
+            'valor_premio' => 'Valor do Prêmio',
+            'valor_is' => 'Valor IS',
+            'email2' => 'Email Secundário',
+            'email3' => 'Email Terciário',
             'created_at' => 'Data de Criação',
             'updated_at' => 'Data de Atualização'
         ];
 
         return $fieldNames[$field] ?? ucfirst(str_replace('_', ' ', $field));
+    }
+
+    /**
+     * Formatar valores dos campos para exibição amigável
+     */
+    private function formatFieldValue($field, $value)
+    {
+        // Valor nulo ou vazio
+        if ($value === null || $value === '') {
+            return '<em class="text-muted">vazio</em>';
+        }
+
+        // Campos de ID de usuário - buscar nome
+        if (in_array($field, ['usuario_id', 'user_id', 'causer_id']) && is_numeric($value)) {
+            try {
+                $user = User::find($value);
+                if ($user) {
+                    return "{$user->name} (ID: {$value})";
+                }
+            } catch (\Exception $e) {
+                // Em caso de erro, retornar apenas o ID
+            }
+            return "ID: {$value}";
+        }
+
+        // Campos de data/timestamp
+        if (str_ends_with($field, '_at') || str_ends_with($field, '_date') || $field === 'data_hora') {
+            try {
+                if (is_string($value) && !empty($value)) {
+                    return \Carbon\Carbon::parse($value)->format('d/m/Y H:i');
+                }
+            } catch (\Exception $e) {
+                // Se não conseguir parsear, retornar valor original
+            }
+        }
+
+        // Campos booleanos
+        if (is_bool($value) || in_array($value, [0, 1, '0', '1', true, false], true)) {
+            if (is_string($value)) {
+                return $value === '1' ? 'Sim' : 'Não';
+            }
+            return $value ? 'Sim' : 'Não';
+        }
+
+        // Campos monetários
+        if (in_array($field, ['valor_premio', 'valor_is']) && is_numeric($value)) {
+            return 'R$ ' . number_format($value, 2, ',', '.');
+        }
+
+        // Campo de senha sempre ocultar
+        if ($field === 'password') {
+            return '<em class="text-warning">Oculto por segurança</em>';
+        }
+
+        // Para strings longas, truncar se necessário
+        if (is_string($value) && strlen($value) > 100) {
+            return substr($value, 0, 100) . '...';
+        }
+
+        // Valor padrão
+        return htmlspecialchars((string) $value);
     }
 }

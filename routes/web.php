@@ -151,7 +151,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // ===== GRUPO: ADMINISTRAÇÃO - Apenas Admin =====
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth', 'role:admin|diretor'])->group(function () {
     // Downloads de cadastros
     Route::get('/admin/downloads-cadastros', [DownloadsCadastrosController::class, 'index'])
         ->name('admin.downloads-cadastros');
