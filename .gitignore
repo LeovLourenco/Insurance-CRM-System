@@ -1,12 +1,14 @@
+
+# Laravel specific
+/vendor
 /node_modules
 /vendor
 /public/hot
 /public/storage
 /storage/*.key
+/vendor
 .env
 .env.backup
-.env.local
-.env.producao
 .phpunit.result.cache
 docker-compose.override.yml
 Homestead.json
@@ -15,6 +17,6 @@ npm-debug.log
 yarn-error.log
 /.idea
 /.vscode
-.DS_Store
-*/.DS_Store
-**/.DS_Store
+.env
+.env.local
+.env.producao
