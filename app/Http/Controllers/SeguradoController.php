@@ -38,11 +38,11 @@ class SeguradoController extends Controller
                 'cotacoes' => function($q) use ($user) {
                     $q->where('user_id', $user->id);
                 }
-            ])->latest()->paginate(10);
+            ])->latest()->paginate(10)->withQueryString();
         } else {
             $segurados = $query->withCount(['cotacoes'])
                               ->latest()
-                              ->paginate(10);
+                              ->paginate(10)->withQueryString();
         }
 
         return view('segurados.index', compact('segurados'));

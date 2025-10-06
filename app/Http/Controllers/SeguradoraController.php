@@ -47,11 +47,11 @@ class SeguradoraController extends Controller
                 'cotacoes' => function($q) use ($user) {
                     $q->where('user_id', $user->id);
                 }
-            ])->latest()->paginate(10);
+            ])->latest()->paginate(10)->withQueryString();
         } else {
             $seguradoras = $query->withCount(['produtos', 'corretoras', 'cotacoes'])
                                 ->latest()
-                                ->paginate(10);
+                                ->paginate(10)->withQueryString();
         }
 
         return view('seguradoras.index', compact('seguradoras'));

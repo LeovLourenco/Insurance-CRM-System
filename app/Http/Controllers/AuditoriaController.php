@@ -38,7 +38,7 @@ class AuditoriaController extends Controller
             $query->where('event', $request->evento);
         }
         
-        $atividades = $query->paginate(50);
+        $atividades = $query->paginate(50)->withQueryString();
         $usuarios = User::orderBy('name')->get();
         $logNames = Activity::distinct()->pluck('log_name')->filter();
         $eventos = Activity::distinct()->pluck('event')->filter();

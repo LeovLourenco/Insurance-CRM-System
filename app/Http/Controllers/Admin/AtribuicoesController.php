@@ -39,7 +39,7 @@ class AtribuicoesController extends Controller
             }
         }
         
-        $corretoras = $query->orderBy('nome')->paginate(20);
+        $corretoras = $query->orderBy('nome')->paginate(20)->withQueryString();
         
         // Estatísticas (quantas corretoras cada comercial tem)
         $estatisticasQuery = Corretora::select('usuario_id', DB::raw('count(*) as total'))

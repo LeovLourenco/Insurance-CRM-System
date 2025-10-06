@@ -58,6 +58,20 @@
                 </option>
             </select>
         </div>
+        <div class="col-md-3">
+            <label for="comercial" class="form-label">Comercial Responsável</label>
+            <select name="comercial" id="comercial" class="form-select">
+                <option value="">Todos</option>
+                @if(isset($comerciais))
+                    @foreach($comerciais as $comercial)
+                        <option value="{{ $comercial->id }}" 
+                            {{ request('comercial') == $comercial->id ? 'selected' : '' }}>
+                            {{ $comercial->name }}
+                        </option>
+                    @endforeach
+                @endif
+            </select>
+        </div>
         <div class="col-md-2 d-flex align-items-end gap-2">
             <button type="submit" class="btn btn-outline-primary">
                 <i class="bi bi-search me-1"></i>Filtrar
