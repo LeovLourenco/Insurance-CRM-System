@@ -454,6 +454,13 @@
                         <span class="nav-text">Downloads</span>
                     </a>
                 </div>
+                <div class="nav-item">
+                    <a href="{{ route('admin.atribuicoes') }}" 
+                       class="nav-link {{ request()->routeIs('admin.atribuicoes*') ? 'active' : '' }}">
+                        <i class="bi bi-person-badge"></i>
+                        <span class="nav-text">Atribuições</span>
+                    </a>
+                </div>
             </div>
             @endrole
         </nav>
