@@ -24,15 +24,20 @@ class CorretoraController extends Controller
 
         // Buscar comerciais para o filtro
         $comerciais = User::role(['comercial', 'diretor', 'admin'])->orderBy('name')->get();
+        
+        // Buscar seguradoras para o filtro
+        $seguradoras = Seguradora::orderBy('nome')->get();
 
         // Filtro por busca
         if ($request->filled('search')) {
             $query->search($request->search);
         }
 
-        // Filtro por corretoras com seguradoras
-        if ($request->filled('com_seguradoras') && $request->com_seguradoras == '1') {
-            $query->comSeguradoras();
+        // Filtro por seguradora específica
+        if ($request->filled('seguradora')) {
+            $query->whereHas('seguradoras', function($q) use ($request) {
+                $q->where('seguradoras.id', $request->seguradora);
+            });
         }
 
         // Filtro por corretoras com cotações
@@ -59,7 +64,7 @@ class CorretoraController extends Controller
                                ->paginate(10)->withQueryString();
         }
 
-        return view('corretoras.index', compact('corretoras', 'comerciais'));
+        return view('corretoras.index', compact('corretoras', 'comerciais', 'seguradoras'));
     }
 
     /**

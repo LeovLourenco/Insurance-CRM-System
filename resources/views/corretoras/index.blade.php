@@ -41,12 +41,17 @@
                    placeholder="Nome, email ou telefone...">
         </div>
         <div class="col-md-3">
-            <label for="com_seguradoras" class="form-label">Com seguradoras</label>
-            <select class="form-select" id="com_seguradoras" name="com_seguradoras">
-                <option value="">Todas</option>
-                <option value="1" {{ request('com_seguradoras') == '1' ? 'selected' : '' }}>
-                    Apenas com seguradoras
-                </option>
+            <label for="seguradora" class="form-label">Seguradora</label>
+            <select class="form-select" id="seguradora" name="seguradora">
+                <option value="">Todas as seguradoras</option>
+                @if(isset($seguradoras))
+                    @foreach($seguradoras as $seguradora)
+                        <option value="{{ $seguradora->id }}"
+                            {{ request('seguradora') == $seguradora->id ? 'selected' : '' }}>
+                            {{ $seguradora->nome }}
+                        </option>
+                    @endforeach
+                @endif
             </select>
         </div>
         <div class="col-md-3">
@@ -204,14 +209,14 @@
             <i class="bi bi-person-badge display-1 text-muted"></i>
             <h5 class="mt-3 text-muted">Nenhuma corretora encontrada</h5>
             <p class="text-muted">
-                @if(request()->hasAny(['search', 'com_seguradoras', 'com_cotacoes']))
+                @if(request()->hasAny(['search', 'seguradora', 'com_cotacoes', 'comercial']))
                     Tente ajustar os filtros ou 
                     <a href="{{ route('corretoras.index') }}">limpar a busca</a>
                 @else
                     Comece cadastrando sua primeira corretora
                 @endif
             </p>
-            @if(!request()->hasAny(['search', 'com_seguradoras', 'com_cotacoes']))
+            @if(!request()->hasAny(['search', 'seguradora', 'com_cotacoes', 'comercial']))
                 @can('create', App\Models\Corretora::class)
                     <a href="{{ route('corretoras.create') }}" class="btn btn-primary">
                         <i class="bi bi-plus-circle me-2"></i>Criar Primeira Corretora

@@ -79,11 +79,12 @@ class Corretora extends Model
 
     /**
      * Corretoras com seguradoras
+     * Deprecated - substituído por filtro de seguradora específica
      */
-    public function scopeComSeguradoras($query)
-    {
-        return $query->has('seguradoras');
-    }
+    // public function scopeComSeguradoras($query)
+    // {
+    //     return $query->has('seguradoras');
+    // }
 
     /**
      * Corretoras com cotações
