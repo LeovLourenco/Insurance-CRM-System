@@ -11,6 +11,7 @@ use App\Http\Controllers\CorretoraController;
 use App\Http\Controllers\SeguradoraController;
 use App\Http\Controllers\ProdutoController;
 use App\Http\Controllers\DownloadsCadastrosController;
+use App\Http\Controllers\Admin\AtribuicoesController;
 use Illuminate\Support\Facades\Auth;
 
 // Página inicial - redireciona para login
@@ -150,13 +151,20 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // ===== GRUPO: ADMINISTRAÇÃO - Apenas Admin =====
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth', 'role:admin|diretor'])->group(function () {
     // Downloads de cadastros
     Route::get('/admin/downloads-cadastros', [DownloadsCadastrosController::class, 'index'])
         ->name('admin.downloads-cadastros');
     
     Route::get('/admin/downloads-cadastros/csv', [DownloadsCadastrosController::class, 'downloadCSV'])
         ->name('admin.downloads-cadastros.csv');
+    
+    // Atribuições de comerciais
+    Route::get('/admin/atribuicoes', [AtribuicoesController::class, 'index'])
+        ->name('admin.atribuicoes');
+    
+    Route::post('/admin/atribuicoes/{corretora}', [AtribuicoesController::class, 'update'])
+        ->name('admin.atribuicoes.update');
 });
 
 // ===== ROTAS DE DESENVOLVIMENTO (REMOVER EM PRODUÇÃO) =====

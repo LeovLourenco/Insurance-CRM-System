@@ -37,10 +37,10 @@ class ProdutoController extends Controller
                 'cotacoes' => function($q) use ($user) {
                     $q->where('user_id', $user->id);
                 }
-            ])->latest()->paginate(10);
+            ])->latest()->paginate(10)->withQueryString();
         } else {
             $produtos = $query->with(['seguradoras'])->withCount(['cotacoes'])
-                             ->latest()->paginate(10);
+                             ->latest()->paginate(10)->withQueryString();
         }
         
         // Buscar linhas únicas para o filtro

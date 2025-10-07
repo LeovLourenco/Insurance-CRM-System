@@ -275,7 +275,7 @@
         <div class="auth-header">
             <div class="content">
                 <h1>
-                    <img src="{{ asset('assets/svg/logo_Inova.svg') }}" alt="INOVA" class="auth-logo">
+                    <img src="{{ asset('assets/svg/Logo_Inova.svg') }}" alt="INOVA" class="auth-logo">
                 </h1>
             </div>
         </div>

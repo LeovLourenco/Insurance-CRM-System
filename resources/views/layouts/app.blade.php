@@ -432,7 +432,7 @@
             @endrole
 
             <!-- Administração (apenas para admin) -->
-            @role('admin')
+            @role('admin|diretor')
             <div class="nav-section">
                 <div class="nav-section-title">Sistema</div>
                 <div class="nav-item">
@@ -452,6 +452,13 @@
                        class="nav-link {{ request()->routeIs('admin.downloads-cadastros') ? 'active' : '' }}">
                         <i class="bi bi-download"></i>
                         <span class="nav-text">Downloads</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="{{ route('admin.atribuicoes') }}" 
+                       class="nav-link {{ request()->routeIs('admin.atribuicoes*') ? 'active' : '' }}">
+                        <i class="bi bi-person-badge"></i>
+                        <span class="nav-text">Atribuições</span>
                     </a>
                 </div>
             </div>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Corretora;
 use App\Models\Seguradora;
 use App\Models\CorretoraSeguradora;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -21,19 +22,32 @@ class CorretoraController extends Controller
         // ✅ ENTIDADES BASE: Todos veem todas (arquitetura correta)
         // Comerciais podem ver todas as corretoras mas policies controlam ações
 
+        // Buscar comerciais para o filtro
+        $comerciais = User::role(['comercial', 'diretor', 'admin'])->orderBy('name')->get();
+        
+        // Buscar seguradoras para o filtro
+        $seguradoras = Seguradora::orderBy('nome')->get();
+
         // Filtro por busca
         if ($request->filled('search')) {
             $query->search($request->search);
         }
 
-        // Filtro por corretoras com seguradoras
-        if ($request->filled('com_seguradoras') && $request->com_seguradoras == '1') {
-            $query->comSeguradoras();
+        // Filtro por seguradora específica
+        if ($request->filled('seguradora')) {
+            $query->whereHas('seguradoras', function($q) use ($request) {
+                $q->where('seguradoras.id', $request->seguradora);
+            });
         }
 
         // Filtro por corretoras com cotações
         if ($request->filled('com_cotacoes') && $request->com_cotacoes == '1') {
             $query->comCotacoes();
+        }
+
+        // Filtro por comercial responsável
+        if ($request->filled('comercial')) {
+            $query->where('usuario_id', $request->comercial);
         }
 
         // ✅ CORE OPERACIONAL: Contar cotações isoladas por comercial
@@ -43,14 +57,14 @@ class CorretoraController extends Controller
                 'cotacoes' => function($q) use ($user) {
                     $q->where('user_id', $user->id);
                 }
-            ])->latest()->paginate(10);
+            ])->latest()->paginate(10)->withQueryString();
         } else {
             $corretoras = $query->withCount(['seguradoras', 'cotacoes'])
                                ->latest()
-                               ->paginate(10);
+                               ->paginate(10)->withQueryString();
         }
 
-        return view('corretoras.index', compact('corretoras'));
+        return view('corretoras.index', compact('corretoras', 'comerciais', 'seguradoras'));
     }
 
     /**

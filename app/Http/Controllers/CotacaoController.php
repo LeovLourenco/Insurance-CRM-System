@@ -81,10 +81,9 @@ class CotacaoController extends Controller
         ]);
 
         // Ordenação
-        $cotacoes = $query->orderBy('created_at', 'desc')->paginate(15);
+        $cotacoes = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
 
-        // NÃO manter filtros na paginação (para não ficar "grudado")
-        // $cotacoes->appends($request->query());
+        // ✅ CORRIGIDO: Mantém filtros na paginação para UX consistente
 
         // Métricas para o dashboard
         $metricas = $this->calcularMetricas();
