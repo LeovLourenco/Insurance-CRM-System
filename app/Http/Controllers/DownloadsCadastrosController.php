@@ -10,13 +10,13 @@ use Illuminate\Http\Response;
 class DownloadsCadastrosController extends Controller
 {
     /**
-     * Construtor - verificação de permissão admin
+     * Construtor - verificação de permissão admin e diretor
      */
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
-            if (!auth()->user()->hasRole('admin')) {
-                abort(403, 'Acesso negado. Apenas administradores podem acessar esta funcionalidade.');
+            if (!auth()->user()->hasAnyRole(['admin', 'diretor'])) {
+                abort(403, 'Acesso negado. Apenas administradores e diretores podem acessar esta funcionalidade.');
             }
             return $next($request);
         });
