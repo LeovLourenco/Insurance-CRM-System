@@ -11,6 +11,9 @@ class Cotacao extends Model
     use LogsActivity;
     protected $table = 'cotacoes';
     
+    // Constantes de Status
+    const STATUS_EM_EMISSAO = 'em_emissao';
+    
     protected $fillable = [
         'corretora_id', 'produto_id', 'segurado_id', 
         'observacoes', 'status', 'user_id'
@@ -47,6 +50,11 @@ class Cotacao extends Model
     public function atividades()
     {
         return $this->hasMany(AtividadeCotacao::class);
+    }
+
+    public function apolices()
+    {
+        return $this->hasMany(Apolice::class);
     }
 
     public function user()

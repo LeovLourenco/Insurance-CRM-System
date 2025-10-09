@@ -361,6 +361,39 @@
             </div>
             @endcan
 
+            <!-- Apólices -->
+            @can('cotacoes.view')
+            <div class="nav-section">
+                <div class="nav-section-title">Apólices</div>
+                <div class="nav-item">
+                    <a href="{{ route('apolices.index') }}" class="nav-link {{ request()->routeIs('apolices.*') && !request()->routeIs('apolices.create', 'apolices.import.*') ? 'active' : '' }}">
+                        <i class="bi bi-shield-check"></i>
+                        <span class="nav-text">
+                            @role('comercial')
+                                Minhas Apólices
+                            @else
+                                Todas Apólices
+                            @endrole
+                        </span>
+                    </a>
+                </div>
+                @can('cotacoes.create')
+                <div class="nav-item">
+                    <a href="{{ route('apolices.create') }}" class="nav-link {{ request()->routeIs('apolices.create') ? 'active' : '' }}">
+                        <i class="bi bi-plus-circle"></i>
+                        <span class="nav-text">Nova Apólice</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="{{ route('apolices.import.form') }}" class="nav-link {{ request()->routeIs('apolices.import.form') ? 'active' : '' }}">
+                        <i class="bi bi-upload"></i>
+                        <span class="nav-text">Importar Excel</span>
+                    </a>
+                </div>
+                @endcan
+            </div>
+            @endcan
+
             <!-- Consultas -->
             @can('cotacoes.view')
             <div class="nav-section">
@@ -528,7 +561,8 @@
                                     'corretoras' => 'person-badge',
                                     'segurados' => 'person-check',
                                     'cotacoes' => 'file-earmark-text',
-                                    'consultas' => 'shield-check',
+                                    'apolices' => 'shield-check',
+                                    'consultas' => 'search',
                                     default => 'folder'
                                 };
                                 $nome = match($segment) {
@@ -537,6 +571,7 @@
                                     'corretoras' => 'Corretoras',
                                     'segurados' => 'Segurados',
                                     'cotacoes' => 'Cotações',
+                                    'apolices' => 'Apólices',
                                     'consultas' => 'Consultas',
                                     default => ucfirst($segment)
                                 };

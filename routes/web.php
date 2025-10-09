@@ -141,6 +141,19 @@ Route::middleware(['auth', 'role:comercial|diretor|admin'])->group(function () {
     // Resources com policies aplicando isolamento automático
     Route::resource('segurados', SeguradoController::class);
     Route::resource('corretoras', CorretoraController::class);
+    
+    // Apólices - CRUD com isolamento por role
+    Route::resource('apolices', App\Http\Controllers\ApoliceController::class);
+    
+    // Rotas específicas de apólices
+    Route::get('/apolices-importacao', [App\Http\Controllers\ApoliceController::class, 'importForm'])
+        ->name('apolices.import.form');
+    
+    Route::post('/apolices-importacao', [App\Http\Controllers\ApoliceController::class, 'import'])
+        ->name('apolices.import');
+    
+    Route::post('/apolices/criar-de-cotacao', [App\Http\Controllers\ApoliceController::class, 'criarDeCotacao'])
+        ->name('apolices.criar-de-cotacao');
 });
 
 // ===== GRUPO: PRODUTOS E SEGURADORAS - Policy-based =====
