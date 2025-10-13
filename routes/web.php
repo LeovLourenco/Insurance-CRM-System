@@ -12,6 +12,8 @@ use App\Http\Controllers\SeguradoraController;
 use App\Http\Controllers\ProdutoController;
 use App\Http\Controllers\DownloadsCadastrosController;
 use App\Http\Controllers\Admin\AtribuicoesController;
+use App\Http\Controllers\ApoliceController;
+use App\Http\Controllers\AvisosController;
 use Illuminate\Support\Facades\Auth;
 
 // Página inicial - redireciona para login
@@ -94,6 +96,15 @@ Route::middleware(['auth', 'role:comercial|diretor|admin'])->group(function () {
     
     Route::get('/cotacoes/{cotacao}/excel', [CotacaoController::class, 'exportarExcel'])
         ->name('cotacoes.excel');
+    
+    // ===== APÓLICES =====
+    Route::resource('apolices', ApoliceController::class);
+    
+    Route::get('/apolices-importacao', [ApoliceController::class, 'importForm'])
+        ->name('apolices.import.form');
+    
+    Route::post('/apolices-importacao', [ApoliceController::class, 'import'])
+        ->name('apolices.import');
 });
 
 // ===== GRUPO: RELATÓRIOS - Admin e Diretor apenas =====
@@ -133,6 +144,9 @@ Route::middleware(['auth'])->group(function () {
         $produtos = \App\Models\Produto::all();
         return view('cadastro', compact('seguradoras', 'produtos'));
     })->name('cadastro');
+    
+    // Central de Avisos
+    Route::get('/avisos', [AvisosController::class, 'index'])->name('avisos.index');
 });
 
 // ===== GRUPO: CADASTROS COMERCIAIS - Comercial/Diretor/Admin =====

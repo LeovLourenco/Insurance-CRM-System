@@ -374,6 +374,50 @@
             </div>
             @endcan
 
+            <!-- Apólices -->
+            @can('cotacoes.view')
+            <div class="nav-section">
+                <div class="nav-section-title">Apólices</div>
+                <div class="nav-item">
+                    <a href="{{ route('apolices.index') }}" class="nav-link {{ request()->routeIs('apolices.index') ? 'active' : '' }}">
+                        <i class="bi bi-shield-check"></i>
+                        <span class="nav-text">
+                            @role('comercial')
+                                Minhas Apólices
+                            @else
+                                Todas Apólices
+                            @endrole
+                        </span>
+                    </a>
+                </div>
+                @can('cotacoes.create')
+                <div class="nav-item">
+                    <a href="{{ route('apolices.create') }}" class="nav-link {{ request()->routeIs('apolices.create') ? 'active' : '' }}">
+                        <i class="bi bi-plus-circle"></i>
+                        <span class="nav-text">Nova Apólice</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="{{ route('apolices.import.form') }}" class="nav-link {{ request()->routeIs('apolices.import.form') ? 'active' : '' }}">
+                        <i class="bi bi-upload"></i>
+                        <span class="nav-text">Importar Excel</span>
+                    </a>
+                </div>
+                @endcan
+            </div>
+            @endcan
+
+            <!-- Central de Avisos -->
+            <div class="nav-section">
+                <div class="nav-section-title">Suporte</div>
+                <div class="nav-item">
+                    <a href="{{ route('avisos.index') }}" class="nav-link {{ request()->routeIs('avisos.index') ? 'active' : '' }}">
+                        <i class="bi bi-headset"></i>
+                        <span class="nav-text">Central de Avisos</span>
+                    </a>
+                </div>
+            </div>
+
             <!-- Cadastros Base - TODOS DEVEM VER -->
             <div class="nav-section">
                 <div class="nav-section-title">
@@ -529,6 +573,8 @@
                                     'segurados' => 'person-check',
                                     'cotacoes' => 'file-earmark-text',
                                     'consultas' => 'shield-check',
+                                    'apolices' => 'shield-check',
+                                    'avisos' => 'headset',
                                     default => 'folder'
                                 };
                                 $nome = match($segment) {
@@ -538,6 +584,8 @@
                                     'segurados' => 'Segurados',
                                     'cotacoes' => 'Cotações',
                                     'consultas' => 'Consultas',
+                                    'apolices' => 'Apólices',
+                                    'avisos' => 'Central de Avisos',
                                     default => ucfirst($segment)
                                 };
                             @endphp
