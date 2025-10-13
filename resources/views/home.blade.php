@@ -78,6 +78,45 @@
         </div>
     </div>
 
+    <!-- Aviso Novas Funcionalidades Corretoras -->
+    <div class="col-12 mb-4">
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-download me-3 fs-4"></i>
+                <div class="w-100">
+                    <h6 class="alert-heading mb-1">📊 Melhorias no módulo de Corretoras!</h6>
+                    <p class="mb-2">
+                        Adicionamos novas funcionalidades para melhorar sua experiência:
+                    </p>
+                    <ul class="mb-3">
+                        <li><strong>Exportação CSV/Excel</strong> - Exporte dados completos das corretoras com todos os filtros aplicados</li>
+                        <li><strong>Seleção múltipla de seguradoras</strong> - Interface intuitiva com dropdown de checkboxes</li>
+                    </ul>
+                    <div class="mb-3">
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-info-circle me-1"></i>
+                            O botão de exportação está localizado no <strong>canto superior direito</strong> da tela de Corretoras:
+                        </p>
+                        <!-- Demonstração visual do botão -->
+                        <div class="d-inline-block p-2 bg-white rounded border">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-success dropdown-toggle" disabled>
+                                    <i class="bi bi-download me-2"></i>Exportar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('corretoras.index') }}" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-person-badge me-1"></i>Ver Corretoras
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+
     <!-- Stats Cards -->
     <div class="col-md-3 mb-4">
         <div class="modern-card p-4">
