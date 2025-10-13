@@ -154,6 +154,10 @@ Route::middleware(['auth', 'role:comercial|diretor|admin'])->group(function () {
     
     // Resources com policies aplicando isolamento automático
     Route::resource('segurados', SeguradoController::class);
+    
+    // Corretoras com rota de exportação
+    Route::get('/corretoras/export', [CorretoraController::class, 'export'])
+        ->name('corretoras.export');
     Route::resource('corretoras', CorretoraController::class);
 });
 

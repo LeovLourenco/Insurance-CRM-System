@@ -6,11 +6,30 @@
         <h1 class="h3 mb-1">Corretoras</h1>
         <p class="text-muted mb-0">Gerencie as corretoras parceiras do sistema</p>
     </div>
-    @can('create', App\Models\Corretora::class)
-        <a href="{{ route('corretoras.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-2"></i>Nova Corretora
-        </a>
-    @endcan
+    <div class="d-flex gap-2">
+        <div class="btn-group">
+            <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="bi bi-download me-2"></i>Exportar
+            </button>
+            <ul class="dropdown-menu">
+                <li>
+                    <a class="dropdown-item" href="{{ route('corretoras.export', array_merge(request()->all(), ['formato' => 'csv'])) }}">
+                        <i class="bi bi-filetype-csv me-2"></i>Baixar CSV
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{{ route('corretoras.export', array_merge(request()->all(), ['formato' => 'excel'])) }}">
+                        <i class="bi bi-file-earmark-excel me-2"></i>Baixar Excel
+                    </a>
+                </li>
+            </ul>
+        </div>
+        @can('create', App\Models\Corretora::class)
+            <a href="{{ route('corretoras.create') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-2"></i>Nova Corretora
+            </a>
+        @endcan
+    </div>
 </div>
 
 <!-- Alerts -->
@@ -31,7 +50,7 @@
 <!-- Filtros -->
 <div class="modern-card p-4 mb-4">
     <form method="GET" action="{{ route('corretoras.index') }}" class="row g-3">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <label for="search" class="form-label">Buscar corretora</label>
             <input type="text" 
                    class="form-control" 
@@ -41,18 +60,32 @@
                    placeholder="Nome, email ou telefone...">
         </div>
         <div class="col-md-3">
-            <label for="seguradora" class="form-label">Seguradora</label>
-            <select class="form-select" id="seguradora" name="seguradora">
-                <option value="">Todas as seguradoras</option>
-                @if(isset($seguradoras))
-                    @foreach($seguradoras as $seguradora)
-                        <option value="{{ $seguradora->id }}"
-                            {{ request('seguradora') == $seguradora->id ? 'selected' : '' }}>
-                            {{ $seguradora->nome }}
-                        </option>
-                    @endforeach
-                @endif
-            </select>
+            <label class="form-label">Seguradoras</label>
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" 
+                        type="button" 
+                        data-bs-toggle="dropdown"
+                        id="dropdownSeguradoras">
+                    <span class="text-muted">Selecione...</span>
+                </button>
+                <div class="dropdown-menu p-2" style="max-height: 300px; overflow-y: auto; min-width: 250px;">
+                    @if(isset($seguradoras))
+                        @foreach($seguradoras as $seguradora)
+                        <div class="form-check">
+                            <input class="form-check-input seguradora-check" 
+                                   type="checkbox" 
+                                   name="seguradoras[]"
+                                   value="{{ $seguradora->id }}"
+                                   id="seg_{{ $seguradora->id }}"
+                                   {{ in_array($seguradora->id, request('seguradoras', [])) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="seg_{{ $seguradora->id }}">
+                                {{ $seguradora->nome }}
+                            </label>
+                        </div>
+                        @endforeach
+                    @endif
+                </div>
+            </div>
         </div>
         <div class="col-md-3">
             <label for="com_cotacoes" class="form-label">Com cotações</label>
@@ -77,7 +110,7 @@
                 @endif
             </select>
         </div>
-        <div class="col-md-2 d-flex align-items-end gap-2">
+        <div class="col-md-12 d-flex justify-content-end gap-2">
             <button type="submit" class="btn btn-outline-primary">
                 <i class="bi bi-search me-1"></i>Filtrar
             </button>
@@ -323,6 +356,37 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // ===== DROPDOWN DE SEGURADORAS =====
+    // Atualizar texto do dropdown de seguradoras
+    function updateSeguradorasText() {
+        const checked = document.querySelectorAll('.seguradora-check:checked');
+        const button = document.getElementById('dropdownSeguradoras');
+        if (checked.length === 0) {
+            button.innerHTML = '<span class="text-muted">Selecione...</span>';
+        } else if (checked.length === 1) {
+            button.textContent = checked[0].nextElementSibling.textContent;
+        } else {
+            button.textContent = checked.length + ' seguradoras selecionadas';
+        }
+    }
+    
+    // Manter dropdown aberto ao clicar nos checkboxes
+    document.querySelectorAll('.seguradora-check').forEach(function(checkbox) {
+        checkbox.addEventListener('change', updateSeguradorasText);
+    });
+    
+    // Prevenir fechamento do dropdown ao clicar dentro dele
+    const dropdownMenu = document.querySelector('.dropdown-menu');
+    if (dropdownMenu) {
+        dropdownMenu.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
+    
+    // Inicializar texto do dropdown
+    updateSeguradorasText();
+    
+    // ===== LINHAS CLICÁVEIS =====
     document.querySelectorAll('.clickable-row').forEach(function(row) {
         row.addEventListener('click', function(e) {
             // Prevent row click when clicking on action column

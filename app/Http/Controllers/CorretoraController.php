@@ -12,11 +12,48 @@ use Illuminate\Support\Facades\DB;
 class CorretoraController extends Controller
 {
     /**
+     * Aplicar filtros reutilizáveis para consultas
+     */
+    private function aplicarFiltros(Request $request)
+    {
+        $query = Corretora::query();
+        
+        // Filtro por comercial responsável
+        if ($request->filled('comercial')) {
+            $query->where('usuario_id', $request->comercial);
+        }
+        
+        // Filtro por seguradoras (aceitar tanto array quanto valor único)
+        if ($request->filled('seguradoras')) {
+            $seguradoras = is_array($request->seguradoras) ? $request->seguradoras : [$request->seguradoras];
+            $query->whereHas('seguradoras', function($q) use ($seguradoras) {
+                $q->whereIn('seguradoras.id', $seguradoras);
+            });
+        }
+        
+        // Filtro por busca (search)
+        if ($request->filled('search')) {
+            $query->where(function($q) use ($request) {
+                $q->where('nome', 'like', '%' . $request->search . '%')
+                  ->orWhere('cpf_cnpj', 'like', '%' . $request->search . '%')
+                  ->orWhere('email', 'like', '%' . $request->search . '%')
+                  ->orWhere('telefone', 'like', '%' . $request->search . '%');
+            });
+        }
+        
+        // Filtro por corretoras com cotações
+        if ($request->filled('com_cotacoes') && $request->com_cotacoes == '1') {
+            $query->comCotacoes();
+        }
+        
+        return $query->with(['seguradoras', 'usuario']);
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $query = Corretora::query();
         $user = auth()->user();
 
         // ✅ ENTIDADES BASE: Todos veem todas (arquitetura correta)
@@ -28,27 +65,8 @@ class CorretoraController extends Controller
         // Buscar seguradoras para o filtro
         $seguradoras = Seguradora::orderBy('nome')->get();
 
-        // Filtro por busca
-        if ($request->filled('search')) {
-            $query->search($request->search);
-        }
-
-        // Filtro por seguradora específica
-        if ($request->filled('seguradora')) {
-            $query->whereHas('seguradoras', function($q) use ($request) {
-                $q->where('seguradoras.id', $request->seguradora);
-            });
-        }
-
-        // Filtro por corretoras com cotações
-        if ($request->filled('com_cotacoes') && $request->com_cotacoes == '1') {
-            $query->comCotacoes();
-        }
-
-        // Filtro por comercial responsável
-        if ($request->filled('comercial')) {
-            $query->where('usuario_id', $request->comercial);
-        }
+        // Aplicar filtros reutilizáveis
+        $query = $this->aplicarFiltros($request);
 
         // ✅ CORE OPERACIONAL: Contar cotações isoladas por comercial
         if ($user->hasRole('comercial')) {
@@ -346,6 +364,141 @@ class CorretoraController extends Controller
                               ->get(['id', 'nome', 'email', 'telefone']);
 
         return response()->json($corretoras);
+    }
+
+    /**
+     * Exportar corretoras com filtros aplicados
+     */
+    public function export(Request $request)
+    {
+        $query = $this->aplicarFiltros($request);
+        $corretoras = $query->orderBy('nome')->get();
+        
+        $formato = $request->get('formato', 'csv');
+        
+        if ($formato === 'excel') {
+            return $this->exportExcel($corretoras);
+        }
+        
+        return $this->exportCSV($corretoras);
+    }
+
+    /**
+     * Exportar corretoras em formato CSV
+     */
+    private function exportCSV($corretoras)
+    {
+        $filename = 'corretoras_' . date('Y-m-d_H-i-s') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+        
+        $callback = function() use ($corretoras) {
+            $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF)); // BOM para UTF-8
+            
+            // Cabeçalhos
+            fputcsv($file, [
+                'Nome', 
+                'CNPJ', 
+                'Email', 
+                'Email 2',
+                'Email 3',
+                'Telefone', 
+                'Estado',
+                'Cidade',
+                'SUSEP',
+                'SUC-CPD',
+                'Responsável', 
+                'Seguradoras',
+                'Data Cadastro'
+            ], ';');
+            
+            // Dados
+            foreach ($corretoras as $corretora) {
+                fputcsv($file, [
+                    $corretora->nome,
+                    $corretora->cpf_cnpj,
+                    $corretora->email,
+                    $corretora->email2 ?? '',
+                    $corretora->email3 ?? '',
+                    $corretora->telefone,
+                    $corretora->estado,
+                    $corretora->cidade,
+                    $corretora->susep,
+                    $corretora->suc_cpd,
+                    $corretora->usuario->name ?? 'N/A',
+                    $corretora->seguradoras->pluck('nome')->implode(', '),
+                    $corretora->created_at->format('d/m/Y')
+                ], ';');
+            }
+            
+            fclose($file);
+        };
+        
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Exportar corretoras em formato Excel (HTML table)
+     */
+    private function exportExcel($corretoras)
+    {
+        // Por enquanto, usar CSV com extensão .xls para compatibilidade
+        $filename = 'corretoras_' . date('Y-m-d_H-i-s') . '.xls';
+        
+        $headers = [
+            'Content-Type' => 'application/vnd.ms-excel',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+        
+        $callback = function() use ($corretoras) {
+            echo '<meta charset="UTF-8">';
+            echo '<table border="1">';
+            echo '<thead>';
+            echo '<tr>';
+            echo '<th style="background-color:#f0f0f0">Nome</th>';
+            echo '<th style="background-color:#f0f0f0">CNPJ</th>';
+            echo '<th style="background-color:#f0f0f0">Email</th>';
+            echo '<th style="background-color:#f0f0f0">Email 2</th>';
+            echo '<th style="background-color:#f0f0f0">Email 3</th>';
+            echo '<th style="background-color:#f0f0f0">Telefone</th>';
+            echo '<th style="background-color:#f0f0f0">Estado</th>';
+            echo '<th style="background-color:#f0f0f0">Cidade</th>';
+            echo '<th style="background-color:#f0f0f0">SUSEP</th>';
+            echo '<th style="background-color:#f0f0f0">SUC-CPD</th>';
+            echo '<th style="background-color:#f0f0f0">Responsável</th>';
+            echo '<th style="background-color:#f0f0f0">Seguradoras</th>';
+            echo '<th style="background-color:#f0f0f0">Data Cadastro</th>';
+            echo '</tr>';
+            echo '</thead>';
+            echo '<tbody>';
+            
+            foreach ($corretoras as $corretora) {
+                echo '<tr>';
+                echo '<td>' . htmlspecialchars($corretora->nome) . '</td>';
+                echo '<td>' . htmlspecialchars($corretora->cpf_cnpj ?? '') . '</td>';
+                echo '<td>' . htmlspecialchars($corretora->email ?? '') . '</td>';
+                echo '<td>' . htmlspecialchars($corretora->email2 ?? '') . '</td>';
+                echo '<td>' . htmlspecialchars($corretora->email3 ?? '') . '</td>';
+                echo '<td>' . htmlspecialchars($corretora->telefone ?? '') . '</td>';
+                echo '<td>' . htmlspecialchars($corretora->estado ?? '') . '</td>';
+                echo '<td>' . htmlspecialchars($corretora->cidade ?? '') . '</td>';
+                echo '<td>' . htmlspecialchars($corretora->susep ?? '') . '</td>';
+                echo '<td>' . htmlspecialchars($corretora->suc_cpd ?? '') . '</td>';
+                echo '<td>' . htmlspecialchars($corretora->usuario->name ?? 'N/A') . '</td>';
+                echo '<td>' . htmlspecialchars($corretora->seguradoras->pluck('nome')->implode(', ')) . '</td>';
+                echo '<td>' . $corretora->created_at->format('d/m/Y') . '</td>';
+                echo '</tr>';
+            }
+            
+            echo '</tbody>';
+            echo '</table>';
+        };
+        
+        return response()->stream($callback, 200, $headers);
     }
 
 }
