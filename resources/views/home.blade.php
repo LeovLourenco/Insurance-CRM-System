@@ -52,6 +52,32 @@
         </div>
     @endif
 
+    <!-- Aviso Central de Avisos -->
+    <div class="col-12 mb-4">
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-megaphone me-3 fs-4"></i>
+                <div>
+                    <h6 class="alert-heading mb-1">🎉 Nova funcionalidade disponível!</h6>
+                    <p class="mb-2">
+                        Implementamos o <strong>Formulário de Suporte</strong> na seção 
+                        <strong>Suporte > Central de Avisos</strong> no menu lateral.
+                    </p>
+                    <p class="mb-0">
+                        Agora você pode reportar problemas, solicitar alterações de dados ou sugerir melhorias 
+                        diretamente através do nosso sistema integrado com o Jira.
+                    </p>
+                    <div class="mt-2">
+                        <a href="{{ route('avisos.index') }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-headset me-1"></i>Acessar Central de Avisos
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+
     <!-- Stats Cards -->
     <div class="col-md-3 mb-4">
         <div class="modern-card p-4">
