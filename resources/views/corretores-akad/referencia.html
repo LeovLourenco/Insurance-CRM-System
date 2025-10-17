@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de corretores - Inova</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #070B4A 0%, #393C6E 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-container {
+            max-width: 750px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .header {
+            background: white;
+            color: #070B4A;
+            padding: 40px 50px;
+            text-align: center;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            margin-right: 15px;
+            filter: brightness(0) saturate(100%) invert(12%) sepia(91%) saturate(1834%) hue-rotate(217deg) brightness(91%) contrast(106%);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .header p {
+            margin-top: 5px;
+            opacity: 0.9;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .form-container {
+            padding: 10px 50px;
+        }
+
+        .form-section {
+            margin-bottom: 40px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e1e5e9;
+        }
+
+        .section-icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+            color: #070B4A;
+        }
+
+        .section-title {
+            color: #070B4A;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .required {
+            color: #e74c3c;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #393C6E;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(57, 60, 110, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .checkbox-group {
+            background: #f8f9fa;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 30px 0;
+        }
+
+        .checkbox-group h4 {
+            color: #070B4A;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .checkbox-item {
+            background: white;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .checkbox-item:hover {
+            border-color: #393C6E;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .checkbox-item.selected {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            border-color: #27ae60;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .checkbox-item.selected label {
+            color: white;
+        }
+
+        .checkbox-item.selected label div:last-child {
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 15px;
+            accent-color: #393C6E;
+        }
+
+        .info-section {
+            padding: 25px;
+            border-radius: 15px;
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .tips-section {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border: 2px solid #1976d2;
+        }
+
+        .docs-section {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 2px solid #856404;
+        }
+
+        .next-section {
+            background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+            border: 2px solid #27ae60;
+        }
+
+        .info-section h4 {
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .tips-section h4 { color: #1976d2; }
+        .docs-section h4 { color: #856404; }
+        .next-section h4 { color: #27ae60; }
+
+        .tip-item {
+            background: white;
+            padding: 16px;
+            border-radius: 10px;
+            margin: 12px 0;
+            border-left: 4px solid #1976d2;
+            text-align: left;
+        }
+
+        .tip-item strong {
+            color: #1976d2;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .tip-item p {
+            color: #333;
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        .docs-section p {
+            color: #856404;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .next-section p {
+            color: #155724;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #070B4A 0%, #393C6E 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 30px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(7, 11, 74, 0.3);
+        }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+
+        .status-message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success-container {
+            display: none;
+            text-align: center;
+            padding: 50px;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: #27ae60;
+            margin-bottom: 25px;
+        }
+
+        .success-container h2 {
+            color: #070B4A;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        .success-container p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+
+        .next-step-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .next-step-btn:hover {
+            background: #c0392b;
+        }
+
+        .contact-info {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .contact-info h4 {
+            color: #070B4A;
+            margin-bottom: 10px;
+        }
+
+        .contact-info p {
+            color: #666;
+            font-size: 0.95rem;
+            margin: 6px 0;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .main-container {
+                border-radius: 15px;
+            }
+
+            .header,
+            .form-container,
+            .success-container {
+                padding: 30px 25px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Formulário Principal -->
+        <div id="form-section">
+            <div class="header">
+                <div class="logo-container">
+                    <img src="logo-login.svg" alt="Inova" class="logo-icon">
+                    <h1>Seja atendido pela Inova</h1>
+                </div>
+            </div>
+
+            <div class="form-container">
+                <div class="form-section">
+                    <div class="section-header">
+                        <span class="section-icon">📋</span>
+                        <h3 class="section-title">Dados da Corretora</h3>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="corretora">Razão Social <span class="required">*</span></label>
+                        <input type="text" id="corretora" name="corretora" required placeholder="Ex: Corretora XYZ Ltda">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cnpj">CNPJ <span class="required">*</span></label>
+                            <input type="text" id="cnpj" name="cnpj" required placeholder="00.000.000/0001-00">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">E-mail Corporativo <span class="required">*</span></label>
+                            <input type="email" id="email" name="email" required placeholder="contato@empresa.com.br">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-header">
+                        <span class="section-icon">👤</span>
+                        <h3 class="section-title">Dados do Responsável</h3>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="responsavel">Nome do Responsável <span class="required">*</span></label>
+                            <input type="text" id="responsavel" name="responsavel" required placeholder="Nome completo">
+                        </div>
+                        <div class="form-group">
+                            <label for="telefone">Telefone <span class="required">*</span></label>
+                            <input type="tel" id="telefone" name="telefone" required placeholder="(11) 99999-9999">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="checkbox-group">
+                    <h4>🛡️ Seguradoras de Interesse</h4>
+                    <div class="checkbox-item" onclick="toggleSeguradora(this)">
+                        <input type="checkbox" id="sancor" name="seguradoras" value="sancor">
+                        <label for="sancor">
+                            <div style="font-weight: 600;">Sancor Seguros</div>
+                            <div style="font-size: 0.9rem; color: #666; margin-top: 4px;">Cadastro de Corretor de Seguros</div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Dicas para o formulário da SANCOR -->
+                <div class="info-section tips-section">
+                    <h4>💡 Dicas Importantes para o Formulário da Sancor</h4>
+                    
+                    <div class="tip-item">
+                        <strong>Como deseja seu atendimento comercial?</strong>
+                        <p>✅ Marque "Assessoria" para ser atendido pela Inova</p>
+                    </div>
+                    
+                    <div class="tip-item">
+                        <strong>Nome do comercial/assessoria:</strong>
+                        <p>✅ Digite exatamente "Inova" neste campo</p>
+                    </div>
+                </div>
+
+                <!-- Documentos Necessários -->
+                <div class="info-section docs-section">
+                    <h4>📄 Documentos Necessários</h4>
+                    <p>CNPJ • Contrato Social • Comprovante Conta Corrente • Comprovante Endereço • Alvará Funcionamento • Certidão SUSEP</p>
+                </div>
+
+                <!-- Próximo Passo -->
+                <div class="info-section next-section">
+                    <h4>🚀 Próximo Passo</h4>
+                    <p>Ao clicar no botão abaixo, seus dados serão enviados para nossa equipe e você será direcionado para o formulário oficial da Sancor Seguros.</p>
+                </div>
+
+                <button type="button" class="submit-btn" onclick="enviarDadosEAbrirFormulario()">
+                    Enviar Dados e Acessar Formulário Sancor
+                </button>
+
+                <div id="statusMessage" class="status-message"></div>
+            </div>
+        </div>
+
+        <!-- Tela de Sucesso -->
+            <div id="success-section" class="success-container">
+                <img src="Logo-horizontal-Inova-azul.svg" alt="Inova" style="max-width: 200px; margin-bottom: 30px;">
+                
+                <div class="success-icon">✓</div>
+                <h2>Dados Enviados com Sucesso!</h2>
+                <p>Seus dados foram enviados para nossa equipe e o formulário da Sancor foi aberto em uma nova aba.</p>
+                
+                <p><strong>Caso o formulário não tenha aberto automaticamente:</strong></p>
+                
+                <button onclick="window.open('https://form.jotform.com/240285607680661', '_blank')" class="next-step-btn">
+                    Abrir Formulário Sancor Manualmente
+                </button>
+
+                <div class="contact-info">
+                    <h4>📞 Equipe Inova</h4>
+                    <p><strong>Email:</strong> cadastro@inovarepresentacao.com.br</p>
+                    <p>Nossa equipe foi notificada e acompanhará seu processo</p>
+                </div>
+            </div>
+    </div>
+
+    <script>
+        // Função para toggle do card da seguradora
+        function toggleSeguradora(card) {
+            const checkbox = card.querySelector('input[type="checkbox"]');
+            
+            if (card.classList.contains('selected')) {
+                card.classList.remove('selected');
+                checkbox.checked = false;
+            } else {
+                card.classList.add('selected');
+                checkbox.checked = true;
+            }
+        }
+        // Formatação automática de campos
+        document.getElementById('cnpj').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 14) {
+                value = value.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+                e.target.value = value;
+            }
+        });
+
+        document.getElementById('telefone').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 11) {
+                value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+                value = value.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+                e.target.value = value;
+            }
+        });
+
+        // Validações
+        function validarEmail(email) {
+            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return regex.test(email);
+        }
+
+        function validarCNPJ(cnpj) {
+            const numeros = cnpj.replace(/\D/g, '');
+            return numeros.length === 14;
+        }
+
+        // Função única que faz tudo: valida + envia + abre formulário
+        async function enviarDadosEAbrirFormulario() {
+            const btn = document.querySelector('.submit-btn');
+            const statusDiv = document.getElementById('statusMessage');
+            
+            // Coleta dos dados
+            const dados = {
+                corretora: document.getElementById('corretora').value.trim(),
+                cnpj: document.getElementById('cnpj').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                responsavel: document.getElementById('responsavel').value.trim(),
+                telefone: document.getElementById('telefone').value.trim(),
+                seguradoras: Array.from(document.querySelectorAll('input[name="seguradoras"]:checked')).map(el => el.value),
+                timestamp: new Date().toISOString().slice(0, 19).replace('T', ' '),  // ← Formato MySQL: YYYY-MM-DD HH:MM:SS
+                tipo: 'solicitacao_parceria_completa'
+            };
+
+            // Validações
+            if (!dados.corretora || !dados.cnpj || !dados.email || !dados.responsavel || !dados.telefone) {
+                mostrarStatus('Preencha todos os campos obrigatórios.', 'error');
+                return;
+            }
+
+            if (!validarEmail(dados.email)) {
+                mostrarStatus('Digite um e-mail válido.', 'error');
+                return;
+            }
+
+            if (!validarCNPJ(dados.cnpj)) {
+                mostrarStatus('Digite um CNPJ válido.', 'error');
+                return;
+            }
+
+            if (dados.seguradoras.length === 0) {
+                mostrarStatus('Selecione ao menos uma seguradora.', 'error');
+                return;
+            }
+
+            // Loading state
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loading"></div>Enviando dados...';
+            statusDiv.style.display = 'none';
+
+            try {
+                // Simula envio (substitua pela URL real do seu backend)
+                const response = await fetch('processar-parceria.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(dados)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Sucesso: atualiza botão e abre formulário
+                    btn.innerHTML = '✓ Dados enviados! Abrindo formulário...';
+                    
+                    // Abre formulário da Sancor
+                    setTimeout(() => {
+                        window.open('https://form.jotform.com/240285607680661', '_blank');
+                        
+                        // Mostra tela de confirmação
+                        setTimeout(() => {
+                            mostrarTelaFinal();
+                        }, 1000);
+                    }, 1500);
+                    
+                } else {
+                    throw new Error(result.error || 'Erro no envio');
+                }
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                mostrarStatus('Erro ao enviar dados. Tente novamente.', 'error');
+                
+                btn.disabled = false;
+                btn.innerHTML = 'Enviar Dados e Acessar Formulário Sancor';
+            }
+        }
+
+        function mostrarStatus(mensagem, tipo) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = mensagem;
+            statusDiv.className = `status-message ${tipo}`;
+            statusDiv.style.display = 'block';
+            
+            if (tipo === 'success') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        function mostrarTelaFinal() {
+            document.getElementById('form-section').style.display = 'none';
+            document.getElementById('success-section').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

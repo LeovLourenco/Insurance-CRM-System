@@ -374,7 +374,7 @@
             </div>
             @endcan
 
-            <!-- Apólices -->
+            {{-- Menu Apólices - temporariamente desabilitado (controller não existe)
             @can('cotacoes.view')
             <div class="nav-section">
                 <div class="nav-section-title">Apólices</div>
@@ -406,6 +406,7 @@
                 @endcan
             </div>
             @endcan
+            --}}
 
             <!-- Central de Avisos -->
             <div class="nav-section">
@@ -503,6 +504,13 @@
                        class="nav-link {{ request()->routeIs('admin.atribuicoes*') ? 'active' : '' }}">
                         <i class="bi bi-person-badge"></i>
                         <span class="nav-text">Atribuições</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="{{ route('admin.corretores-akad-gestao.index') }}" 
+                       class="nav-link {{ request()->routeIs('admin.corretores-akad-gestao.*') ? 'active' : '' }}">
+                        <i class="bi bi-building-check"></i>
+                        <span class="nav-text">Corretores AKAD</span>
                     </a>
                 </div>
             </div>

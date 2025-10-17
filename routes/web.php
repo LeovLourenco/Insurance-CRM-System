@@ -12,14 +12,31 @@ use App\Http\Controllers\SeguradoraController;
 use App\Http\Controllers\ProdutoController;
 use App\Http\Controllers\DownloadsCadastrosController;
 use App\Http\Controllers\Admin\AtribuicoesController;
-use App\Http\Controllers\ApoliceController;
+// use App\Http\Controllers\ApoliceController; // Controller não existe
 use App\Http\Controllers\AvisosController;
+use App\Http\Controllers\CorretorAkadController;
+use App\Http\Controllers\Admin\CorretorAkadAdminController;
 use Illuminate\Support\Facades\Auth;
 
+// ===== ROTAS PÚBLICAS =====
 // Página inicial - redireciona para login
 Route::get('/', function () {
     return redirect()->route('login');
 });
+
+// Cadastro público de corretores AKAD
+Route::get('/corretor-akad/cadastro', [CorretorAkadController::class, 'showCadastro'])
+    ->name('corretor-akad.cadastro');
+
+Route::post('/corretor-akad/cadastro', [CorretorAkadController::class, 'storeCadastro'])
+    ->name('corretor-akad.store');
+
+Route::post('/corretor-akad/validar', [CorretorAkadController::class, 'validarDados'])
+    ->name('corretor-akad.validar');
+
+// Webhook do Autentique (público, mas protegido internamente)
+Route::post('/webhook/autentique', [CorretorAkadController::class, 'webhook'])
+    ->name('webhook.autentique');
 
 // Rotas de autenticação (login, registro, etc.)
 Auth::routes();
@@ -98,13 +115,13 @@ Route::middleware(['auth', 'role:comercial|diretor|admin'])->group(function () {
         ->name('cotacoes.excel');
     
     // ===== APÓLICES =====
-    Route::resource('apolices', ApoliceController::class);
+    // Route::resource('apolices', ApoliceController::class); // Controller não existe
     
-    Route::get('/apolices-importacao', [ApoliceController::class, 'importForm'])
-        ->name('apolices.import.form');
+    // Route::get('/apolices-importacao', [ApoliceController::class, 'importForm'])
+    //     ->name('apolices.import.form');
     
-    Route::post('/apolices-importacao', [ApoliceController::class, 'import'])
-        ->name('apolices.import');
+    // Route::post('/apolices-importacao', [ApoliceController::class, 'import'])
+    //     ->name('apolices.import');
 });
 
 // ===== GRUPO: RELATÓRIOS - Admin e Diretor apenas =====
@@ -147,6 +164,18 @@ Route::middleware(['auth'])->group(function () {
     
     // Central de Avisos
     Route::get('/avisos', [AvisosController::class, 'index'])->name('avisos.index');
+    
+    // Admin - Corretores AKAD (novo painel)
+    Route::prefix('admin')->group(function () {
+        Route::get('/corretores-akad-gestao', [CorretorAkadAdminController::class, 'index'])
+            ->name('admin.corretores-akad-gestao.index');
+        
+        Route::get('/corretores-akad-gestao/{id}', [CorretorAkadAdminController::class, 'show'])
+            ->name('admin.corretores-akad-gestao.show');
+        
+        Route::post('/corretores-akad-gestao/{id}/reenviar', [CorretorAkadAdminController::class, 'reenviarDocumento'])
+            ->name('admin.corretores-akad-gestao.reenviar');
+    });
 });
 
 // ===== GRUPO: CADASTROS COMERCIAIS - Comercial/Diretor/Admin =====
@@ -183,6 +212,16 @@ Route::middleware(['auth', 'role:admin|diretor'])->group(function () {
     
     Route::post('/admin/atribuicoes/{corretora}', [AtribuicoesController::class, 'update'])
         ->name('admin.atribuicoes.update');
+    
+    // ===== GESTÃO CORRETORES AKAD =====
+    Route::prefix('admin/corretores-akad')->name('admin.corretores-akad.')->group(function () {
+        Route::get('/', [CorretorAkadController::class, 'index'])->name('index');
+        Route::get('/{corretor}', [CorretorAkadController::class, 'show'])->name('show');
+        Route::post('/{corretor}/enviar-documento', [CorretorAkadController::class, 'enviarDocumento'])->name('enviar-documento');
+        Route::post('/{corretor}/ativar', [CorretorAkadController::class, 'ativar'])->name('ativar');
+        Route::post('/{corretor}/desativar', [CorretorAkadController::class, 'desativar'])->name('desativar');
+        Route::get('/export', [CorretorAkadController::class, 'export'])->name('export');
+    });
 });
 
 // ===== ROTAS DE DESENVOLVIMENTO (REMOVER EM PRODUÇÃO) =====

@@ -30,4 +30,20 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Autentique API Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configurações para integração com Autentique API para assinatura
+    | digital de documentos dos corretores AKAD.
+    |
+    */
+    'autentique' => [
+        'api_url' => env('AUTENTIQUE_API_URL', 'https://api.autentique.com.br/v2/graphql'),
+        'token' => env('AUTENTIQUE_TOKEN'),
+        'timeout' => env('AUTENTIQUE_TIMEOUT', 30),
+        // 'webhook_secret' => env('AUTENTIQUE_WEBHOOK_SECRET'), // Opcional - comentado por enquanto
+    ],
+
 ];

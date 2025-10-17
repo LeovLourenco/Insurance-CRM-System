@@ -20,3 +20,7 @@ yarn-error.log
 .DS_Store
 */.DS_Store
 **/.DS_Store
+
+# Arquivos temporários do sistema de documentos
+storage/app/temp/*
+!storage/app/temp/.gitkeep
